@@ -6,7 +6,7 @@ CORE_PATH = 'psi.paradigms.core.'
 
 
 COMMON_PLUGINS = [
-    {'manifest': PATH + 'behavior_auto_gonogo.BehaviorManifest'},
+    {'manifest': PATH + 'behavior_gonogo.BehaviorManifest'},
     {'manifest': PATH + 'behavior_mixins.BaseGoNogoMixin'},
     {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser'},
     {'manifest': CORE_PATH + 'video_mixins.PSIVideo'},
