@@ -20,7 +20,7 @@ ParadigmDescription(
     'NTD', 'Go-nogo tone detection in natural background',
     'animal', COMMON_PLUGINS + [
         PATH + 'stimuli.TargetTone',
-        PATH + 'stimuli.BackgroundNaturalSounds,
+        PATH + 'stimuli.BackgroundNaturalSounds',
     ],
 )
 
@@ -29,6 +29,6 @@ ParadigmDescription(
     'STD', 'Go-nogo tone detection in silence',
     'animal', COMMON_PLUGINS + [
         PATH + 'stimuli.TargetTone',
-        PATH + 'stimuli.BackgroundSilence,
+        PATH + 'stimuli.BackgroundSilence',
     ],
 )
