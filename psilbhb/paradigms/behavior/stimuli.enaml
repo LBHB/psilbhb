@@ -1,0 +1,36 @@
+from enaml.workbench.api import Extension
+
+from psi.enaml.core.api import ExperimentManifest
+from psi.token.primitives import (Cos2Envelope, Silence, Tone, WavSequence)
+
+
+enamldef BackgroundSilence(ExperimentManifest): manifest:
+
+    Extension:
+        id = manifest.id + '.tokens'
+        point = 'psi.token.tokens'
+
+        Silence:
+            name = 'silence'
+            label = 'Silence'
+
+
+enamldef TargetTone(ExperimentManifest): manifest:
+
+    Extension:
+        id = manifest.id + '.tokens'
+        point = 'psi.token.tokens'
+
+        Cos2Envelope:
+            name = 'tone'
+            label = 'Tone'
+            hide = ['start_time',]
+            Tone:
+                hide = ['polarity', 'phase']
+
+
+enamldef BackgroundNaturalSounds(ExperimentManifest): manifest:
+
+        WavSequence:
+            name = 'wav_sequence'
+            label = 'Wav sequence'

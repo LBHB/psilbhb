@@ -1,0 +1,3 @@
+recursive-include psilbhb *.enaml
+include versioneer.py
+include psilbhb/_version.py
