@@ -19,6 +19,8 @@ class celldb():
     user = None
     animal = None
     
+    def __init__(self):
+
     def Engine(self):
         '''Returns a mysql engine object. Creates the engine if necessary.
         Otherwise returns the existing one.'''
