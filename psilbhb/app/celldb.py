@@ -7,11 +7,11 @@ from sqlalchemy.ext.automap import automap_base
 import pandas as pd
 import pandas.io.sql as psql
 
-MYSQL_USER='david'
-MYSQL_PASS='nine1997'
-MYSQL_HOST='hyrax.ohsu.edu'
+MYSQL_USER='XXX'
+MYSQL_PASS='XXX'
+MYSQL_HOST='XX.XX.XX'
 MYSQL_PORT='3306'
-MYSQL_DB='cell'
+MYSQL_DB='XXX'
 
 class celldb():
     
