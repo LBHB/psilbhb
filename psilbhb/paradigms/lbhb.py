@@ -10,7 +10,7 @@ COMMON_PLUGINS = [
     {'manifest': PATH + 'behavior_mixins.BaseGoNogoMixin'},
     {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser'},
     {'manifest': CORE_PATH + 'video_mixins.PSIVideo'},
-    {'manifest': CORE_PATH + 'microphone_mixins.MicrophoneFFTViewManifest',
+    {'manifest': CORE_PATH + 'signal_mixins.SignalFFTViewManifest',
         'attrs': {'fft_time_span': 1, 'fft_freq_lb': 5, 'fft_freq_ub': 24000, 'y_label': 'Level (dB)'}
         },
 ]
@@ -19,8 +19,7 @@ COMMON_PLUGINS = [
 ParadigmDescription(
     'NTD', 'Go-nogo tone detection in natural background',
     'animal', COMMON_PLUGINS + [
-        PATH + 'stimuli.TargetTone',
-        PATH + 'stimuli.BackgroundNaturalSounds',
+        {'manifest': PATH + 'stimuli.ToneInNaturalSounds'},
     ],
 )
 
@@ -28,7 +27,6 @@ ParadigmDescription(
 ParadigmDescription(
     'STD', 'Go-nogo tone detection in silence',
     'animal', COMMON_PLUGINS + [
-        PATH + 'stimuli.TargetTone',
-        PATH + 'stimuli.BackgroundSilence',
+        {'manifest': PATH + 'stimuli.ToneInSilence'},
     ],
 )

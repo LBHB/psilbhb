@@ -1,36 +1,67 @@
 from enaml.workbench.api import Extension
 
-from psi.enaml.core.api import ExperimentManifest
+from psi.core.enaml.api import ExperimentManifest
+from psi.controller.api import ContinuousOutput, EpochOutput
 from psi.token.primitives import (Cos2Envelope, Silence, Tone, WavSequence)
 
 
-enamldef BackgroundSilence(ExperimentManifest): manifest:
+enamldef ToneBurst(Cos2Envelope):
+    # Since we are using the ToneBurst several times in this file, we can set
+    # it up and then reuse it.
+    name = 'tone'
+    label = 'Tone'
+    hide = ['start_time',]
+    Tone:
+        hide = ['polarity', 'phase']
+
+
+enamldef ToneInNaturalSounds(ExperimentManifest): manifest:
+
+    id = 'tone_in_natural_sounds'
+    required = True
 
     Extension:
         id = manifest.id + '.tokens'
         point = 'psi.token.tokens'
 
-        Silence:
-            name = 'silence'
-            label = 'Silence'
+        ToneBurst: tone_burst:
+            pass
 
-
-enamldef TargetTone(ExperimentManifest): manifest:
-
-    Extension:
-        id = manifest.id + '.tokens'
-        point = 'psi.token.tokens'
-
-        Cos2Envelope:
-            name = 'tone'
-            label = 'Tone'
-            hide = ['start_time',]
-            Tone:
-                hide = ['polarity', 'phase']
-
-
-enamldef BackgroundNaturalSounds(ExperimentManifest): manifest:
-
-        WavSequence:
+        WavSequence: wav_sequence:
             name = 'wav_sequence'
             label = 'Wav sequence'
+
+    Extension:
+        id = manifest.id + '.io'
+        point = 'psi.controller.io'
+
+        ContinuousOutput:
+            name = 'background'
+            label = 'Background'
+            target_name = 'hw_ao::speaker_1'
+            token = wav_sequence
+
+        EpochOutput:
+            name = 'target'
+            label = 'Target'
+            target_name = 'hw_ao::speaker_1'
+            token = tone_burst
+
+
+enamldef ToneInSilence(ExperimentManifest): manifest:
+
+    Extension:
+        id = manifest.id + '.tokens'
+        point = 'psi.token.tokens'
+
+        ToneBurst: tone:
+            pass
+
+    Extension:
+        id = 'io'
+        point = 'psi.controller.io'
+
+        EpochOutput:
+            name = 'target'
+            label = 'Target'
+            target_name = 'hw_ao::speaker_1'
