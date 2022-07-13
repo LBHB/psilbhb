@@ -391,16 +391,6 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             name = 'microphone'
             source_name = 'hw_ai::microphone_1'
 
-        ContinuousOutput:
-            name = 'background'
-            label = 'Background'
-            target_name = 'hw_ao::speaker_1'
-
-        EpochOutput:
-            name = 'target'
-            label = 'Target'
-            target_name = 'hw_ao::speaker_1'
-
     Extension:
         id = manifest.id + '.items'
         point = 'psi.context.items'
