@@ -10,8 +10,8 @@ from enaml.widgets.api import Action, ToolBar
 from enaml.workbench.api import Extension
 import numpy as np
 
-from psi.context.api import (BoolParameter, ContextGroup, SequenceSelector,
-                             Parameter, Result)
+from psi.context.api import (BoolParameter, ContextGroup, ContextRow,
+                             SequenceSelector, Parameter, Result)
 
 from psi.controller.api import (ContinuousInput, ContinuousOutput,
                                 ControllerManifest, ControllerPlugin,
@@ -458,22 +458,28 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 scope = 'arbitrary'
                 default = False
 
-        ContextGroup:
-            name = 'selector'
-            label = 'Next value'
+        ContextRow:
+            fmt = ['Number of nogo trials', min_nogo, 'to', max_nogo]
+            group_name = 'selector'
 
-            Parameter:
+            Parameter: min_nogo:
                 name = 'min_nogo'
                 label = 'Min. consecutive nogo trials'
                 compact_label = 'Min. NoGO'
                 default = 2
                 scope = 'arbitrary'
-            Parameter:
+
+            Parameter: max_nogo:
                 name = 'max_nogo'
                 label = 'Max. consecutive nogo trials'
                 compact_label = 'Max. NoGO'
                 default = 5
                 scope = 'arbitrary'
+
+        ContextGroup:
+            name = 'selector'
+            label = 'Next value'
+
             Parameter:
                 name = 'go_probability'
                 label = 'Go probability'
