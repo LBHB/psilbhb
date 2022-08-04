@@ -1,0 +1,58 @@
+import logging
+log = logging.getLogger(__name__)
+
+from atom.api import Typed
+from enaml.workbench.api import Extension, Plugin
+from enaml.workbench.core.api import Command
+
+from psi.controller.api import ExperimentAction
+from psi.core.enaml.api import ExperimentManifest
+
+from psiopenephys.client import OpenEphysClient
+
+
+class OpenEphysPlugin(Plugin):
+
+    client = Typed(OpenEphysClient, {})
+
+    def start(self):
+        log.info('Starting OpenEphys plugin')
+        log.info(f'OpenEphys client status {self.client.status}')
+
+    def start_recording(self):
+        self.client.record()
+
+    def stop_recording(self):
+        self.client.acquire()
+
+
+enamldef OpenEphysManifest(ExperimentManifest): manifest:
+
+    id = 'openephys'
+    name = 'openephys'
+    title = 'Open Ephys'
+
+    factory = OpenEphysPlugin
+
+    Extension:
+        id = manifest.id + '.commands'
+        point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'openephys.start_recording'
+            handler = lambda e: e.workbench.get_plugin(manifest.id).start_recording()
+        Command:
+            id = 'openephys.stop_recording'
+            handler = lambda e: e.workbench.get_plugin(manifest.id).stop_recording()
+        Command:
+            id = 'openephys.send_message'
+            handler = lambda e: e.workbench.get_plugin(manifest.id).send_message(e.params['message'])
+
+    Extension:
+        id = manifest.id + '.actions'
+        point = 'psi.controller.actions'
+        ExperimentAction:
+            event = 'experiment_prepare'
+            command = 'openephys.start_recording'
+        ExperimentAction:
+            event = 'experiment_end'
+            command = 'openephys.stop_recording'
