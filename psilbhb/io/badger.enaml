@@ -46,7 +46,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
             hw_ai_monitor_period = 0.125
 
             NIDAQHardwareAIChannel:
-                label = 'Microphone 1'
+                label = 'Microphone 1 (AO1 monitor)'
                 name = 'microphone_1'
                 channel = 'Dev1/ai6'
                 start_trigger = '/Dev1/ao/StartTrigger'
@@ -58,7 +58,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 calibration_user_editable = True
 
             NIDAQHardwareAIChannel:
-                label = 'Microphone 2'
+                label = 'Microphone 2 (AO0 monitor)'
                 name = 'microphone_2'
                 channel = 'Dev1/ai4'
                 start_trigger = '/Dev1/ao/StartTrigger'
