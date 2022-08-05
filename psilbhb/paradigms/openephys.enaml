@@ -1,3 +1,18 @@
+'''
+This file defines how experiments for LBHB communicate with OpenEphys. The
+OpenEphys client is provided by the psiopenephys package.
+
+Right now, the following behaviors are defined:
+
+* When an experiment starts, the folder to save data in will be sent to
+  OpenEphys and OpenEphys will switch to recording mode.
+* When an experiment ends, OpenEphys will switch to acquire mode.
+* Whenever an experiment event occurs, the experiment event will be formatted
+  as a message containing the timestamp and event name (e.g., "0.321
+  background_pause").
+
+'''
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -19,12 +34,23 @@ the OpenEphys plugin before starting the experiment.'''
 
 
 class OpenEphysPlugin(Plugin):
-
+    '''
+    This plugin is a thin wrapper around the OpenEphysClient provided by
+    psiopenephys.
+    '''
     client = Typed(OpenEphysClient, {})
 
     def start(self):
-        # This is just a check to see if OpenEphys is open and the HTTP server
-        # running. It will return an error if unable to connect.
+        # The start method is automatically called when a plugin is first
+        # loaded. For example, you load a plugin when you call
+        # `workbench.get_plugin(plugin_id)`. 
+
+        # All we are doing here is checking to se if OpenEphys is open and the
+        # HTTP server running. It will return an error if unable to connect.
+        # This is an example of why we need a thin wrapper around the client
+        # rather than using the client directly (i.e., we can do some
+        # LBHB-specific checks and translate error messages into something more
+        # meaningful to a student in LBHB).
         try:
             status = self.client.status
             log.info('Starting OpenEphys plugin. OpenEphys client status {status}.')
