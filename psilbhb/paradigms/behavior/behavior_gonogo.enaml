@@ -16,7 +16,8 @@ from psi.context.api import (BoolParameter, ContextGroup, ContextRow,
 from psi.controller.api import (ContinuousInput, ContinuousOutput,
                                 ControllerManifest, ControllerPlugin,
                                 EpochOutput, ExperimentAction, ExperimentEvent,
-                                ExperimentState, Trigger, Toggle)
+                                ExperimentState, TimedDigitalOutput, Trigger,
+                                Toggle)
 
 from psi.data.plots import (EventPlot, FFTContainer, FFTChannelPlot, TimeContainer,
                             ChannelPlot, ViewBox, TimeseriesPlot)
@@ -336,6 +337,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             name = 'to'
         ExperimentEvent:
             name = 'response_duration_elapsed'
+
         ExperimentEvent:
             name = 'iti_duration_elapsed'
         ExperimentEvent:
@@ -396,6 +398,11 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             kwargs = {'delay': C.lookup('target_delay')}
             weight = 0
 
+        ExperimentAction:
+            event = 'target_start'
+            command = 'sync_trigger.trigger'
+            kwargs = {'duration': 0.5}
+
     Extension:
         id = manifest.id + '.data'
         point = 'psi.data.sinks'
@@ -410,6 +417,10 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         ContinuousInput:
             name = 'microphone'
             source_name = 'hw_ai::microphone_1'
+
+        TimedDigitalOutput:
+            name = 'sync_trigger'
+            target_name = 'hw_do::sync_trigger'
 
     Extension:
         id = manifest.id + '.items'
