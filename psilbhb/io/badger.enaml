@@ -3,11 +3,13 @@ from enaml.workbench.api import Extension
 from psi.controller.engines.nidaq import (NIDAQEngine,
                                           NIDAQHardwareAIChannel,
                                           NIDAQHardwareAOChannel,
+                                          NIDAQHardwareDOChannel,
                                           NIDAQSoftwareDOChannel,
                                           )
 
 from psi.core.enaml.api import ExperimentManifest
 from psi.controller.api import ADC
+
 
 from psiaudio.calibration import FlatCalibration
 
@@ -102,6 +104,13 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 terminal_mode = 'RSE'
                 unit = 'V'
                 calibration = FlatCalibration.from_spl(80, vrms=5/(2**.5))
+
+            NIDAQHardwareDOChannel:
+                label = 'Sync Trigger'
+                name = 'sync_trigger'
+                channel = '/Dev1/port0/line3'
+                sample_clock = '/Dev1/ao/SampleClock'
+                fs = ao_fs
 
             NIDAQSoftwareDOChannel:
                 name = 'water_dispense'
