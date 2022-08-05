@@ -1,6 +1,8 @@
 import logging
 log = logging.getLogger(__name__)
 
+import datetime as dt
+
 from atom.api import Typed
 from enaml.workbench.api import Extension, Plugin
 from enaml.workbench.core.api import Command
@@ -11,19 +13,58 @@ from psi.core.enaml.api import ExperimentManifest
 from psiopenephys.client import OpenEphysClient
 
 
+OPENEPHYS_RUNNING_ERROR = '''Could not connect to OpenEphys. Is the program
+open? If you are not planning to record with OpenEphys, you need to deselect
+the OpenEphys plugin before starting the experiment.'''
+
+
 class OpenEphysPlugin(Plugin):
 
     client = Typed(OpenEphysClient, {})
 
     def start(self):
-        log.info('Starting OpenEphys plugin')
-        log.info(f'OpenEphys client status {self.client.status}')
+        # This is just a check to see if OpenEphys is open and the HTTP server
+        # running. It will return an error if unable to connect.
+        try:
+            status = self.client.status
+            log.info('Starting OpenEphys plugin. OpenEphys client status {status}.')
+        except Exception as e:
+            raise SystemError(OPENEPHYS_RUNNING_ERROR) from e
 
     def start_recording(self):
         self.client.record()
 
     def stop_recording(self):
         self.client.acquire()
+
+    def set_recording_filename(self, filename):
+        self.client.set_recording_filename(filename)
+
+    def send_message(self, message):
+        self.client.send_message(message)
+
+
+def start_recording(event):
+    data = event.workbench.get_plugin('psi.data')
+    plugin = event.workbench.get_plugin('openephys')
+
+    # Once we have the correct filename conventions in place, we can start
+    # using this.
+    dt_str = dt.datetime.now().strftime('%Y-%m-%d_%H_%M_%S')
+    plugin.set_recording_filename(data.base_path / 'raw' / dt_str)
+    plugin.start_recording()
+
+
+def stop_recording(event):
+    plugin = event.workbench.get_plugin('openephys')
+    plugin.stop_recording()
+
+
+def log_experiment_event(event):
+    plugin = event.workbench.get_plugin('openephys')
+    data = event.parameters['data']
+    mesg = f'{data["timestamp"]:f} {data["event"]}'
+    plugin.send_message(mesg)
 
 
 enamldef OpenEphysManifest(ExperimentManifest): manifest:
@@ -38,21 +79,24 @@ enamldef OpenEphysManifest(ExperimentManifest): manifest:
         id = manifest.id + '.commands'
         point = 'enaml.workbench.core.commands'
         Command:
-            id = 'openephys.start_recording'
-            handler = lambda e: e.workbench.get_plugin(manifest.id).start_recording()
+            id = manifest.id + '.start_recording'
+            handler = start_recording
         Command:
-            id = 'openephys.stop_recording'
-            handler = lambda e: e.workbench.get_plugin(manifest.id).stop_recording()
+            id = manifest.id + '.stop_recording'
+            handler = stop_recording
         Command:
-            id = 'openephys.send_message'
-            handler = lambda e: e.workbench.get_plugin(manifest.id).send_message(e.params['message'])
+            id = manifest.id + '.log_experiment_event'
+            handler = log_experiment_event
 
     Extension:
         id = manifest.id + '.actions'
         point = 'psi.controller.actions'
         ExperimentAction:
             event = 'experiment_prepare'
-            command = 'openephys.start_recording'
+            command = manifest.id + '.start_recording'
         ExperimentAction:
             event = 'experiment_end'
-            command = 'openephys.stop_recording'
+            command = manifest.id + '.stop_recording'
+        ExperimentAction:
+            event = 'experiment_event'
+            command = manifest.id + '.log_experiment_event'
