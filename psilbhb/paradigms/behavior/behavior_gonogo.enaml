@@ -16,7 +16,7 @@ from psi.context.api import (BoolParameter, ContextGroup, ContextRow,
 from psi.controller.api import (ContinuousInput, ContinuousOutput,
                                 ControllerManifest, ControllerPlugin,
                                 EpochOutput, ExperimentAction, ExperimentEvent,
-                                ExperimentState, TimedDigitalOutput, Trigger,
+                                ExperimentState, TimedTrigger, Trigger,
                                 Toggle)
 
 from psi.data.plots import (EventPlot, FFTContainer, FFTChannelPlot, TimeContainer,
@@ -392,13 +392,23 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
 
         ExperimentAction:
             # The operations required to actually generate and upload the token
-            # take some time, so we have to allow for a small delay.
+            # take some time, so we have to allow for a small delay that is
+            # defined by the target_delay parameter.
             event = 'trial_start'
             command = 'target.start'
             kwargs = {'delay': C.lookup('target_delay')}
             weight = 0
 
         ExperimentAction:
+            # This schedules a TTL pulse to be sent via the channel linked to
+            # the sync_trigger output. The TTL pulse will start at the exact
+            # same time as target_start and last for 0.5 sec. Whenever an
+            # ExperimentAction is triggered, kwargs will automatically include
+            # the event name (in this case, "target_start") and the timestamp
+            # the event occurred (this is how the sync_trigger.trigger command
+            # knows when to schedule the trigger to begin). If the event was
+            # hardware-timed, then the timestamp will be accurate down to the
+            # sample).
             event = 'target_start'
             command = 'sync_trigger.trigger'
             kwargs = {'duration': 0.5}
@@ -418,7 +428,11 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             name = 'microphone'
             source_name = 'hw_ai::microphone_1'
 
-        TimedDigitalOutput:
+        TimedTrigger:
+            # This is a hardware-timed trigger that allows us to schedule a
+            # trigger to occur at a very precise time (as opposed to Trigger,
+            # which is software-timed and accuraccy of timing is not
+            # guaranteed).
             name = 'sync_trigger'
             target_name = 'hw_do::sync_trigger'
 
