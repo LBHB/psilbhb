@@ -118,7 +118,8 @@ def get_state(trial_state):
 def process_et(event):
     plugin = event.workbench.get_plugin('psi.controller')
     name = event.parameters['name']
-    for edge, ts in event.parameters['data']:
+    events = event.parameters['data'].events
+    for edge, ts in events[['event', 'ts']].iterrows():
         plugin.et_callback(name, edge, ts)
 
 
