@@ -96,7 +96,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
             NIDAQHardwareAOChannel:
                 label = 'Speaker 1'
                 name = 'speaker_1'
-                channel = '/Dev1/ao1'
+                channel = '/Dev1/ao0'
                 fs = ao_fs
                 expected_range = (-10, 10)
                 dtype = 'float64'
@@ -107,7 +107,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
             NIDAQHardwareAOChannel:
                 label = 'Speaker 2'
                 name = 'speaker_2'
-                channel = '/Dev1/ao0'
+                channel = '/Dev1/ao1'
                 fs = ao_fs
                 expected_range = (-10, 10)
                 dtype = 'float64'
