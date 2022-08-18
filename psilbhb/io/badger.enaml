@@ -17,8 +17,6 @@ from psiaudio.calibration import FlatCalibration
 # Requested sampling rate must be an integer divisor of the timebase clock.
 ao_fs = 20e6 / 454
 ai_fs = 20e6 / 454
-#ao_fs = 100e3
-#ai_fs = 100e3
 
 
 from psi.controller.api import Trigger, Toggle
@@ -83,6 +81,18 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 unit = 'V'
                 calibration = FlatCalibration.from_mv_pa(2.38)
 
+            NIDAQHardwareAIChannel:
+                label = 'Sync Monitor'
+                name = 'sync_monitor'
+                channel = 'Dev1/ai3'
+                start_trigger = '/Dev1/ao/StartTrigger'
+                fs = ai_fs
+                expected_range = (-10, 10)
+                dtype = 'float64'
+                terminal_mode = 'RSE'
+                unit = 'V'
+                calibration = FlatCalibration.from_mv_pa(2.38)
+
             NIDAQHardwareAOChannel:
                 label = 'Speaker 1'
                 name = 'speaker_1'
@@ -113,25 +123,60 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 fs = ao_fs
 
             NIDAQSoftwareDOChannel:
-                name = 'water_dispense'
+                name = 'water_dispense_1'
                 channel = 'Dev1/port0/line0'
 
+                # You can have multiple triggers connected to a single
+                # software-timed digital output. The behavior programs will
+                # only use one of these triggers. For the NAFC, it will look
+                # for the `water_dispense_1` and `water_dispense_2` triggers.
+                # For the go-nogo, it will look for the `water_dispense`
+                # trigger. By providing both triggers, we can make sure that
+                # each program continues to work properly.
                 Trigger:
-                    label = 'Water dispense'
                     name = 'water_dispense'
+
+                Trigger:
+                    name = 'water_dispense_1'
+
+            NIDAQSoftwareDOChannel:
+                name = 'water_dispense_2'
+                channel = 'Dev1/port0/line2'
+
+                # This is for the second lick spout added to support the 2AFC
+                # experiment (I call it NAFC and will be writing it so it can
+                # support an arbitrary number of alternate forced choices).
+                Trigger:
+                    name = 'water_dispense_2'
 
             NIDAQSoftwareDOChannel:
                 name = 'room_light'
                 channel = 'Dev1/port0/line1'
 
                 Toggle:
-                    # This is a required output for the room light. The plugin will
-                    # look for this output by name. If not present, the room light
-                    # plugin will not work!
+                    # This is a required output for the room light. The plugin
+                    # will look for this output by name. If not present, the
+                    # room light plugin will not work!
                     name = 'room_light_toggle'
                     label = 'Room light'
 
+            # We maek the same input channel available under two names,
+            # reward_contact and spout_contact_1, so that we can easily switch
+            # between the go-nogo and NAFC experiments. Well, easily from a
+            # software perspective. You still will need to go into the chamber
+            # and remove the second lick spout so the ferret doesn't try to use
+            # it.
             IRChannel:
                 name = 'reward_contact'
                 label = 'Reward IR'
                 channel = 'Dev1/ai0'
+
+            IRChannel:
+                name = 'spout_contact_1'
+                label = 'Spout IR 1'
+                channel = 'Dev1/ai0'
+
+            IRChannel:
+                name = 'spout_contact_2'
+                label = 'Spout IR 1'
+                channel = 'Dev1/ai1'
