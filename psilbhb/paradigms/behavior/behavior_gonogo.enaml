@@ -428,6 +428,10 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             name = 'microphone'
             source_name = 'hw_ai::microphone_1'
 
+        ContinuousInput:
+            name = 'sync_monitor'
+            source_name = 'hw_ai::sync_monitor'
+
         TimedTrigger:
             # This is a hardware-timed trigger that allows us to schedule a
             # trigger to occur at a very precise time (as opposed to Trigger,
@@ -616,7 +620,11 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
 
                 ChannelPlot:
                     source_name = 'microphone'
-                    pen_color = 'k'
+                    pen_color = 'black'
+
+                ChannelPlot:
+                    source_name = 'sync_monitor'
+                    pen_color = 'red'
 
             ViewBox:
                 name = 'reward_contact'
