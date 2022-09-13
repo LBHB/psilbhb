@@ -13,23 +13,79 @@ import numpy as np
 from psi.context.api import (BoolParameter, ContextGroup, ContextRow,
                              SequenceSelector, Parameter, Result)
 
-from psi.controller.api import (ContinuousInput, ContinuousOutput,
-                                ControllerManifest, ControllerPlugin,
-                                EpochOutput, ExperimentAction, ExperimentEvent,
-                                ExperimentState, TimedTrigger, Trigger,
-                                Toggle)
+from psi.controller.api import (ContinuousInput, ControllerManifest,
+                                ControllerPlugin, ExperimentAction,
+                                ExperimentEvent, ExperimentState, TimedTrigger,
+                                Trigger, Toggle)
 
 from psi.data.plots import (EventPlot, FFTContainer, FFTChannelPlot, TimeContainer,
                             ChannelPlot, ViewBox, TimeseriesPlot)
 from psi.data.sinks.api import BinaryStore
 
-from .behavior_mixins import (BaseBehaviorPlugin, GoNogoTrialScore,
-                              GoNogoTrialType, TrialState)
+from .behavior_mixins import (BaseBehaviorPlugin, TrialType, TrialState)
 
 
 ################################################################################
 # Supporting
 ################################################################################
+class GoNogoTrialType(TrialType):
+    '''
+    The go-nogo experiments consist of a "remind" phase in which only go trials
+    (drawn from the remind sequence) are presented. Once the specified number
+    of reminder trials are presented, the experiment moves into the "warmup"
+    phase during which go trials (drawn from the remind sequence) are drawn
+    with the specified go probability (i.e., nogo trials are also presented).
+    Once the warmup phase is complete, we move into the actual experiment in
+    which we draw go and nogo trials from the go and nogo sequences,
+    respectively.
+    '''
+
+    #: A regular go trial
+    go = 'go'
+
+    #: A go trial during the warmup period during the interval where go/nogo
+    #: trials are randomly selected.
+    go_warmup = 'go_warmup'
+
+    #: A go trial presented during the warmup period during the interval where
+    #: only go trials are presented.
+    go_warmup_remind = 'go_warmup_remind'
+
+    #: A go trial requested by the user that's drawm from the remind sequence.
+    go_remind = 'go_remind'
+
+    #: A go trial manually initiated by the user (e.g., for shaping purposes).
+    go_manual = 'go_manual'
+
+    #: A go trial presented because the maximum number of consecutive nogo
+    #: trials have been reached.
+    go_forced = 'go_forced'
+
+    #: A regular nogo trial
+    nogo = 'nogo'
+
+    #: A nogo trial presented because the minimum number of consecutive nogo
+    #: trials has not been reached.
+    nogo_forced = 'nogo_forced'
+
+    #: A nogo trial repeated because the animal false alarmed.
+    nogo_repeat = 'nogo_repeat'
+
+    #: A nogo trial repeated because the animal false alarmed.
+    nogo_warmup = 'nogo_warmup'
+
+
+class GoNogoTrialScore(enum.Enum):
+    '''
+    Defines the different types of scores for each trial in a go-nogo
+    experiment
+    '''
+    hit = 'HIT'
+    miss = 'MISS'
+    correct_reject = 'CR'
+    false_alarm = 'FA'
+
+
 class GoNogoTrialState(TrialState):
     '''
     Defines the possible states that the experiment can be in. We use an Enum to
@@ -174,7 +230,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         else:
             self.trial_type = trial_type
         selector = self.selector_map[self.trial_type]
-        setting = self.context.next_setting(selector)
+        self.context.next_setting(selector)
         self.manual_control = self.context.get_value('manual_control')
         self.trial_info = {
             'response_start': np.nan,
@@ -426,7 +482,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
 
         ContinuousInput:
             name = 'microphone'
-            source_name = 'hw_ai::microphone_1'
+            source_name = 'hw_ai::speaker_2_monitor'
 
         ContinuousInput:
             name = 'sync_monitor'
@@ -566,6 +622,19 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 name = 'response_time'
                 compact_label = 'Resp. time'
                 dtype = 'float64'
+
+    Extension:
+        id = 'selectors'
+        point = 'psi.context.selectors'
+        SequenceSelector:
+            name = 'go'
+            label = 'Go sequence'
+        SequenceSelector:
+            name = 'nogo'
+            label = 'Nogo sequence'
+        SequenceSelector:
+            name = 'remind'
+            label = 'Remind sequence'
 
     Extension:
         id = manifest.id + '.toolbar'
