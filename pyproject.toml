@@ -1,9 +1,24 @@
-[build-system]
-requires = [
-    "setuptools", 
-    "setuptools_scm[toml]"
+[project]
+name = "psilbhb"
+description = "Module for running LBHB experiments using psiexperiment framework"
+requires-python = ">=3.7"
+license = {file = "LICENSE.txt"}
+authors = [
+    {name = "Brad Buran", email="buran@ohsu.edu"},
 ]
+maintainers = [
+    {name = "Brad Buran", email="buran@ohsu.edu"},
+]
+dependencies = [
+    "psiexperiment[ni,zarr-backend]",
+    "psiopenephys",
+    "psivideo",
+]
+dynamic = ["version"]
+
+[build-system]
+requires = ["setuptools>=61.2", "wheel", "setuptools_scm[toml]>=3.4.3"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "psilbhb/_version.py"
+write_to = "psilbhb/version.py"
