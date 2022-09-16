@@ -253,6 +253,7 @@ class BaseBehaviorPlugin(ControllerPlugin):
     def resume_experiment(self):
         if self.can_modify():
             self._resume_experiment()
+            self.prepare_trial()
             return True
         return False
 
