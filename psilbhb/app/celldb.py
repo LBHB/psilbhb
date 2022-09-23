@@ -1,4 +1,6 @@
 import datetime
+import json
+import numpy as np
 
 from sqlalchemy import create_engine, desc, exc
 from sqlalchemy.orm import sessionmaker
@@ -7,19 +9,28 @@ from sqlalchemy.ext.automap import automap_base
 import pandas as pd
 import pandas.io.sql as psql
 
-MYSQL_USER='XXX'
-MYSQL_PASS='XXX'
-MYSQL_HOST='XX.XX.XX'
-MYSQL_PORT='3306'
-MYSQL_DB='XXX'
+import settings
+
 
 class celldb():
     
     ENGINE = None
     user = None
     animal = None
-    
+    training = 1
+    MYSQL_USER = None
+    MYSQL_PASS = None
+    MYSQL_HOST = None
+    MYSQL_PORT = 3306
+    MYSQL_DB = None
+    TESTMODE=False
+
     def __init__(self):
+        self.MYSQL_USER = settings.MYSQL_USER
+        self.MYSQL_PASS = settings.MYSQL_PASS
+        self.MYSQL_HOST = settings.MYSQL_HOST
+        self.MYSQL_PORT = settings.MYSQL_PORT
+        self.MYSQL_DB = settings.MYSQL_DB
 
     def Engine(self):
         '''Returns a mysql engine object. Creates the engine if necessary.
@@ -59,8 +70,8 @@ class celldb():
         '''Used by Engine() to establish a connection to the database.'''
  
         db_uri = 'mysql+pymysql://{0}:{1}@{2}:{3}/{4}'.format(
-                MYSQL_USER, MYSQL_PASS, MYSQL_HOST,
-                MYSQL_PORT, MYSQL_DB
+                self.MYSQL_USER, self.MYSQL_PASS, self.MYSQL_HOST,
+                self.MYSQL_PORT, self.MYSQL_DB
                 )
         return db_uri
 
@@ -106,22 +117,81 @@ class celldb():
         rows=[]
         for i,row in d.iterrows():
             rows.append(tuple(row.values))
+        if self.TESTMODE:
+            print(sql)
+            return sql
+        else:
+            res = conn.execute(sql, rows)
+            return res.lastrowid
 
-        conn.execute(sql, rows)
+    def sqlupdate(self, table, id, d=None, idfield='id'):
+        """
+        TODO: what if d is too long?
+        """
+        engine = self.Engine()
+        conn = engine.connect()
+
+        fv = []
+        for k,v in d.items():
+            if type(v) is str:
+                fv.append(f"{k}='{v}'")
+            else:
+                fv.append(f"{k}={v}")
+
+        if type(id) is str:
+            id = "'" + id + "'"
+        sql = f"UPDATE {table} SET {','.join(fv)} WHERE {idfield}={id}"
+
+        if self.TESTMODE:
+            print(sql)
+        else:
+            conn.execute(sql)
 
     def get_users(self):
         d = self.pd_query("SELECT id,userid,email FROM gUserPrefs WHERE active")
         return d
 
-    def get_animals(self, name=None, lab="lbhb", species="ferret"):
+    def get_animals(self, name=None, lab="lbhb", species="ferret", active=True):
+        if active:
+            active_string = " AND onschedule<2"
+        else:
+            active_string = ""
         if name is None:
-            d = self.pd_query("SELECT * FROM gAnimal WHERE onschedule<2 AND lab=%s AND species=%s", (lab,species))
+            d = self.pd_query(f"SELECT * FROM gAnimal WHERE lab=%s {active_string} AND species=%s", (lab,species))
         else:
             d = self.pd_query("SELECT * FROM gAnimal WHERE animal=%s", (name,))
 
         return d
 
-    def get_next_penname(self, animal, training=1):
+    def get_penetration(self, penname):
+        sql = f"SELECT * FROM gPenetration WHERE penname='{penname}'"
+        print(sql)
+        return self.pd_query(sql)
+
+    def get_rawdata(self, siteid=None, rawid=None):
+        if rawid is None:
+            wherestr = f"WHERE gDataRaw.cellid='{siteid}'"
+        else:
+            wherestr = f"WHERE gDataRaw.id={rawid}"
+        sql = "SELECT gDataRaw.*, gCellMaster.penid" +\
+              " FROM gDataRaw INNER JOIN gCellMaster" +\
+              f" ON gDataRaw.masterid=gCellMaster.id {wherestr} ORDER BY id"
+
+        return self.pd_query(sql)
+
+    def get_current_penname(self, animal=None, training=None,
+                            force_next=False, create_if_missing=True):
+        """
+        get penname for animal/training condition. if latest pendate is before today,
+        increment penname
+        :param animal:
+        :param training:
+        :return: penname: str
+        """
+        if animal is None:
+            animal = self.animal
+        if training is None:
+            training = self.training
 
         d_animal = self.get_animals(name=animal)
         if len(d_animal)>0:
@@ -131,6 +201,8 @@ class celldb():
 
         sql = 'SELECT max(id) as maxid FROM gPenetration WHERE training=%s AND animal=%s'
         lastpendata = self.pd_query(sql, (training, animal))
+        today = datetime.date.today().strftime("%Y-%m-%d")
+        need_to_create = False
 
         if len(lastpendata) == 0:
             print('No penetrations exist for this animal. Guessing info from scratch.')
@@ -139,32 +211,62 @@ class celldb():
             sql = f"SELECT * FROM gPenetration WHERE id={lastpendata.loc[0,'maxid']}"
             lastpendata = self.pd_query(sql)
             penname = lastpendata.loc[0,'penname']
-            print(f"Inferring info from pen {penname}")
-            pennum = int(penname[3:6])+1
+            pendate = lastpendata.loc[0,'pendate']
 
+            if (pendate == today) & ~force_next:
+                pennum = int(penname[3:6])
+            else:
+                print(f"Last pendate: {pendate} incrementing from {penname}")
+                pennum = int(penname[3:6]) + 1
+                need_to_create = True
         if training:
             penname = f"{cellprefix}{pennum:03d}T"
         else:
             penname = f"{cellprefix}{pennum:03d}"
 
+        if need_to_create and create_if_missing:
+            self.create_penetration(animal=animal, training=training, penname=penname)
+
         return penname
 
-    def create_penetration(self, user=None, animal=None, penname=None, well=1,
-                           NumberOfElectrodes=0, training=1, HWSetup=0):
+    def get_current_site(self, siteid=None, animal=None, training=None, penname=None, force_next=False):
+        if animal is None:
+            animal = self.animal
+        if training is None:
+            training = self.training
+        if penname is None:
+            penname = self.get_current_penname(animal, training)
+
+        if siteid is not None:
+            sql = f"SELECT * FROM gCellMaster WHERE siteid='{siteid}' ORDER BY id"
+        else:
+            sql = f"SELECT * FROM gCellMaster WHERE penname='{penname}' ORDER BY id"
+        sitedata = self.pd_query(sql)
+        if len(sitedata) == 0:
+            print(f"ERROR: no current site for penetration {penname}?")
+            return None
+        else:
+            return sitedata.iloc[-1]
+
+    def create_penetration(self, user=None, animal=None, training=None,
+                           penname=None, well=1,
+                           NumberOfElectrodes=0, HWSetup=0):
         if user is None:
             user = self.user
         if animal is None:
             animal = self.animal
+        if training is None:
+            training = self.training
         if penname is None:
-            penname = self.get_next_penname(animal,training=training)
+            penname = self.get_current_penname(animal, training=training, force_next=True)
 
         today = datetime.date.today().strftime("%Y-%m-%d")
 
-        racknotes='TEST'
+        racknotes=''
         speakernotes='Free-field Manger'
-        probenotes='TEST'
-        electrodenotes="TEST"
-        ear='TEST'
+        probenotes=''
+        electrodenotes=''
+        ear=''
         d=pd.DataFrame({
             'penname': penname,
             'animal': animal,
@@ -179,578 +281,240 @@ class celldb():
             'probenotes': probenotes,
             'electrodenotes': electrodenotes,
             'training': training,
+            'numchans': NumberOfElectrodes,
             'addedby': user,
             'info': 'psilbhb.celldb'
         }, index=[0])
-        return d
 
-    def get_current_penetration(self, animal=None):
-        if animal is None:
-            animal = self.animal
-            
+        self.sqlinsert('gPenetration', d)
+        print(f"Created new penetration {penname}")
+        self.create_site(penname=penname, animal=animal,
+                         training=training, user=user)
         return penname
 
-    def get_current_site(self, animal, penname=None):
+    def create_site(self, penname, animal=None, training=None, user=None):
+        if animal is None:
+            animal = self.animal
+        if training is None:
+            training = self.training
+        if penname is None:
+            penname = self.get_current_penname(animal, training=training, force_next=True)
+
+        pendata = self.get_penetration(penname).loc[0]
+        if user is None:
+            user = pendata.addedby
+        sitedata = self.get_current_site(penname=penname, force_next=True)
+        if sitedata is not None:
+            siteletter=sitedata.siteid[-1]
+            newsiteletter = chr(ord(siteletter)+1)
+            siteid = sitedata.siteid[:-1] + newsiteletter
+        else:
+            siteid = penname+'a'
+        d = pd.DataFrame({'siteid': siteid,
+             'cellid': siteid,
+             'penid': pendata.id,
+             'penname': penname,
+             'animal': pendata.animal,
+             'well': pendata.well,
+             'training': pendata.training,
+             'findtime': datetime.datetime.now().strftime("%H:%M"),
+             'addedby': user,
+             'info': 'psilbhb.celldb'}, index=[0])
+        masterid = self.sqlinsert('gCellMaster', d)
+        print(f'Added gCellMaster entry {siteid}')
+
+        cellid = siteid + "-001-1"
+        #sitedata = self.get_current_site(self, penname=penname)
+        #masterid = sitedata['id']
+
+        d=pd.DataFrame({'siteid': siteid,
+            'cellid': cellid,
+            'masterid': masterid,
+            'penid': pendata.id,
+            'channel': '001-',
+            'unit': 1,
+            'channum': 1,
+            'addedby': user,
+            'info': 'psilbhb.celldb'}, index=[0])
+        self.sqlinsert('gSingleCell', d)
+        print(f'Added gSingleCell entry {cellid}')
 
         return siteid
 
-    def new_raw_file(self, siteid, runclass, behavior):
+    def create_rawfile(self, siteid=None,
+                     runclass=None, behavior="passive", timejuice=0,
+                     pupil=False,
+                     ):
+        if siteid is None:
+            sitedata = self.get_current_site()
+            siteid = sitedata.siteid
+        else:
+            sitedata = self.get_current_site(siteid=siteid)
+        if runclass is None:
+            raise ValueError('Three-letter runclass must be specified for new_raw_file')
+        if behavior is None:
+            behavior = "passive"
 
-        return 1
+        masterid = sitedata.id
+        sql=f"SELECT * FROM gRunClass where name='{runclass}'"
+        runclassdata=self.pd_query(sql)
+        if len(runclassdata) == 1:
+            runclassid=runclassdata.loc[0,'id']
+            stimclass=runclassdata.loc[0,'stimclass']
+            task=runclassdata.loc[0,'task']
+        else:
+            raise ValueError(f"runclass {runclass} not found in gRunClass")
+        year = datetime.datetime.now().strftime("%Y")
+        month = datetime.datetime.now().strftime("%m")
+        day = datetime.datetime.now().strftime("%d")
 
+        # determine path + parmfilename
+        rawdata = self.get_rawdata(siteid)
+        if len(rawdata)>0:
+            prevparmfile = rawdata.iloc[-1]['parmfile']
+            resppath = rawdata.iloc[-1]['resppath']
+            if sitedata.training:
+                filenum = int(prevparmfile.split(".")[0].split("_")[-1]) + 1
+            else:
+                filenum = int(prevparmfile[len(siteid):(len(siteid)+2)]) + 1
+        else:
+            dataroot = '/auto/data/daq'
+            filenum = 1
+            if sitedata.training:
+                resppath = f'{dataroot}/{sitedata.animal}/training{year}/'
+            else:
+                resppath = f'{dataroot}/{sitedata.animal}/{siteid}/'
+        if behavior=='passive':
+            bstr='p'
+        else:
+            bstr='a'
+        if sitedata.training:
+            filestr = f'{filenum:d}'
+            parmbase = f"{sitedata.animal}_{year}_{month}_{day}_{runclass}_{filestr}"
+        else:
+            filestr = f'{filenum:02d}'
+            parmbase = f"{siteid}{filestr}_{bstr}_{runclass}"
 
-"""
-% function penid=dbcreatepen(globalparams)                                                                                                                                          
-%                                                                                                                                                                           
-% created SVD 2005-11-21                                                                                                                                                    
-%                                                                                                                                                                           
-function penid=dbcreatepen(globalparams)                                                                                                                                    
-                                                                                                                                                                            
-dbopen;                                                                                                                                                                     
-                                                                                                                                                                            
-sql=sprintf('SELECT * FROM gAnimal WHERE animal like "%s"',...                                                                                                              
-            globalparams.Ferret);                                                                                                                                
-adata=mysql(sql);                                                                                                                                                
-if length(adata)==0,                                                                                                                                             
-   error('Ferret not found in cellDB!');                                                                                                                         
-end                                                                                                                                                              
-globalparams.animal=adata(1).animal;                                                                                                                             
-                                                                                                                                                                 
-sql=sprintf('SELECT * FROM gUserPrefs WHERE realname like "%%%s%%"',...                                                                                          
-            globalparams.Tester);                                                                                                                                
-udata=mysql(sql);                                                                                                                                                
-if length(udata)==0,                                                                                                                                             
-    sql=sprintf('SELECT * FROM gUserPrefs WHERE userid like "%%%s%%"',...                                                                                        
-            globalparams.Tester);                                                                                                                                
-    udata=mysql(sql);                                                                                                                                            
-end                                                                                                                                                              
-if length(udata)==0,                                                                                                                                             
-   error('Tester not found in cellDB!');                                                                                                                         
-end
-globalparams.who=udata(1).userid;
+        parmfile = parmbase + ".m"
+        if pupil:
+            pupilfile = f"{resppath}{parmbase}.avi"
+        else:
+            pupilfile = ""
+        evpfilename = f"{resppath}{parmbase}.evp"
+        rawpath = f'{resppath}raw/{siteid}{filestr}/'
+        
+        d=pd.DataFrame({
+            'cellid': siteid,
+            'masterid': masterid,
+            'runclass': runclass,
+            'runclassid': runclassid,
+            'training': sitedata.training,
+            'resppath': resppath,
+            'parmfile': parmfile,
+            'eyewin': pupil,
+            'eyecalfile': pupilfile,
+            'respfileevp': evpfilename,
+            'respfile': rawpath,
+            'task': task,
+            'stimclass': stimclass,
+            'behavior': behavior,
+            'timejuice': timejuice,
+            'fixtime': datetime.datetime.now().strftime("%H:%M"),
+            'time': datetime.datetime.now().strftime("%H:%M"),
+            'addedby': sitedata.addedby,
+            'info': 'psilbhb.celldb'}, index=[0])
+        rawid = self.sqlinsert('gDataRaw', d)
+        print(f'Added gDataRaw entry {parmbase}')
+        rawdata = {'rawid': rawid, 'resppath': resppath, 'parmbase': parmbase,
+                   'pupil_file': pupilfile, 'rawpath': rawpath}
+        return rawdata
 
-sql=['SELECT max(id) as maxid FROM gPenetration' ...
-     ' WHERE training in (0,1) AND animal="',globalparams.animal,'"'];
-lastpendata=mysql(sql);
+    def save_data(self, rawid, datadict, parmtype=0, keep_existing=False):
 
-if isempty(lastpendata.maxid),
-   
-   warning('No penetrations exist for this animal. Guessing info from scratch.');
-   
-   if ~isfield(globalparams,'well'),
-      globalparams.well=1;
-   end
-   globalparams.cellprefix=adata(1).cellprefix;
-   globalparams.eye='';
-   globalparams.mondist=0;
-   globalparams.etudeg=0;
-else
-   
-   sql=['SELECT gPenetration.*, gAnimal.cellprefix FROM gPenetration'...
-        ' INNER JOIN gAnimal ON gAnimal.animal=gPenetration.animal'...
-        ' WHERE gPenetration.id=',num2str(lastpendata.maxid)];
-   lastpendata=mysql(sql);
-   
-   fprintf('Guessing info from pen %s\n', lastpendata.penname);
+        if type(datadict) is not dict:
+            raise ValueError(f"Parmeter datadict must be a dict")
 
-   if ~isfield(globalparams,'well'),
-      globalparams.well=lastpendata.well;
-   end
-   globalparams.cellprefix=lastpendata.cellprefix;
-   globalparams.eye=lastpendata.eye;
-   globalparams.mondist=lastpendata.mondist * 1.0;
-   globalparams.etudeg=lastpendata.etudeg * 1.0;
-end
+        fn = datadict.keys()
 
-globalparams.numchans=globalparams.NumberOfElectrodes;
-if strcmp(globalparams.Physiology,'No'),
-    globalparams.training=1;
-else
-    globalparams.training=0;
-end
-globalparams.probenotes='';
-globalparams.electrodenotes='';
+        if keep_existing:
+            namestr = "'" + "','".join(fn) + "'"
 
-% Log hardware setup-specific information
-try
-    HWSetupSpecs=BaphyMainGuiItems('HWSetupSpecs',globalparams);
-    ff=fields(HWSetupSpecs);
-    for ii=1:length(ff),
-        globalparams.(ff{ii})=HWSetupSpecs.(ff{ii});
-    end
-catch
-    % this information should be moved to <config>\<lab>\BaphyMainGuiItems
-    % case 'HWSetupSpecs'
-    switch globalparams.HWSetup,
-        case 0,
-            globalparams.racknotes='TEST MODE';
-            globalparams.speakernotes='';
-            globalparams.probenotes='';
-            globalparams.ear='';
-        case 1,
-            globalparams.racknotes=sprintf('Soundproof room 1, pump cal: %.2f ml/sec',globalparams.PumpMlPerSec.Pump);
-            globalparams.speakernotes='Etymotic earphone. Calibrated: Krohn-Hite filter, Rane equalizer, HP attenuator, Rane amplifier. (2007-09-24)';
-            if ~globalparams.training,
-                globalparams.probenotes=sprintf('%d-channel. Well position: XXX',globalparams.numchans);
-                globalparams.electrodenotes='FHC: size, impendence not specified';
-            end
-            globalparams.ear='R';
-        case 2,
-            globalparams.racknotes=sprintf('Training rig 1, pump cal: %.2f ml/sec',globalparams.PumpMlPerSec.Pump);
-            globalparams.speakernotes='Free field, front facing.  Crown amplifier. (2006-04-28)';
-            globalparams.ear='B';
-        case 3,
-            globalparams.racknotes=sprintf('Soundproof room 2, pump cal: %.2f ml/sec',globalparams.PumpMlPerSec.Pump);
-            globalparams.speakernotes='Etymotic earphone.  Calibrated: Krohn-Hite filter, Rane equalizer, HP attenuator, Radio Shack amplifier. (2006-04-28)';
-            if ~globalparams.training,
-                globalparams.probenotes=sprintf('%d-channel. Well position: XXX',globalparams.numchans);
-                globalparams.electrodenotes='FHC: size, impendence not specified';
-            end
-            globalparams.ear='L';
-        case 4,
-            globalparams.racknotes=sprintf('Training rig 2, pump cal: %.2f ml/sec',globalparams.PumpMlPerSec.Pump);
-            globalparams.speakernotes='Free field, front facing. Onkyo amplifier. (2006-04-28)';
-            globalparams.ear='B';
-        case 5,
-            globalparams.racknotes=sprintf('Holder training booth 1, pump cal: %.2f ml/sec',globalparams.PumpMlPerSec.Pump);
-            globalparams.speakernotes='Etymotic earphone.  Calibrated: Krohn-Hite filter, Rane equalizer, HP attenuator, Rane amplifier. (2007-02-10)';
-            if ~globalparams.training,
-                globalparams.probenotes=sprintf('%d-channel. Well position: XXX',globalparams.numchans);
-                globalparams.electrodenotes='FHC: size, impendence not specified';
-            end
-            globalparams.ear='L';
-        otherwise,
-            globalparams.racknotes='UNKNOWN';
-            globalparams.speakernotes='UNKNOWN';
-            globalparams.ear='';
-    end
-end
+            sql=f'DELETE FROM gData WHERE rawid={rawid}' +\
+                f" AND name in ({namestr}) AND parmtype={parmtype}"
+        else:
+            sql=f'DELETE FROM gData WHERE rawid={rawid} AND parmtype={parmtype}'
+        self.sqlexec(sql)
 
-sql=['SELECT * FROM gPenetration'...
-     ' WHERE animal="',globalparams.animal,'"',...
-     ' AND pendate="',globalparams.date,'" AND training=2'];
-wdata=mysql(sql);
+        rawdata = self.get_rawdata(rawid=rawid)
+        if len(rawdata) == 0:
+            raise ValueError(f"rawid={rawid} not in gDataRaw")
 
-if length(wdata)>0,
-   penid=wdata(1).id;
-   sql=['UPDATE gPenetration SET',...
-        ' penname="',globalparams.penname,'",',...
-        'animal="',globalparams.animal,'",',...
-        'well=',num2str(globalparams.well),',',...
-        'pendate="',globalparams.date,'",',...
-        'who="',globalparams.who,'",',...
-        'fixtime="',datestr(now,'HH:MM'),'",',...
-        'ear="',globalparams.ear,'",',...
-        'numchans=',num2str(globalparams.numchans),',',...
-        'rackid=',num2str(globalparams.HWSetup),',',...
-        'racknotes="',globalparams.racknotes,'",',...
-        'speakernotes="',globalparams.speakernotes,'",',...
-        'probenotes="',globalparams.probenotes,'",',...
-        'electrodenotes="',globalparams.electrodenotes,'",',...
-        'training=',num2str(globalparams.training),',',...
-        'addedby="',globalparams.who,'",',...
-        'info="dbcreatepen.m"',...
-        ' WHERE id=',num2str(penid)];
-   mysql(sql);
-   fprintf('updated gPenetration entry %d\n',penid);
-else
-   [aff,penid]=sqlinsert('gPenetration',...
-                         'penname',globalparams.penname,...
-                         'animal',globalparams.animal,...
-                         'well',globalparams.well,...
-                         'pendate',globalparams.date,...
-                         'who',globalparams.who,...
-                         'fixtime',datestr(now,'HH:MM'),...
-                         'ear',globalparams.ear,...
-                         'numchans',globalparams.numchans,...
-                         'rackid',globalparams.HWSetup,...
-                         'racknotes',char(globalparams.racknotes),...
-                         'speakernotes',char(globalparams.speakernotes),...
-                         'probenotes',char(globalparams.probenotes),...
-                         'electrodenotes',char(globalparams.electrodenotes),...
-                         'training',globalparams.training,...
-                         'addedby',globalparams.who,...
-                         'info','dbcreatepen.m');
-   fprintf('added gPenetration entry %d\n',penid);
-end
+        masterid = rawdata.loc[0,'masterid']
+        siteid = rawdata.loc[0,'cellid']
+        penid = rawdata.loc[0,'penid']
+        d = pd.DataFrame()
+        for i,(k,v) in enumerate(datadict.items()):
+            jv = json.dumps(v)
+            d.loc[i,'name']=k
+            d.loc[i,'svalue']=jv
+        d['siteid']=siteid
+        d['penid']=masterid
+        d['masterid']=masterid
+        d['rawid']=rawid
+        d['datatype']=1
+        d['parmtype']=parmtype
+        d['addedby']=c.user
+        d['info']='psilbhb.celldb'
 
-% function rawid=dbcreateraw(globalparams,runclass,mfilename,evpfilename)
-%
-% created SVD 2005-11-21
-%
-function rawid=dbcreateraw(globalparams,runclass,mfilename,evpfilename)
+        self.sqlinsert('gData', d)
 
-dbopen;
+        print(f'Saved {len(d)} data items for rawid {rawid}')
 
-%check to see if run class is valid
-underscores=strfind(runclass,'_');
-if(isempty(underscores))
-sql=sprintf('SELECT * FROM gRunClass WHERE name="%s"',runclass);
-rdata=mysql(sql);
-if length(rdata)==0;
-   error('runclass not found in cellDB!');
-end
-else
-    sts=[1 underscores+1];
-    underscores(end+1)=length(runclass)+1;
-    runclass2=[runclass,','];
-    for i=1:length(underscores)
-        sql=sprintf('SELECT * FROM gRunClass WHERE name="%s"',runclass2(sts(i):underscores(i)-1));
-        rdata=mysql(sql);
-        if length(rdata)==0;
-            error('runclass not found in cellDB!');
-        end
-    end
-end
+    def read_data(self, rawid):
+        sql = f"SELECT * FROM gData WHERE rawid={rawid} ORDER BY parmtype,id"
 
-sql=sprintf('SELECT * FROM gCellMaster WHERE id=%d',globalparams.masterid);
-sdata=mysql(sql);
-if length(sdata)==0,
-   error('Site not found in cellDB!');
-end
-sql=sprintf('SELECT * FROM gSingleCell WHERE masterid=%d',globalparams.masterid);
-celldata=mysql(sql);
-if length(celldata)==0,
-   error('Cell not found in cellDB!');
-end
+        d = self.pd_query(sql)
+        sidx = d['datatype'] == 1
+        d['value'] = d['value'].astype(object)
+        #d.loc[sidx, 'value'] = d.loc[sidx, 'svalue']
 
-[respfile,resppath]=basename(mfilename);
+        try:
+            d.loc[sidx,'value'] = d.loc[sidx,'svalue'].apply(json.loads)
+        except:
+            pass
+        try:
+            sidx = np.isnan(d['value'].astype(float))
+            d.loc[sidx, 'value'] = d.loc[sidx, 'svalue']
+        except:
+            pass
+        return d
 
-% avoid losing backslashes in SQL
-% don't need to do this since it's taken care of in mysql.m
-%resppath=strrep(resppath,'\','\\');
-%evpfilename=strrep(evpfilename,'\','\\');
+def __main__():
 
-if strcmp(globalparams.Physiology,'No'),
-    behavior='active';
-elseif strcmp(globalparams.Physiology,'Yes -- Passive'),
-    behavior='passive';
-elseif strcmp(globalparams.Physiology,'Yes -- Behavior'),
-    behavior='active';
-end
+    c = celldb()
+    c.animal = "Test"
+    c.training = True
+    c.user = "david"
+    penname = c.get_current_penname()
+    sitedata = c.get_current_site()
 
-[aff,rawid]=sqlinsert('gDataRaw',...
-                      'cellid',globalparams.SiteID,...
-                      'masterid',globalparams.masterid,...
-                      'runclass',runclass,...
-                      'runclassid',rdata.id,...
-                      'task',rdata.task,...
-                      'training',sdata.training,...
-                      'respfileevp',evpfilename,...
-                      'respfile','*SAVE MAP FILE NAME HERE*',...
-                      'parmfile',respfile,...
-                      'resppath',resppath,...
-                      'fixtime',datestr(now,'HH:MM'),...
-                      'behavior',behavior,...
-                      'stimclass',rdata.stimclass,...
-                      'time',datestr(now,'HH:MM'),...
-                      'timejuice',globalparams.PumpMlPerSec.Pump,...
-                      'addedby',sdata.addedby,...
-                      'info','dbcreatepen.m');
-fprintf('added gDataRaw entry %d\n',rawid);
+    #resppath, parmbase, rawpath, rawid = c.create_rawfile(runclass="TSP", behavior="active", pupil=True)
+    #resppath, parmbase, rawpath, rawid = c.create_rawfile(runclass="NON", behavior="passive", pupil=False)
 
-[aff,singlerawid]=sqlinsert('gSingleRaw',...
-                         'cellid',celldata(1).cellid,...
-                         'masterid',globalparams.masterid,...
-                         'singleid',celldata(1).id,...
-                         'penid',globalparams.penid,...
-                         'rawid',rawid,...
-                         'channel','a',...
-                         'unit',1,...
-                         'channum',1,...
-                         'addedby',sdata.addedby,...
-                         'info','dbcreatepen.m');
-fprintf('added gSingleRaw entry %d\n',singlerawid);
+    #c.sqlupdate('gDataRaw', rawid, {'trials': 60, 'corrtrials': 50})
 
-% function masterid=dbcreatesite(params)
-%
-% created SVD 2005-11-21
-%
-function masterid=dbcreatesite(params)
+    rawid = 146632
+    datadict={'Trial_Paradigm': 'GoNogo',
+              'Trial_CatchFrac': 0.5,
+              'Trial_Durations': [1.0, 2.0, 3.0],
+              'ReferenceClass': 'NaturalSounds',
+              'TargetClass': 'Tone',
+              'Tar_Frequency': 1000}
+    parmtype=0
+    #c.save_data(rawid, datadict, parmtype=parmtype)
 
-dbopen;
+    rawid = 146342
+    rawid = 146632
 
-sql=sprintf('SELECT * FROM gPenetration WHERE id=%d',params.penid);
-pdata=mysql(sql);
-if length(pdata)==0,
-   error('Penetration not found in cellDB!');
-end
-
-if pdata.numchans > 99,
-   cellid=[params.SiteID,'-001-1'];
-elseif pdata.numchans > 8,
-   cellid=[params.SiteID,'-01-1'];
-else
-   cellid=[params.SiteID,'-a1'];
-end
-
-[aff,masterid]=sqlinsert('gCellMaster',...
-                         'siteid',params.SiteID,...
-                         'cellid',params.SiteID,...
-                         'penid',params.penid,...
-                         'penname',pdata.penname,...
-                         'animal',pdata.animal,...
-                         'well',pdata.well,...
-                         'training',pdata.training,...
-                         'findtime',datestr(now,'HH:MM'),...
-                         'addedby',pdata.who,...
-                         'info','dbcreatepen.m');
-fprintf('added gCellMaster entry %d\n',masterid);
-
-[aff,singleid]=sqlinsert('gSingleCell',...
-                         'siteid',params.SiteID,...
-                         'cellid',cellid,...
-                         'masterid',masterid,...
-                         'penid',params.penid,...
-                         'channel','a',...
-                         'unit',1,...
-                         'channum',1,...
-                         'addedby',pdata.who,...
-                         'info','dbcreatepen.m');
-fprintf('added gSingleCell entry %d\n',singleid);
-
-% function siteid=dbgetlastsite(Ferret, doingphysiology);
-function siteid=dbgetlastsite(Ferret, doingphysiology);
-
-if ~dbopen,
-   siteid='';
-   return;
-end
-sql=sprintf('SELECT * FROM gAnimal WHERE animal like "%s"',Ferret);
-adata=mysql(sql);
-if length(adata)==0,
-    warning('%s not in celldb\n',Ferret);
-    siteid='';
-    return;
-end
-animal=adata(1).animal;
-
-% find most recent penetration and time that last site was updated in DB
-sql=['SELECT gPenetration.id as maxid,',...
-     ' time_to_sec(timediff(now(),gCellMaster.lastmod))/86400 as daylag',...
-     ' FROM gPenetration,gCellMaster',...
-     ' WHERE gPenetration.id=gCellMaster.penid',...
-     ' AND gPenetration.training=',num2str(1-doingphysiology),...
-     ' AND gPenetration.animal="',animal,'"'...
-     ' ORDER BY gPenetration.id DESC,gCellMaster.id DESC LIMIT 1'];
-lastpendata=mysql(sql);
-if length(lastpendata)>0,
-    daylag=lastpendata.daylag;
-else
-    daylag=1; % force new site
-end
-
-if length(lastpendata)==0 || isempty(lastpendata.maxid) | strcmp(lastpendata.maxid,'NULL'),
-
-    warning(['No penetrations exist for this animal. Guessing SiteID' ...
-        ' from scratch.']);
-    if doingphysiology,
-        siteid=[adata(1).cellprefix,'001a'];
-    else
-        siteid=[adata(1).cellprefix,'001Ta'];
-    end
-    return
-else
-    sql=['SELECT penid,max(siteid) as siteid FROM gCellMaster'...
-        ' WHERE penid=',num2str(lastpendata.maxid),' GROUP BY penid'];
-    tpendata=mysql(sql);
-
-    if length(tpendata)==0,
-        siteid='';
-    else
-        siteid=tpendata.siteid;
-    end
-    if isempty(siteid),
-        % no sites for this penetration yet
-        sql=['SELECT * FROM gPenetration'...
-            ' WHERE id=',num2str(lastpendata.maxid)];
-        lastpendata=mysql(sql);
-        if doingphysiology,
-            siteid=[lastpendata.penname,'a'];
-        else
-            siteid=[lastpendata.penname,'Ta'];
-        end
-    end
-
-    % if more than 12 hours since last change to gCellMaster, assume that
-    % this is a new site.
-    if daylag>=0.5,
-        numidx=find(siteid>='0' & siteid<='9');
-        pennum=str2num(siteid(numidx));
-
-        if doingphysiology,
-            siteid=[siteid(1:numidx(1)-1) sprintf('%03d',pennum+1) 'a'];
-        else
-            siteid=[siteid(1:numidx(1)-1) sprintf('%03d',pennum+1) 'Ta'];
-        end
-        %fprintf('guessing new penetration/site: %s\n',siteid);
-    end
-end
-% function [parm,perf]=dbReadData(rawid);
-%
-% created SVD 2006-02-23
-%
-function [parm,perf]=dbReadData(rawid);
-
-if ~exist('rawid','var'),
-   error('parameter rawid required');
-end
-
-dbopen;
-global DB_USER
-
-sql=['SELECT * FROM gData WHERE rawid=',num2str(rawid),...
-     ' ORDER BY id'];
-data=mysql(sql);
-
-parm=[];
-perf=[];
-
-for ii=1:length(data),
-   switch data(ii).datatype,
-    case 0,
-     val=data(ii).value;
-     case 1,
-       try,
-           val=eval(data(ii).svalue);
-       catch
-           val=eval([data(ii).svalue ' ]']);
-       end
-    case 2,
-     val=data(ii).svalue;
-   end
-   
-   if data(ii).parmtype==0,
-      parm=setfield(parm,data(ii).name,val);
-   else
-      perf=setfield(perf,data(ii).name,val);
-   end
-end
-
-% function dbWriteData(rawid,data,parmtype,keep_existing);
-%
-% rawid - index into gDataRaw table (stored in globalparams.rawid)
-% data - structure with each field either a scalar, matrix or string
-% parmtype - 'parm' (or 0) - parameters
-%            'perf' (of 1) - performance data
-% keep_existing - if 1, keep existing data for this rawid (default 0)
-%
-% created SVD 2006-02-23
-%
-function dbWriteData(rawid,data,parmtype,keep_existing);
-
-dbopen;
-global DB_USER
-
-if ~exist('parmtype','var'),
-   parmtype=0;
-end
-if ~exist('keep_existing','var'),
-   keep_existing=0;
-end
-if ~isnumeric(parmtype) & strcmp(lower(parmtype),'parm'),
-   parmtype=0;
-elseif ~isnumeric(parmtype) & strcmp(lower(parmtype),'perf'),
-   parmtype=1;
-elseif ~isnumeric(parmtype),
-   parmtype=0;
-end
-
-if ~isstruct(data),
-   ff=inputname(2);
-   if isempty(ff),
-      ff='data';
-   end
-   td=struct(ff,data);
-   data=td;
-end
-
-fn=fieldnames(data);
-
-if keep_existing,
-    % only delete entries that are getting replaced
-    namestr='(';
-    for ii=1:length(fn),
-        namestr=[namestr,'"',fn{ii},'",'];
-    end
-    namestr(end)=')';
-    
-    sql=['DELETE FROM gData WHERE rawid=',num2str(rawid),...
-        ' AND name in ',namestr,...
-        ' AND parmtype=',num2str(parmtype)];
-    mysql(sql);
-else
-    sql=['DELETE FROM gData WHERE rawid=',num2str(rawid),...
-        ' AND parmtype=',num2str(parmtype)];
-    mysql(sql);
-end
-
-rawdata=mysql(['select * FROM gDataRaw WHERE id=', ...
-               num2str(rawid)]);
-
-if length(rawdata)==0,
-   error(['gRawData.id=',num2str(rawid),' does not exist.']);
-end
-
-
-sql_st=['INSERT INTO gData (masterid,rawid,name,value,svalue,' ...
-     'datatype,parmtype,addedby,info) VALUES '];
-for ii=1:length(fn),
-   val=getfield(data,fn{ii});
-
-   if isnumeric(val) && length(val)==1 && ~isnan(val) && ~isinf(val),
-      sql2{ii}=sprintf('(%d,%d,"%s",%f,NULL,0,%d,"%s","dbWriteData.m")',...
-                   rawdata.masterid,rawid,fn{ii},val,parmtype,...
-                   DB_USER);
-      
-   elseif isnumeric(val),
-      ss=mat2str(val);
-      sql2{ii}=sprintf('(%d,%d,"%s",NULL,"%s",1,%d,"%s","dbWriteData.m")',...
-                   rawdata.masterid,rawid,fn{ii},ss,parmtype,...
-                   DB_USER);
-   elseif isstruct(val),
-       if ~strcmp(fn{ii},'Behave_DisplayParams')
-           error('Count not save %s, fix!',fn{ii}')
-       end
-   elseif ~iscell(val)
-      sql2{ii}=sprintf('(%d,%d,"%s",NULL,"%s",2,%d,"%s","dbWriteData.m")',...
-                   rawdata.masterid,rawid,fn{ii},val,parmtype,...
-                   DB_USER);
-   elseif iscell(val)
-       val=join(val);
-       val=val{1};
-       sql2{ii}=sprintf('(%d,%d,"%s",NULL,"%s",2,%d,"%s","dbWriteData.m")',...
-                   rawdata.masterid,rawid,fn{ii},val,parmtype,...
-                   DB_USER);
-   end
-end
-sql=sql_st;
-for ii=1:length(fn),
-    if ~isempty(sql2{ii})
-        sql=[sql sql2{ii} ','];
-    end
-end
-% remove last comma
-sql=sql(1:end-1);
-try
-    mysql(sql);
-catch err
-    if length(err.message)>59 && strcmp(err.message(1:59),'Error running external mysql: The command line is too long.')
-        inds=floor(linspace(1,length(fn),3)); inds(end)=inds(end)+1;
-        for j=1:length(inds)-1
-            sql=sql_st;
-            for ii=inds(j):(inds(j+1)-1)
-                if ~isempty(sql2{ii})
-                    sql=[sql sql2{ii} ','];
-                end
-            end
-            sql=sql(1:end-1);% remove last comma
-            mysql(sql);
-        end
-    else
-        rethrow(err)
-    end
-end
-fprintf('Saved %d data items for rawid %d\n',length(fn),rawid);
-
-"""
+    d=c.read_data(rawid)
+    print(d[['name','value']])
