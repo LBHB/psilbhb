@@ -60,7 +60,7 @@ def process_et(event):
     plugin = event.workbench.get_plugin('psi.controller')
     name = event.parameters['name']
     events = event.parameters['data'].events
-    for edge, ts in events[['event', 'ts']].iterrows():
+    for _, (edge, ts) in events[['event', 'ts']].iterrows():
         plugin.et_callback(name, edge, ts)
 
 
