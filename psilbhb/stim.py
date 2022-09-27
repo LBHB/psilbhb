@@ -11,6 +11,8 @@ from psiaudio import queue
 from psiaudio.stim import Waveform, FixedWaveform, ToneFactory, \
     WavFileFactory, WavSequenceFactory, wavs_from_path
 
+from psiexperiment.token.api import ContinuousBlock
+
 import logging
 log = logging.getLogger(__name__)
 
@@ -96,6 +98,24 @@ class BigNaturalSequenceFactory(WavSequenceFactory):
 
     def next(self, samples):
         return self.queue.pop_buffer(samples)
+
+    
+enamldef BigNaturalSequence(ContinuousBlock):
+    
+    factory = BigNaturalSequenceFactory
+    name = 'Sequence of wav files'
+    label = 'wavseq'
+
+    Parameter:
+        name = 'path'
+        label = 'folder'
+        dtype = 'S'
+
+    Parameter:
+        name = 'level'
+        label = 'level (dB peSPL)'
+        dtype = 'double'
+        
 
 if __name__ == "__main__":
     wav_path = '/auto/data/sounds/BigNat/v2'
