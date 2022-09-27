@@ -64,15 +64,9 @@ class BigNaturalSequenceFactory(WavSequenceFactory):
 
         all_wav = list(sorted(Path(path).glob('*.wav')))
 
-        if fit_range is None:
-            fit_wav = all_wav
-        else:
-            fit_wav = all_wav[fit_range]
-        fit_wav *= fit_reps
-        if test_range is None:
-            test_wav = []
-        else:
-            test_wav = all_wav[test_range] * test_reps
+
+        fit_wav = all_wav[fit_range] * fit_reps
+        test_wav = all_wav[test_range] * test_reps
         wav = fit_wav + test_wav
 
         self.fit_names = fit_wav
@@ -137,28 +131,28 @@ enamldef BigNaturalSequence(ContinuousBlock):
         dtype = 'double'
 
     Parameter:
+        name = 'fit_range'
+        label = 'Fit Index Range'
+        expression = 'slice(None)'
+        dtype = 'object'
+
+    Parameter:
         name = 'fit_reps'
         label = 'Fit Reps'
         default = 1
         dtype = 'double'
 
     Parameter:
-        name = 'fit_range'
-        label = 'Fit Range (list)'
-        default = None
-        dtype = 'O'
+        name = 'test_range'
+        label = 'Test Index Range'
+        expression = 'slice(0)'
+        dtype = 'object'
 
     Parameter:
         name = 'test_reps'
         label = 'Test Reps'
         default = 1
         dtype = 'double'
-
-    Parameter:
-        name = 'test_range'
-        label = 'Test Range (list)'
-        default = None
-        dtype = 'O'
 
 
 if __name__ == "__main__":

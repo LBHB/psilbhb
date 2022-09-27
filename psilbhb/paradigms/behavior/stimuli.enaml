@@ -27,9 +27,9 @@ enamldef ToneInNaturalSounds(ExperimentManifest): manifest:
         ToneBurst: tone_burst:
             pass
 
-        WavSequence: wav_sequence:
+        BigNaturalSequence: wav_sequence:
             name = 'wav_sequence'
-            label = 'Wav sequence'
+            label = 'BigNat sequence'
 
     Extension:
         id = manifest.id + '.io'
