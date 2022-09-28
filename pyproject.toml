@@ -5,16 +5,20 @@ requires-python = ">=3.7"
 license = {file = "LICENSE.txt"}
 authors = [
     {name = "Brad Buran", email="buran@ohsu.edu"},
+    {name = "Stephen David", email="davids@ohsu.edu"},
 ]
 maintainers = [
     {name = "Brad Buran", email="buran@ohsu.edu"},
+    {name = "Stephen David", email="davids@ohsu.edu"},
 ]
 dependencies = [
     "psiexperiment[ni,zarr-backend]",
-    "psiopenephys",
-    "psivideo",
 ]
 dynamic = ["version"]
+
+[project.optional-dependencies]
+ephys = ["psiopenephys"]
+video = ["psivideo"]
 
 [build-system]
 requires = ["setuptools>=61.2", "wheel", "setuptools_scm[toml]>=3.4.3"]
