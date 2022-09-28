@@ -6,10 +6,10 @@ CORE_PATH = 'psi.paradigms.core.'
 
 
 COMMON_PLUGINS = [
-    {'manifest': PATH + 'behavior_gonogo.BehaviorManifest'},
     {'manifest': PATH + 'behavior_mixins.BaseGoNogoMixin'},
     {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser'},
-    {'manifest': CORE_PATH + 'video_mixins.PSIVideo'},
+    {'manifest': 'psilbhb.paradigms.video.PSIVideo'},
+    {'manifest': 'psilbhb.paradigms.openephys.OpenEphysManifest'},
     {'manifest': CORE_PATH + 'signal_mixins.SignalFFTViewManifest',
         'attrs': {'fft_time_span': 1, 'fft_freq_lb': 5, 'fft_freq_ub': 24000, 'y_label': 'Level (dB)'}
         },
@@ -17,16 +17,29 @@ COMMON_PLUGINS = [
 
 
 ParadigmDescription(
-    'NTD', 'Go-nogo tone detection in natural background',
+    'NTD-gonogo', 'Go-nogo tone detection in natural background',
     'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'stimuli.ToneInNaturalSounds'},
+        {'manifest': PATH + 'behavior_gonogo.BehaviorManifest'},
+        {'manifest': PATH + 'stimuli.ToneInNaturalSoundsGoNogo'},
     ],
 )
 
 
 ParadigmDescription(
+    'NTD-2AFC', 'Two AFC tone detection in natural background',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'behavior_NAFC.BehaviorManifest', 'attrs': {'NAFC': 2}},
+        #{'manifest': PATH + 'stimuli.ToneInNaturalSoundsNAFC'},
+        {'manifest': PATH + 'stimuli.ToneInSilenceNAFC'},
+    ],
+)
+
+
+
+ParadigmDescription(
     'STD', 'Go-nogo tone detection in silence',
     'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'stimuli.ToneInSilence'},
+        {'manifest': PATH + 'behavior_gonogo.BehaviorManifest'},
+        {'manifest': PATH + 'stimuli.ToneInSilenceGoNogo'},
     ],
 )

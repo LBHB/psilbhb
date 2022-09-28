@@ -1,6 +1,10 @@
+import itertools
+
+from enaml.core.api import Looper
 from enaml.workbench.api import Extension
 
 from psi.core.enaml.api import ExperimentManifest
+from psi.context.api import ContextGroup, Expression, Parameter
 from psi.controller.api import ContinuousOutput, EpochOutput
 from psi.token.primitives import (Cos2Envelope, Silence, Tone, WavSequence)
 
@@ -15,7 +19,7 @@ enamldef ToneBurst(Cos2Envelope):
         hide = ['polarity', 'phase']
 
 
-enamldef ToneInNaturalSounds(ExperimentManifest): manifest:
+enamldef ToneInNaturalSoundsGoNogo(ExperimentManifest): manifest:
 
     id = 'tone_in_natural_sounds'
     required = True
@@ -38,17 +42,19 @@ enamldef ToneInNaturalSounds(ExperimentManifest): manifest:
         ContinuousOutput:
             name = 'background'
             label = 'Background'
-            target_name = 'hw_ao::speaker_1'
+            target_name = 'hw_ao::speaker_2'
             token = wav_sequence
 
         EpochOutput:
             name = 'target'
             label = 'Target'
-            target_name = 'hw_ao::speaker_1'
+            target_name = 'hw_ao::speaker_2'
             token = tone_burst
 
 
-enamldef ToneInSilence(ExperimentManifest): manifest:
+enamldef ToneInSilenceGoNogo(ExperimentManifest): manifest:
+
+    required = True
 
     Extension:
         id = manifest.id + '.tokens'
@@ -65,3 +71,54 @@ enamldef ToneInSilence(ExperimentManifest): manifest:
             name = 'target'
             label = 'Target'
             target_name = 'hw_ao::speaker_1'
+
+
+enamldef ToneInSilenceNAFC(ExperimentManifest): manifest:
+
+    id = 'tone_in_silence_nafc'
+    attr NAFC = 2
+    required = True
+
+    Extension:
+        id = manifest.id + '.context'
+        point = 'psi.context.items'
+
+        ContextGroup:
+            name = 'test'
+            label = 'test'
+
+        Looper:
+            iterable << tone.parameters
+
+            Parameter:
+                name = loop_item.name
+                label = loop_item.label
+                expression = loop_item.expression
+                dtype = loop_item.dtype
+                group_name = 'test'
+
+        Looper:
+            iterable << itertools.product(range(manifest.NAFC), tone.parameters)
+            Expression:
+                parameter = f'target_{loop_item[0] + 1}_tone_{loop_item[1].name}'
+                expression = loop_item[1].name
+
+    Extension:
+        id = manifest.id + '.tokens'
+        point = 'psi.token.tokens'
+
+        ToneBurst: tone:
+            pass
+
+    Extension:
+        id = manifest.id + '.io'
+        point = 'psi.controller.io'
+
+        Looper:
+            iterable = range(2)
+
+            EpochOutput:
+                name = f'target_{loop_item + 1}'
+                label = f'Target {loop_item + 1}'
+                target_name = f'hw_ao::speaker_{loop_item + 1}'
+                token = tone
