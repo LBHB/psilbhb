@@ -153,16 +153,3 @@ enamldef BigNaturalSequence(ContinuousBlock):
         label = 'Test Reps'
         default = 1
         dtype = 'double'
-
-
-if __name__ == "__main__":
-    wav_path = '/auto/data/sounds/BigNat/v2'
-    n = BigNaturalSequenceFactory(10000, wav_path, duration=20, normalization='fixed',
-                               norm_fixed_scale=250, fit_range=slice(6,16),
-                               test_range=slice(0,2), test_reps=10)
-    # should load 4 files with ~2 sec of silence at the end of each
-    w = n.next(800000)
-    import matplotlib.pyplot as plt
-    plt.figure();plt.plot(w[100000:300000])
-else:
-    pass
