@@ -123,7 +123,7 @@ enamldef BigNaturalSequence(ContinuousBlock):
         label = 'normalization'
         compact_label = 'norm'
         default = 'max'
-        choices = {'max': 'pe', 'RMS': 'rms', 'fixed': 'fixed'}
+        choices = {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}
 
     Parameter:
         name = 'norm_fixed_scale'

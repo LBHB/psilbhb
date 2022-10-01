@@ -5,8 +5,10 @@ from enaml.workbench.api import Extension
 
 from psi.core.enaml.api import ExperimentManifest
 from psi.context.api import ContextGroup, Expression, Parameter
-from psi.controller.api import ContinuousOutput, EpochOutput
+from psi.controller.api import ContinuousQueuedOutput, EpochOutput
 from psi.token.primitives import (Cos2Envelope, Silence, Tone, WavSequence)
+
+from psilbhb.stim.bignat import BigNaturalSequence
 
 
 enamldef ToneBurst(Cos2Envelope):
@@ -39,7 +41,7 @@ enamldef ToneInNaturalSoundsGoNogo(ExperimentManifest): manifest:
         id = manifest.id + '.io'
         point = 'psi.controller.io'
 
-        ContinuousOutput:
+        ContinuousQueuedOutput:
             name = 'background'
             label = 'Background'
             target_name = 'hw_ao::speaker_2'
