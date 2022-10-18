@@ -141,6 +141,6 @@ enamldef OpenEphysManifest(ExperimentManifest): manifest:
         ExperimentAction:
             event = 'experiment_end'
             command = manifest.id + '.stop_recording'
-        ExperimentAction:
-            event = 'experiment_event'
-            command = manifest.id + '.log_experiment_event'
+        #ExperimentAction:
+        #    event = 'experiment_event'
+        #    command = manifest.id + '.log_experiment_event'
