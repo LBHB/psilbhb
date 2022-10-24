@@ -9,8 +9,8 @@ from sqlalchemy.ext.automap import automap_base
 import pandas as pd
 import pandas.io.sql as psql
 
-import settings
-
+#import settings
+from psi import get_config
 
 class celldb():
     
@@ -23,14 +23,15 @@ class celldb():
     MYSQL_HOST = None
     MYSQL_PORT = 3306
     MYSQL_DB = None
-    TESTMODE=False
+    TESTMODE = False
 
     def __init__(self):
-        self.MYSQL_USER = settings.MYSQL_USER
-        self.MYSQL_PASS = settings.MYSQL_PASS
-        self.MYSQL_HOST = settings.MYSQL_HOST
-        self.MYSQL_PORT = settings.MYSQL_PORT
-        self.MYSQL_DB = settings.MYSQL_DB
+        self.MYSQL_USER = get_config('MYSQL_USER')
+        self.MYSQL_PASS = get_config('MYSQL_PASS')
+        self.MYSQL_HOST = get_config('MYSQL_HOST')
+        self.MYSQL_PORT = get_config('MYSQL_PORT')
+        self.MYSQL_DB = get_config('MYSQL_DB')
+        self.TESTMODE = get_config('MYSQL_TESTMODE')
 
     def Engine(self):
         '''Returns a mysql engine object. Creates the engine if necessary.

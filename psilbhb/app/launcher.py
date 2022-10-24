@@ -6,8 +6,10 @@ import datetime as dt
 import os.path
 from pathlib import Path
 import subprocess
+from datetime import datetime
+import json
 
-from atom.api import Atom, Bool, Enum, List, Typed, Str
+from atom.api import Atom, Bool, Enum, List, Typed, Str, Int
 import enaml
 from enaml.qt.qt_application import QtApplication
 
@@ -21,6 +23,8 @@ from psi.application import (get_default_io, list_calibrations, list_io,
                              list_preferences, load_paradigm_descriptions)
 
 from psi.experiment.api import ParadigmDescription, paradigm_manager
+
+from psilbhb.util.celldb import celldb
 
 # redeclare these structures here:
 #from psi.application.base_launcher import SimpleLauncher, launch main_animal
@@ -182,57 +186,6 @@ class SimpleLauncher(Atom):
         subprocess.check_output(args)
         self._update_choices()
 
-class AnimalDescription:
-
-    def __init__(self, name, title, experiment_type, plugin_info):
-        '''
-        Parameters
-        ----------
-        name : str
-            Simple name that will be used to identify experiment. Must be
-            globally unique. Will often be used at the command line to start
-            the experment (e.g., `psi name`).
-        title : str
-            Title to show in main window of the experiment as well as in any
-            user experience where the user is asked to select from a list of
-            experiments.
-        experiment_type : {'ear', 'animal', 'cohort', 'calibration', str}
-            Type of experiment. This is mainly used to organize the list of
-            available experments in different user interfaces.
-        plugin_info : list
-            List of tuples containing information about the plugins that are
-            available for this particular paradigm.
-        '''
-        self.name = name
-        self.title = title
-        self.experiment_type = experiment_type
-
-        global paradigm_manager
-        try:
-            self.plugins = [PluginDescription(**d) for d in plugin_info]
-            paradigm_manager.register(self)
-        except Exception as exc:
-            print(plugin_info)
-            paradigm_manager.register(self, exc)
-
-    def enable_plugin(self, plugin_name):
-        for p in self.plugins:
-            if p.name == plugin_name:
-                p.selected = True
-                break
-        else:
-            choices = ', '.join(p.name for p in self.plugins)
-            raise ValueError(f'Plugin {plugin_name} not found. ' \
-                             f'Valid plugins are {choices}.')
-
-    def disable_plugin(self, plugin_name):
-        for p in self.plugins:
-            if p.name == plugin_name:
-                p.selected = False
-
-    def disable_all_plugins(self):
-        for p in self.plugins:
-            p.selected = False
 
 class CellDbLauncher(SimpleLauncher):
 
@@ -241,15 +194,99 @@ class CellDbLauncher(SimpleLauncher):
     #
     #def _default_animal_choices(self):
     #    return ['Prince','SlipperyJack','Test']
+    db = celldb()
+    animal_data = db.get_animals()
+    user_data = db.get_users()
 
+    experimenter = Str().tag(required=True)
     animal = Str().tag(template=True, required=True)
-    available_animals = ['Prince','SlipperyJack','Test']
+    siteid = Str().tag(template=True, required=True)
+    training = Str().tag(required=True)
+    runclass = Str().tag(required=True)
+    runnumber = Int().tag(required=False)
+    penname = Str().tag(required=False)
+    note = Str().tag(required=False)
 
-    template = '{animal}/{experiment}/{{date_time}} {experimenter} {note} {experiment}'
+    available_animals = list(animal_data['animal'])
+    available_experimenters = list(user_data['userid'])
+    available_runclasses = ['NTD','FTC']
+
+    training_folder = Typed(Path)
+
+    template = '{animal}/{siteid}/{runname}'
     wildcard_template = '*{animal}*{experiment}'
+
+    def _default_training(self):
+        return "Yes"
+
+    def _default_runclass(self):
+        return "NTD"
+
+    def _default_training_folder(self):
+        return get_config('TRAINING_ROOT')
+
+    def _update(self):
+        log.info('running update')
+        is_training = (self.training == 'Yes')
+        if len(self.animal):
+            self.penname = self.db.get_current_penname(animal=self.animal, training=is_training)
+            site_data=self.db.get_current_site(animal=self.animal, training=is_training)
+            self.siteid = site_data['cellid']
+            rawdata = self.db.get_rawdata(siteid=self.siteid)
+            self.runnumber = len(rawdata)+1
+
+        exclude = [] if self.save_data else ['note' ]
+        required_vals = get_tagged_values(self, 'required')
+        self.can_launch = True
+        for k, v in get_tagged_values(self, 'required').items():
+            if k in exclude:
+                continue
+            if not v:
+                self.can_launch = False
+                return
+
+        if self.save_data & self.can_launch:
+            if is_training:
+                year = datetime.today().strftime('%Y')
+                datestr = datetime.today().strftime('%Y_%m_%d')
+
+                self.base_folder = self.training_folder / self.animal / f'training{year}' / \
+                                   f'{self.animal}_{datestr}_{self.runclass}_{self.runnumber:02d}'
+            else:
+                self.base_folder = self.root_folder / self.animal / self.penname / \
+                                   f'{self.siteid}{self.runnumber:02d}_a_{self.runclass}'
+        else:
+            self.base_folder = None
+        self.save_settings()
 
     def _observe_animal(self, event):
         self._update()
+
+    def _observe_training(self, event):
+        self._update()
+
+    def _observe_runclass(self, event):
+        self._update()
+
+    def _observe_siteid(self, event):
+        self._update()
+
+    def load_settings(self, configfile="celldblauncher.json"):
+        filename = get_config('PREFERENCES_ROOT') / configfile
+        if os.path.exists(filename):
+            with open(filename, 'r') as file:
+                d = json.loads(file.read())
+            for k, v in d.items():
+                setattr(self, k, v)
+
+    def save_settings(self, configfile="celldblauncher.json"):
+        filename = get_config('PREFERENCES_ROOT') / configfile
+        save_parms = ['experimenter','animal','training',
+                      'runclass']
+        d = {k: getattr(self, k) for k in save_parms}
+
+        with open(filename, 'w') as file:
+            file.write(json.dumps(d))
 
 
 def launch(klass, experiment_type, root_folder='DATA_ROOT', view_klass=None):
@@ -261,6 +298,7 @@ def launch(klass, experiment_type, root_folder='DATA_ROOT', view_klass=None):
         if view_klass is None:
             view_klass = LauncherView
         launcher = klass(root_folder=root_folder, experiment_type=experiment_type)
+        launcher.load_settings()
         view = view_klass(launcher=launcher)
         view.show()
         app.start()
@@ -270,5 +308,6 @@ def launch(klass, experiment_type, root_folder='DATA_ROOT', view_klass=None):
         critical(None, 'Software not configured', mesg)
         raise
 
+c = celldb()
 main_db = partial(launch, CellDbLauncher, 'animal')
 

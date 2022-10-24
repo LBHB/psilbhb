@@ -13,8 +13,13 @@ dependencies = [
     "psiexperiment[ni,zarr-backend]",
     "psiopenephys",
     "psivideo",
+    "pymysql",
+    "sqlalchemy",
 ]
 dynamic = ["version"]
+
+[project.scripts]
+psi-celldb = "psilbhb.app.launcher:main_db"
 
 [build-system]
 requires = ["setuptools>=61.2", "wheel", "setuptools_scm[toml]>=3.4.3"]

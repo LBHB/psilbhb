@@ -213,36 +213,40 @@ enamldef LauncherView(MainWindow): main:
             Label:
                 text = 'Experimenter'
 
-            Field: experimenter:
-                text := launcher.experimenter
+            ObjectCombo: experimenter:
+                items << launcher.available_experimenters[:]
+                selected := launcher.experimenter
 
-            Conditional:
-                condition << hasattr(launcher, 'animal')
+            Label:
+                text = 'Animal'
 
-                Label:
-                    text = 'Animal'
+            ObjectCombo: animal:
+                enabled << not launcher.use_prior_preferences
+                constraints = [
+                    width == 300
+                ]
+                items << launcher.available_animals[:]
+                selected := launcher.animal
 
-                HGroup:
-                    padding = 0
-                    align_widths = False
+            Label:
+                text = 'Training'
 
-                    #Field: animal:
-                    #    text := launcher.animal
-                    ObjectCombo: animal:
-                        enabled << not launcher.use_prior_preferences
-                        constraints = [
-                            width == 300
-                        ]
-                        items << launcher.available_animals[:]
-                        #to_string = lambda x: x.stem.replace('_', ' ')
-                        selected := launcher.animal
+            ObjectCombo: training:
+                items << ['Yes','Physiology+behavior','Physiology+passive']
+                selected := launcher.training
 
-                    Conditional:
-                        condition << hasattr(launcher, 'ear')
+            Label:
+                text = 'SiteID'
 
-                        ObjectCombo: ear:
-                            items = ['right', 'left']
-                            selected := launcher.ear
+            Field: siteid:
+                text := launcher.siteid
+
+            Label:
+                text = 'Run Class'
+
+            ObjectCombo: runclass:
+                items << launcher.available_runclasses
+                selected := launcher.runclass
 
             Label:
                 text = 'Note'
@@ -256,23 +260,10 @@ enamldef LauncherView(MainWindow): main:
             HGroup:
                 padding = 0
                 align_widths = False
-                constraints = [pb.width == 30]
 
                 Label: base_folder:
-                    text << str(launcher.root_folder)
+                    text << str(launcher.base_folder)
 
-                PushButton: pb:
-                    text = '📂'
-                    enabled << launcher.base_folder is not None \
-                        and launcher.base_folder.parent.exists()
-                    clicked ::
-                        os.startfile(launcher.base_folder.parent)
-
-            Label:
-                text = 'Filename'
-
-            Label:
-                text << '' if launcher.base_folder is None else launcher.base_folder.name
 
 
         HGroup: button_bar:
