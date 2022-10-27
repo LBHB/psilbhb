@@ -166,7 +166,7 @@ class celldb():
 
     def get_penetration(self, penname):
         sql = f"SELECT * FROM gPenetration WHERE penname='{penname}'"
-        print(sql)
+        #print(sql)
         return self.pd_query(sql)
 
     def get_rawdata(self, siteid=None, rawid=None):
@@ -230,21 +230,34 @@ class celldb():
 
         return penname
 
-    def get_current_site(self, siteid=None, animal=None, training=None, penname=None, force_next=False):
+    def get_current_site(self, siteid=None, animal=None, training=None, penname=None, create_if_missing=True, force_next=False):
         if animal is None:
             animal = self.animal
         if training is None:
             training = self.training
-        if penname is None:
-            penname = self.get_current_penname(animal, training)
 
         if siteid is not None:
             sql = f"SELECT * FROM gCellMaster WHERE siteid='{siteid}' ORDER BY id"
+            sitedata = self.pd_query(sql)
+            if (len(sitedata) == 0):
+                penname = self.get_current_penname(animal, training)
+                sitedata = self.pd_query(sql)
+                if (len(sitedata) == 0):
+                    self.create_site(siteid=siteid)
+                    sitedata = self.pd_query(sql)
+
         else:
+            if (penname is None):
+                penname = self.get_current_penname(animal, training, create_if_missing=create_if_missing)
             sql = f"SELECT * FROM gCellMaster WHERE penname='{penname}' ORDER BY id"
-        sitedata = self.pd_query(sql)
-        if len(sitedata) == 0:
-            print(f"ERROR: no current site for penetration {penname}?")
+
+            sitedata = self.pd_query(sql)
+        if (len(sitedata) == 0) & (~create_if_missing):
+            sitedata=pd.DataFrame({'penname':penname, 'siteid':penname+'a', 'cellid':penname+'a'},index=[0])
+            return sitedata.iloc[-1]
+
+        elif (len(sitedata)==0):
+            print(f"No current site for penetration {penname}?")
             return None
         else:
             return sitedata.iloc[-1]
@@ -293,40 +306,48 @@ class celldb():
                          training=training, user=user)
         return penname
 
-    def create_site(self, penname, animal=None, training=None, user=None):
+    def create_site(self, penname=None, siteid=None, animal=None,
+                    training=None, user=None,
+                    area="", comments=""):
         if animal is None:
             animal = self.animal
         if training is None:
             training = self.training
-        if penname is None:
-            penname = self.get_current_penname(animal, training=training, force_next=True)
 
-        pendata = self.get_penetration(penname).loc[0]
-        if user is None:
-            user = pendata.addedby
-        sitedata = self.get_current_site(penname=penname, force_next=True)
-        if sitedata is not None:
-            siteletter=sitedata.siteid[-1]
-            newsiteletter = chr(ord(siteletter)+1)
-            siteid = sitedata.siteid[:-1] + newsiteletter
+        if siteid is None:
+
+            pendata = self.get_penetration(penname).loc[0]
+            if user is None:
+                user = pendata.addedby
+            sitedata = self.get_current_site(penname=penname, force_next=True)
+            if sitedata is not None:
+                siteletter = sitedata.siteid[-1]
+                newsiteletter = chr(ord(siteletter) + 1)
+                siteid = sitedata.siteid[:-1] + newsiteletter
+            else:
+                siteid = penname + 'a'
         else:
-            siteid = penname+'a'
+            penname = siteid[:-1]
+            pendata = self.get_penetration(penname).loc[0]
+
         d = pd.DataFrame({'siteid': siteid,
-             'cellid': siteid,
-             'penid': pendata.id,
-             'penname': penname,
-             'animal': pendata.animal,
-             'well': pendata.well,
-             'training': pendata.training,
-             'findtime': datetime.datetime.now().strftime("%H:%M"),
-             'addedby': user,
-             'info': 'psilbhb.celldb'}, index=[0])
+                          'cellid': siteid,
+                          'penid': pendata.id,
+                          'penname': penname,
+                          'animal': pendata.animal,
+                          'well': pendata.well,
+                          'training': pendata.training,
+                          'findtime': datetime.datetime.now().strftime("%H:%M"),
+                          'area': area,
+                          'comments': comments,
+                          'addedby': user,
+                          'info': 'psilbhb.celldb'}, index=[0])
         masterid = self.sqlinsert('gCellMaster', d)
         print(f'Added gCellMaster entry {siteid}')
 
         cellid = siteid + "-001-1"
-        #sitedata = self.get_current_site(self, penname=penname)
-        #masterid = sitedata['id']
+        # sitedata = self.get_current_site(self, penname=penname)
+        # masterid = sitedata['id']
 
         d=pd.DataFrame({'siteid': siteid,
             'cellid': cellid,
@@ -343,26 +364,27 @@ class celldb():
         return siteid
 
     def create_rawfile(self, siteid=None,
-                     runclass=None, behavior="passive", timejuice=0,
-                     pupil=False,
-                     ):
+                       runclass=None, filenum=0, behavior="passive", timejuice=0,
+                       pupil=False, psi_format=True,
+                       dataroot='/auto/data/daq/'):
         if siteid is None:
             sitedata = self.get_current_site()
             siteid = sitedata.siteid
         else:
             sitedata = self.get_current_site(siteid=siteid)
+        penname = sitedata['penname']
         if runclass is None:
             raise ValueError('Three-letter runclass must be specified for new_raw_file')
         if behavior is None:
             behavior = "passive"
 
         masterid = sitedata.id
-        sql=f"SELECT * FROM gRunClass where name='{runclass}'"
-        runclassdata=self.pd_query(sql)
+        sql = f"SELECT * FROM gRunClass where name='{runclass}'"
+        runclassdata = self.pd_query(sql)
         if len(runclassdata) == 1:
-            runclassid=runclassdata.loc[0,'id']
-            stimclass=runclassdata.loc[0,'stimclass']
-            task=runclassdata.loc[0,'task']
+            runclassid = runclassdata.loc[0, 'id']
+            stimclass = runclassdata.loc[0, 'stimclass']
+            task = runclassdata.loc[0, 'task']
         else:
             raise ValueError(f"runclass {runclass} not found in gRunClass")
         year = datetime.datetime.now().strftime("%Y")
@@ -370,64 +392,74 @@ class celldb():
         day = datetime.datetime.now().strftime("%d")
 
         # determine path + parmfilename
+        if sitedata.training:
+            resppath = f'{dataroot}/{sitedata.animal}/training{year}/'
+        else:
+            resppath = f'{dataroot}/{sitedata.animal}/{penname}/'
         rawdata = self.get_rawdata(siteid)
-        if len(rawdata)>0:
-            prevparmfile = rawdata.iloc[-1]['parmfile']
-            resppath = rawdata.iloc[-1]['resppath']
-            if sitedata.training:
-                filenum = int(prevparmfile.split(".")[0].split("_")[-1]) + 1
+        if filenum==0:
+            if len(rawdata) > 0:
+                prevparmfile = rawdata.iloc[-1]['parmfile']
+                if (filenum==0) and sitedata.training:
+                    filenum = int(prevparmfile.split(".")[0].split("_")[-1]) + 1
+                elif filenum==0:
+                    filenum = int(prevparmfile[len(siteid):(len(siteid) + 2)]) + 1
             else:
-                filenum = int(prevparmfile[len(siteid):(len(siteid)+2)]) + 1
+                filenum = 1
+
+        if behavior == 'passive':
+            bstr = 'p'
         else:
-            dataroot = '/auto/data/daq'
-            filenum = 1
-            if sitedata.training:
-                resppath = f'{dataroot}/{sitedata.animal}/training{year}/'
-            else:
-                resppath = f'{dataroot}/{sitedata.animal}/{siteid}/'
-        if behavior=='passive':
-            bstr='p'
-        else:
-            bstr='a'
+            bstr = 'a'
         if sitedata.training:
             filestr = f'{filenum:d}'
             parmbase = f"{sitedata.animal}_{year}_{month}_{day}_{runclass}_{filestr}"
         else:
             filestr = f'{filenum:02d}'
             parmbase = f"{siteid}{filestr}_{bstr}_{runclass}"
-
-        parmfile = parmbase + ".m"
-        if pupil:
-            pupilfile = f"{resppath}{parmbase}.avi"
-        else:
+        if parmbase not in list(rawdata['parmfile']):
             pupilfile = ""
-        evpfilename = f"{resppath}{parmbase}.evp"
-        rawpath = f'{resppath}raw/{siteid}{filestr}/'
-        
-        d=pd.DataFrame({
-            'cellid': siteid,
-            'masterid': masterid,
-            'runclass': runclass,
-            'runclassid': runclassid,
-            'training': sitedata.training,
-            'resppath': resppath,
-            'parmfile': parmfile,
-            'eyewin': pupil,
-            'eyecalfile': pupilfile,
-            'respfileevp': evpfilename,
-            'respfile': rawpath,
-            'task': task,
-            'stimclass': stimclass,
-            'behavior': behavior,
-            'timejuice': timejuice,
-            'fixtime': datetime.datetime.now().strftime("%H:%M"),
-            'time': datetime.datetime.now().strftime("%H:%M"),
-            'addedby': sitedata.addedby,
-            'info': 'psilbhb.celldb'}, index=[0])
-        rawid = self.sqlinsert('gDataRaw', d)
-        print(f'Added gDataRaw entry {parmbase}')
-        rawdata = {'rawid': rawid, 'resppath': resppath, 'parmbase': parmbase,
-                   'pupil_file': pupilfile, 'rawpath': rawpath}
+            if psi_format:
+                parmfile = parmbase
+                evpfilename = f"{resppath}{parmbase}/reward_contact_analog.zarr"
+                rawpath = f'{resppath}{parmbase}/raw/'
+                if pupil:
+                    pupilfile = f"{resppath}{parmbase}/recording.avi"
+
+            else:
+                parmfile = parmbase + ".m"
+                if pupil:
+                    pupilfile = f"{resppath}{parmbase}.avi"
+
+                evpfilename = f"{resppath}{parmbase}.evp"
+                rawpath = f'{resppath}raw/{siteid}{filestr}/'
+
+            d = pd.DataFrame({
+                'cellid': siteid,
+                'masterid': masterid,
+                'runclass': runclass,
+                'runclassid': runclassid,
+                'training': sitedata.training,
+                'resppath': resppath,
+                'parmfile': parmfile,
+                'eyewin': pupil,
+                'eyecalfile': pupilfile,
+                'respfileevp': evpfilename,
+                'respfile': rawpath,
+                'task': task,
+                'stimclass': stimclass,
+                'behavior': behavior,
+                'timejuice': timejuice,
+                'fixtime': datetime.datetime.now().strftime("%H:%M"),
+                'time': datetime.datetime.now().strftime("%H:%M"),
+                'addedby': sitedata.addedby,
+                'info': 'psilbhb.celldb'}, index=[0])
+            rawid = self.sqlinsert('gDataRaw', d)
+            print(f'Added gDataRaw entry {parmbase}')
+            rawdata = {'rawid': rawid, 'resppath': resppath, 'parmbase': parmbase,
+                       'pupil_file': pupilfile, 'rawpath': rawpath}
+        else:
+            rawdata = rawdata.loc[rawdata.parmfile==parmbase].to_dict()
         return rawdata
 
     def save_data(self, rawid, datadict, parmtype=0, keep_existing=False):

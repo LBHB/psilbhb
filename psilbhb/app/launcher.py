@@ -3,6 +3,7 @@ log = logging.getLogger(__name__)
 
 from functools import partial
 import datetime as dt
+import os
 import os.path
 from pathlib import Path
 import subprocess
@@ -203,7 +204,7 @@ class CellDbLauncher(SimpleLauncher):
     siteid = Str().tag(template=True, required=True)
     training = Str().tag(required=True)
     runclass = Str().tag(required=True)
-    runnumber = Int().tag(required=False)
+    runnumber = Str().tag(required=False)
     penname = Str().tag(required=False)
     note = Str().tag(required=False)
 
@@ -216,6 +217,11 @@ class CellDbLauncher(SimpleLauncher):
     template = '{animal}/{siteid}/{runname}'
     wildcard_template = '*{animal}*{experiment}'
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.load_settings()
+
+
     def _default_training(self):
         return "Yes"
 
@@ -225,49 +231,16 @@ class CellDbLauncher(SimpleLauncher):
     def _default_training_folder(self):
         return get_config('TRAINING_ROOT')
 
-    def _update(self):
-        log.info('running update')
-        is_training = (self.training == 'Yes')
-        if len(self.animal):
-            self.penname = self.db.get_current_penname(animal=self.animal, training=is_training)
-            site_data=self.db.get_current_site(animal=self.animal, training=is_training)
-            self.siteid = site_data['cellid']
-            rawdata = self.db.get_rawdata(siteid=self.siteid)
-            self.runnumber = len(rawdata)+1
-
-        exclude = [] if self.save_data else ['note' ]
-        required_vals = get_tagged_values(self, 'required')
-        self.can_launch = True
-        for k, v in get_tagged_values(self, 'required').items():
-            if k in exclude:
-                continue
-            if not v:
-                self.can_launch = False
-                return
-
-        if self.save_data & self.can_launch:
-            if is_training:
-                year = datetime.today().strftime('%Y')
-                datestr = datetime.today().strftime('%Y_%m_%d')
-
-                self.base_folder = self.training_folder / self.animal / f'training{year}' / \
-                                   f'{self.animal}_{datestr}_{self.runclass}_{self.runnumber:02d}'
-            else:
-                self.base_folder = self.root_folder / self.animal / self.penname / \
-                                   f'{self.siteid}{self.runnumber:02d}_a_{self.runclass}'
-        else:
-            self.base_folder = None
-        self.save_settings()
-
     def _observe_animal(self, event):
-        self._update()
+        self._update_site()
 
     def _observe_training(self, event):
-        self._update()
+        self._update_site()
 
     def _observe_runclass(self, event):
         self._update()
-
+    def _observe_runnumber(self, event):
+        self._update()
     def _observe_siteid(self, event):
         self._update()
 
@@ -288,6 +261,91 @@ class CellDbLauncher(SimpleLauncher):
         with open(filename, 'w') as file:
             file.write(json.dumps(d))
 
+    def _update_site(self):
+        log.info('Running celldb launcher full update')
+        if len(self.animal):
+            is_training = (self.training == 'Yes')
+            self.db.user = self.experimenter
+            self.db.animal = self.animal
+            self.db.training = is_training
+            self.penname = self.db.get_current_penname(create_if_missing=False)
+            site_data=self.db.get_current_site(create_if_missing=False)
+            self.siteid = site_data['cellid']
+            rawdata = self.db.get_rawdata(siteid=self.siteid)
+            self.runnumber = str(len(rawdata)+1)
+        self._update()
+
+    def _update(self):
+
+        exclude = [] if self.save_data else ['note' ]
+        required_vals = get_tagged_values(self, 'required')
+        self.can_launch = True
+        for k, v in get_tagged_values(self, 'required').items():
+            if k in exclude:
+                continue
+            if not v:
+                self.can_launch = False
+                return
+
+        if self.save_data & self.can_launch:
+            is_training = (self.training == 'Yes')
+            try:
+                filenum = int(self.runnumber)
+            except:
+                filenum = 1
+                self.runnumber = '1'
+            if is_training:
+                year = datetime.today().strftime('%Y')
+                datestr = datetime.today().strftime('%Y_%m_%d')
+                self.base_folder = self.training_folder / self.animal / f'training{year}' / \
+                                   f'{self.animal}_{datestr}_{self.runclass}_{filenum:02d}'
+            else:
+                self.base_folder = self.root_folder / self.animal / self.penname / \
+                                   f'{self.siteid}{filenum:02d}_a_{self.runclass}'
+        else:
+            self.base_folder = None
+        self.save_settings()
+
+    # overload from SimpleLauncher so we can save info to celldb
+    def launch_subprocess(self):
+        if self.training == 'Yes':
+            behavior = 'active'
+        elif self.training == 'Physiology+behavior':
+            behavior = 'active'
+        else:
+            behavior = 'passive'
+        dataroot = get_config('DATA_ROOT')
+        rawdata=self.db.create_rawfile(siteid=self.siteid, runclass=self.runclass,
+                               filenum=int(self.runnumber), behavior=behavior,
+                               pupil=False, psi_format=True,
+                               dataroot=dataroot)
+        path = os.path.join(rawdata['resppath'], rawdata['parmbase'])
+        try:
+            os.makedirs(path)
+        except OSError as error:
+            print(error)
+
+        args = ['psi', self.experiment.name]
+        plugins = [p.name for p in self.experiment.plugins if p.selected]
+        if self.save_data:
+            args.append(str(self.base_folder))
+        if self.preferences:
+            args.extend(['--preferences', str(self.get_preferences())])
+        if self.io:
+            args.extend(['--io', str(self.io)])
+        if self.calibration:
+            args.extend(['--calibration', str(self.calibration)])
+        for plugin in plugins:
+            args.extend(['--plugins', plugin])
+        args.extend(['--debug-level-console', self.logging_level.upper()])
+        args.extend(['--debug-level-file', self.logging_level.upper()])
+
+        log.info('Launching subprocess: %s', ' '.join(args))
+        print(' '.join(args))
+        subprocess.check_output(args)
+        self._update_choices()
+        self._update_site()
+
 
 def launch(klass, experiment_type, root_folder='DATA_ROOT', view_klass=None):
     app = QtApplication()
@@ -298,7 +356,6 @@ def launch(klass, experiment_type, root_folder='DATA_ROOT', view_klass=None):
         if view_klass is None:
             view_klass = LauncherView
         launcher = klass(root_folder=root_folder, experiment_type=experiment_type)
-        launcher.load_settings()
         view = view_klass(launcher=launcher)
         view.show()
         app.start()

@@ -242,6 +242,12 @@ enamldef LauncherView(MainWindow): main:
                 text := launcher.siteid
 
             Label:
+                text = 'Run #'
+
+            Field: runnumber:
+                text := launcher.runnumber
+
+            Label:
                 text = 'Run Class'
 
             ObjectCombo: runclass:
