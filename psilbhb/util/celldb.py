@@ -1,6 +1,7 @@
 import datetime
 import json
 import numpy as np
+import os
 
 from sqlalchemy import create_engine, desc, exc
 from sqlalchemy.orm import sessionmaker
@@ -11,9 +12,54 @@ import pandas.io.sql as psql
 
 #import settings
 from psi import get_config
+from psi.util import PSIJsonEncoder
+
+def readpsievents(logpath, runclass=None):
+    # make sure correct path separator is used.
+    logpath = logpath.replace("/", os.path.sep)
+    logpath = logpath.replace("\\", os.path.sep)
+    eventlogfile = os.path.join(logpath, 'event_log.csv')
+    triallogfile = os.path.join(logpath, 'trial_log.csv')
+    df = pd.read_csv(triallogfile)
+    rawdata = {'trials': df.shape[0],
+               'corrtrials': df.correct.sum(),
+               'reps': 1}
+    if runclass is None:
+        runclass = logpath[-3:]
+    if runclass=='NTD':
+        row = df.iloc[-1]
+        parmnames = ['target_delay','target_tone_start_time','target_tone_rise_time',
+                     'background_wav_sequence_level',
+                     'target_tone_frequency','target_tone_polarity','target_tone_phase',
+                     'hold_duration','response_duration',
+                     'background_wav_sequence_path','background_wav_sequence_duration','background_wav_sequence_normalization',
+                     'background_wav_sequence_norm_fixed_scale', 'background_wav_sequence_fit_range', 'background_wav_sequence_test_range',
+                     'background_wav_sequence_test_reps', 'iti_duration', 'to_duration',
+                     'water_dispense_duration', 'go_probability', 'repeat_fa',
+                     'remind_trials', 'warmup_trials', 'min_nogo', 'max_nogo'
+                     ]
+        dataparm = {k: row[k] for k in parmnames}
+
+        sdtfile = os.path.join(logpath, 'sdt_analysis.csv')
+        if os.path.exists(sdtfile):
+            df_perf = pd.read_csv(sdtfile);
+
+            perfname =['trial_type', 'snr', 'n_correct', 'n_trials', 'fraction_correct',
+                       'z_score', 'reference_z_score']
+            dataperf = {k: list(df_perf[k]) for k in perfname}
+        else:
+            dataperf = {}
+    else:
+        raise ValueError(f"readpsievents: runclass {runclass} not supported")
+
+    return rawdata, dataparm, dataperf
+
+
+
+
 
 class celldb():
-    
+
     ENGINE = None
     user = None
     animal = None
@@ -69,7 +115,7 @@ class celldb():
 
     def get_db_uri(self):
         '''Used by Engine() to establish a connection to the database.'''
- 
+
         db_uri = 'mysql+pymysql://{0}:{1}@{2}:{3}/{4}'.format(
                 self.MYSQL_USER, self.MYSQL_PASS, self.MYSQL_HOST,
                 self.MYSQL_PORT, self.MYSQL_DB
@@ -457,7 +503,8 @@ class celldb():
             rawid = self.sqlinsert('gDataRaw', d)
             print(f'Added gDataRaw entry {parmbase}')
             rawdata = {'rawid': rawid, 'resppath': resppath, 'parmbase': parmbase,
-                       'pupil_file': pupilfile, 'rawpath': rawpath}
+                       'pupil_file': pupilfile, 'rawpath': rawpath,
+                       'runclass': runclass}
         else:
             rawdata = rawdata.loc[rawdata.parmfile==parmbase].to_dict()
         return rawdata
@@ -487,7 +534,7 @@ class celldb():
         penid = rawdata.loc[0,'penid']
         d = pd.DataFrame()
         for i,(k,v) in enumerate(datadict.items()):
-            jv = json.dumps(v)
+            jv = json.dumps(v, cls=PSIJsonEncoder)
             d.loc[i,'name']=k
             d.loc[i,'svalue']=jv
         d['siteid']=siteid
@@ -496,7 +543,7 @@ class celldb():
         d['rawid']=rawid
         d['datatype']=1
         d['parmtype']=parmtype
-        d['addedby']=c.user
+        d['addedby']=self.user
         d['info']='psilbhb.celldb'
 
         self.sqlinsert('gData', d)

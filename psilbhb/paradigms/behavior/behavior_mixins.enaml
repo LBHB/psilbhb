@@ -236,6 +236,11 @@ class BaseBehaviorPlugin(ControllerPlugin):
     #: states).
     trial_state = Typed(TrialState)
 
+    def get_event_info(self):
+        return {
+            'trial': self.trial
+        }
+
     def can_modify(self):
         return True
 

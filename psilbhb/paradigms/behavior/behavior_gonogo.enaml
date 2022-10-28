@@ -185,9 +185,15 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         GoNogoTrialType.nogo_repeat: 'nogo',
     }
 
+    def can_modify(self):
+        return self.trial_state in (
+            GoNogoTrialState.waiting_for_trial_start,
+            GoNogoTrialState.waiting_for_iti,
+            GoNogoTrialState.waiting_for_resume
+        )
+
     def apply_changes(self):
-        if self.trial_state in (GoNogoTrialState.waiting_for_trial_start,
-                                GoNogoTrialState.waiting_for_iti):
+        if self.can_modify():
             self._apply_changes()
             return True
         return False
@@ -236,6 +242,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             'response_start': np.nan,
             'response_ts': np.nan,
             'trial_type': self.trial_type.value,
+            'trial_number': self.trial,
         }
         self.trial_state = GoNogoTrialState.waiting_for_trial_start
         self.invoke_actions('trial_ready')

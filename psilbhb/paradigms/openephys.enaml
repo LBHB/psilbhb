@@ -106,8 +106,8 @@ def stop_recording(event):
 
 def log_experiment_event(event):
     plugin = event.workbench.get_plugin('openephys')
-    data = event.parameters['data']
-    mesg = f'{data["timestamp"]:f} {data["event"]}'
+    #data = event.parameters['data']
+    mesg = f'{event.parameters["timestamp"]:f} {event.parameters["event"]}'
     plugin.send_message(mesg)
 
 
@@ -141,6 +141,9 @@ enamldef OpenEphysManifest(ExperimentManifest): manifest:
         ExperimentAction:
             event = 'experiment_end'
             command = manifest.id + '.stop_recording'
-        #ExperimentAction:
-        #    event = 'experiment_event'
-        #    command = manifest.id + '.log_experiment_event'
+        ExperimentAction:
+            event = 'trial_start'
+            command = manifest.id + '.log_experiment_event'
+        ExperimentAction:
+            event = 'trial_end'
+            command = manifest.id + '.log_experiment_event'

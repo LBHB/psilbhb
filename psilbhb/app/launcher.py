@@ -25,7 +25,7 @@ from psi.application import (get_default_io, list_calibrations, list_io,
 
 from psi.experiment.api import ParadigmDescription, paradigm_manager
 
-from psilbhb.util.celldb import celldb
+from psilbhb.util.celldb import celldb, readpsievents
 
 # redeclare these structures here:
 #from psi.application.base_launcher import SimpleLauncher, launch main_animal
@@ -220,7 +220,7 @@ class CellDbLauncher(SimpleLauncher):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.load_settings()
-
+        self._update_site()
 
     def _default_training(self):
         return "Yes"
@@ -298,7 +298,7 @@ class CellDbLauncher(SimpleLauncher):
                 year = datetime.today().strftime('%Y')
                 datestr = datetime.today().strftime('%Y_%m_%d')
                 self.base_folder = self.training_folder / self.animal / f'training{year}' / \
-                                   f'{self.animal}_{datestr}_{self.runclass}_{filenum:02d}'
+                                   f'{self.animal}_{datestr}_{self.runclass}_{filenum}'
             else:
                 self.base_folder = self.root_folder / self.animal / self.penname / \
                                    f'{self.siteid}{filenum:02d}_a_{self.runclass}'
@@ -310,14 +310,16 @@ class CellDbLauncher(SimpleLauncher):
     def launch_subprocess(self):
         if self.training == 'Yes':
             behavior = 'active'
+            dataroot = get_config('TRAINING_ROOT')
         elif self.training == 'Physiology+behavior':
             behavior = 'active'
+            dataroot = get_config('DATA_ROOT')
         else:
             behavior = 'passive'
-        dataroot = get_config('DATA_ROOT')
+            dataroot = get_config('DATA_ROOT')
         rawdata=self.db.create_rawfile(siteid=self.siteid, runclass=self.runclass,
                                filenum=int(self.runnumber), behavior=behavior,
-                               pupil=False, psi_format=True,
+                               pupil=True, psi_format=True,
                                dataroot=dataroot)
         path = os.path.join(rawdata['resppath'], rawdata['parmbase'])
         try:
@@ -343,6 +345,13 @@ class CellDbLauncher(SimpleLauncher):
         log.info('Launching subprocess: %s', ' '.join(args))
         print(' '.join(args))
         subprocess.check_output(args)
+
+        d, dataparm, dataperf = readpsievents(
+            os.path.join(rawdata['resppath'],rawdata['parmbase']), rawdata['runclass'])
+        self.db.sqlupdate('gDataRaw', rawdata['rawid'], d=d, idfield='id')
+        self.db.save_data(rawdata['rawid'], dataparm, parmtype=0, keep_existing=False)
+        self.db.save_data(rawdata['rawid'], dataperf, parmtype=1, keep_existing=False)
+
         self._update_choices()
         self._update_site()
 
@@ -365,6 +374,5 @@ def launch(klass, experiment_type, root_folder='DATA_ROOT', view_klass=None):
         critical(None, 'Software not configured', mesg)
         raise
 
-c = celldb()
 main_db = partial(launch, CellDbLauncher, 'animal')
 
