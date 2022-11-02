@@ -327,6 +327,24 @@ class CellDbLauncher(SimpleLauncher):
         except OSError as error:
             print(error)
 
+        # save global parameters
+        filename = self.base_folder / "globalparams.json"
+        save_parms = ['experimenter','animal','training','runclass','base_folder']
+        d = {k: str(getattr(self, k)) for k in save_parms}
+        for k in rawdata.keys():
+            d[k] = str(rawdata[k])
+
+        config_parms = ['BASE_DIRECTORY', 'LOG_ROOT', 'DATA_ROOT',
+                        'TRAINING_ROOT','VIDEO_ROOT','PROCESSED_ROOT',
+                        'CAL_ROOT','PREFERENCES_ROOT','LAYOUT_ROOT',
+                        'IO_ROOT','OPENEPHYS_URI',
+                        'MYSQL_HOST','MYSQL_DB']
+        for k in config_parms:
+            d[k] = str(get_config(k))
+
+        with open(filename, 'w') as file:
+            file.write(json.dumps(d))
+
         args = ['psi', self.experiment.name]
         plugins = [p.name for p in self.experiment.plugins if p.selected]
         if self.save_data:

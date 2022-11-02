@@ -470,7 +470,9 @@ class celldb():
                 evpfilename = f"{resppath}{parmbase}/reward_contact_analog.zarr"
                 rawpath = f'{resppath}{parmbase}/raw/'
                 if pupil:
-                    pupilfile = f"{resppath}{parmbase}/recording.avi"
+                    pupilpath = resppath.replace(str(get_config('DATA_ROOT')),
+                                                 str(get_config('VIDEO_ROOT')))
+                    pupilfile = f"{pupilpath}{parmbase}/recording.avi"
 
             else:
                 parmfile = parmbase + ".m"
