@@ -429,29 +429,30 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
 
         ExperimentAction:
             event = 'to_start'
-            command = 'room_light_toggle.off'
+            command = 'room_light_toggle.toggle'
+            kwargs = {'state': C.lookup('keep_lights_on')}
 
-        ExperimentAction:
-            event = 'to_start'
-            command = 'background.pause'
+        #ExperimentAction:
+        #    event = 'to_start'
+        #    command = 'background.pause'
 
         ExperimentAction:
             event = 'to_end'
             command = 'room_light_toggle.on'
 
-        ExperimentAction:
-            event = 'to_end'
-            command = 'background.resume'
+        #ExperimentAction:
+        #    event = 'to_end'
+        #    command = 'background.resume'
 
-        ExperimentAction:
-            event = 'experiment_paused'
-            command = 'background.pause'
-            kwargs = {'delay': 0.5}
+        #ExperimentAction:
+        #    event = 'experiment_paused'
+        #    command = 'background.pause'
+        #    kwargs = {'delay': 0.5}
 
-        ExperimentAction:
-            event = 'experiment_resumed'
-            command = 'background.resume'
-            kwargs = {'delay': 0.5}
+        #ExperimentAction:
+        #    event = 'experiment_resumed'
+        #    command = 'background.resume'
+        #    kwargs = {'delay': 0.5}
 
         ExperimentAction:
             # The operations required to actually generate and upload the token
@@ -547,6 +548,11 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             BoolParameter:
                 name = 'manual_control'
                 label = 'Manual control?'
+                scope = 'arbitrary'
+                default = False
+            BoolParameter:
+                name = 'keep_lights_on'
+                label = 'Lights on during TO?'
                 scope = 'arbitrary'
                 default = False
 
