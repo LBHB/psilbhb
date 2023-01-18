@@ -19,7 +19,16 @@ COMMON_PLUGINS = [
 ParadigmDescription(
     'NTD-gonogo', 'Go-nogo tone detection in natural background',
     'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'behavior_gonogo.BehaviorManifest'},
+        {'manifest': PATH + 'behavior_gonogo.AutoBehaviorManifest'},
+        {'manifest': PATH + 'stimuli.ToneInNaturalSoundsGoNogo'},
+    ],
+)
+
+
+ParadigmDescription(
+    'NTD-gonogo-np', 'Go-nogo tone detection in natural background (initiated)',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'behavior_gonogo.InitiatedBehaviorManifest'},
         {'manifest': PATH + 'stimuli.ToneInNaturalSoundsGoNogo'},
     ],
 )

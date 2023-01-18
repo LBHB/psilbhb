@@ -95,6 +95,8 @@ class GoNogoTrialState(TrialState):
     '''
     waiting_for_resume = 'waiting for resume'
     waiting_for_trial_start = 'waiting for trial start'
+    waiting_for_np_start = 'waiting for nose-poke start'
+    waiting_for_np_duration = 'waiting for nose-poke duration '
     waiting_for_hold = 'waiting for hold'
     waiting_for_response = 'waiting for response'
     waiting_for_to = 'waiting for timeout'
@@ -124,8 +126,17 @@ class GoNogoEvent(enum.Enum):
     reward_start = 'reward contact'
     reward_end = 'withdrew from reward'
 
+    #NP only
+    np_start = 'initiated nose-poke'
+    np_end = 'withdrew from nose-poke'
+    np_duration_elapsed = 'nose-poke duration elapsed'
+
     digital_reward_start = 'digital_reward_start'
     digital_reward_end = 'digital_reward_end'
+
+    #NP only
+    digital_np_start = 'digital_np_start'
+    digital_np_end = 'digital_np_end'
 
     to_start = 'timeout started'
     to_end = 'timeout over'
@@ -170,6 +181,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
     event_map = {
         ('rising', 'reward_contact'): GoNogoEvent.reward_start,
         ('falling', 'reward_contact'): GoNogoEvent.reward_end,
+        ('rising', 'np_contact'): GoNogoEvent.np_start,
+        ('falling', 'np_contact'): GoNogoEvent.np_end,
     }
 
     selector_map = {
@@ -373,6 +386,109 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             else:
                 self.prepare_trial()
 
+class AutoBehaviorPlugin(BehaviorPlugin):
+
+    # SVD COPYING CODE FROM OLD (pre-NP) BehaviorPlugin that will supercede modified version
+    event_map = {
+        ('rising', 'reward_contact'): GoNogoEvent.reward_start,
+        ('falling', 'reward_contact'): GoNogoEvent.reward_end,
+    }
+    def prepare_trial(self, trial_type=None, auto_start=False):
+        log.info('Preparing for next trial (trial_type %r, auto_start %r)',
+                 trial_type, auto_start)
+        # Figure out next trial and set up selector.
+        self.trial += 1
+        if trial_type is None:
+            self.trial_type = self.next_trial_type()
+        else:
+            self.trial_type = trial_type
+        selector = self.selector_map[self.trial_type]
+        self.context.next_setting(selector)
+        self.manual_control = self.context.get_value('manual_control')
+        self.trial_info = {
+            'response_start': np.nan,
+            'response_ts': np.nan,
+            'trial_type': self.trial_type.value,
+            'trial_number': self.trial,
+        }
+        self.trial_state = GoNogoTrialState.waiting_for_trial_start
+        self.invoke_actions('trial_ready')
+        if auto_start or not self.manual_control:
+            self.start_trial()
+
+
+
+class InitiatedBehaviorPlugin(BehaviorPlugin):
+
+    # copied from Generic BehaviorPlugin (SVD 2023-01-03)
+    def prepare_trial(self, trial_type=None, auto_start=False):
+        log.info('Preparing for next trial (trial_type %r, auto_start %r)',
+                 trial_type, auto_start)
+        # Figure out next trial and set up selector.
+        self.trial += 1
+        if trial_type is None:
+            self.trial_type = self.next_trial_type()
+        else:
+            self.trial_type = trial_type
+        selector = self.selector_map[self.trial_type]
+        self.context.next_setting(selector)
+        self.manual_control = self.context.get_value('manual_control')
+        self.trial_info = {
+            'response_start': np.nan,
+            'response_ts': np.nan,
+            'trial_type': self.trial_type.value,
+            'trial_number': self.trial,
+        }
+        self.trial_state = GoNogoTrialState.waiting_for_trial_start
+        self.invoke_actions('trial_ready')
+        if auto_start:
+            self.start_trial()
+        else:
+            self.trial_state = GoNogoTrialState.waiting_for_np_start
+
+    # not using inherited prepare_trial any more (SVD 2023-01-03)
+    #def prepare_trial(self, trial_type=None, auto_start=False):
+    #    super().prepare_trial(trial_type, auto_start)
+    #    if auto_start:
+    #        self.start_trial()
+    #    else:
+    #        self.trial_state = GoNogoTrialState.waiting_for_np_start
+
+    def handle_waiting_for_np_start(self, event, timestamp):
+        if event in (GoNogoEvent.np_start, GoNogoEvent.digital_np_start):
+            # Animal has nose-poked in an attempt to initiate a trial.
+            self.trial_state = GoNogoTrialState.waiting_for_np_duration
+            self.start_event_timer('np_duration', GoNogoEvent.np_duration_elapsed)
+            # If the animal does not maintain the nose-poke long enough,
+            # this value will be deleted.
+            self.trial_info['np_start'] = timestamp
+
+    def handle_waiting_for_np_duration(self, event, timestamp):
+        if event in (GoNogoEvent.np_end, GoNogoEvent.digital_np_end):
+            # Animal has withdrawn from nose-poke too early. Cancel the
+            # timer so that it does not fire a 'event_np_duration_elapsed'.
+            log.debug('Animal withdrew too early')
+            self.stop_event_timer()
+            self.trial_state = GoNogoTrialState.waiting_for_np_start
+            del self.trial_info['np_start']
+        elif event == GoNogoEvent.np_duration_elapsed:
+            log.debug('Animal initiated trial')
+            try:
+                self.start_trial()
+            except SystemError as e:
+                log.exception(e)
+                log.error('Unable to start trial!')
+                self.trial_state = GoNogoTrialState.waiting_for_np_start
+                self.invoke_actions('trial_prepare')
+
+    def start_trial(self):
+        log.info('Starting next trial')
+        # This is broken into a separate method to allow the toolbar to call
+        # this method for training.
+        ts = self.get_ts()
+        self.invoke_actions(GoNogoEvent.trial_start.name, ts)
+        self.advance_state('hold', ts)
+        self.trial_info['trial_start'] = ts
 
 ################################################################################
 # Manifest
@@ -418,6 +534,11 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             event = 'reward_contact_digital_acquired'
             command = 'psi.controller.process_et'
             kwargs = {'name': 'reward_contact'}
+
+        ExperimentAction:
+            event = 'np_contact_digital_acquired'
+            command = 'psi.controller.process_et'
+            kwargs = {'name': 'np_contact'}
 
         ExperimentAction:
             event = 'engines_configured'
@@ -482,7 +603,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         point = 'psi.data.sinks'
 
         BinaryStore:
-            continuous_inputs = ['reward_contact_analog']
+            continuous_inputs = ['reward_contact_analog', 'microphone']
 
     Extension:
         id = 'io'
@@ -490,7 +611,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
 
         ContinuousInput:
             name = 'microphone'
-            source_name = 'hw_ai::speaker_2_monitor'
+            source_name = 'hw_ai::microphone_1'
 
         ContinuousInput:
             name = 'sync_monitor'
@@ -675,6 +796,15 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                         controller.handle_event(GoNogoEvent.digital_reward_end)
                 enabled << controller.experiment_state not in ('initialized', 'stopped')
             Action:
+                text = 'Simulate poke'
+                checkable = True
+                toggled ::
+                    if checked:
+                        controller.handle_event(GoNogoEvent.digital_np_start)
+                    else:
+                        controller.handle_event(GoNogoEvent.digital_np_end)
+                enabled << controller.experiment_state not in ('initialized', 'stopped')
+            Action:
                 text = 'Pause'
                 enabled << controller.experiment_state not in ('initialized', 'stopped')
                 checkable = True
@@ -709,10 +839,44 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                     pen_color = 'red'
 
             ViewBox:
-                name = 'reward_contact'
+                #name = 'reward_contact'
+                name = 'IR_sensors'
                 y_min = 0
                 y_max = 5
 
                 ChannelPlot:
                     source_name = 'reward_contact_analog'
                     pen_color = 'blue'
+
+                ChannelPlot:
+                    source_name = 'np_contact_analog'
+                    pen_color = 'red'
+
+
+enamldef AutoBehaviorManifest(BehaviorManifest): manifest:
+
+    factory = AutoBehaviorPlugin
+
+
+enamldef InitiatedBehaviorManifest(BehaviorManifest): manifest:
+
+    factory = InitiatedBehaviorPlugin
+
+    Extension:
+        id = manifest.id + '_initiated.items'
+        point = 'psi.context.items'
+
+        Parameter:
+            name = 'np_duration'
+            label = 'Nose poke duration (s)'
+            compact_label = 'NP'
+            default = 0.25
+            group_name = 'trial'
+
+    Extension:
+        id = manifest.id + '_initiated.data'
+        point = 'psi.data.sinks'
+
+        BinaryStore:
+            name = 'initiated_data'
+            continuous_inputs = ['np_contact_analog']
