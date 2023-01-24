@@ -43,7 +43,10 @@ enamldef IOManifest(ExperimentManifest): manifest:
 
         NIDAQEngine:
             name = 'NI'
-            hw_ai_monitor_period = 0.125
+            #hw_ai_monitor_period = 0.01
+            #hw_ao_buffer_size = 2.5
+            hw_ai_monitor_period = 0.2
+            hw_ao_buffer_size = 5
 
             NIDAQHardwareAIChannel:
                 label = 'Speaker 1 monitor'
