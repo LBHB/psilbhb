@@ -420,6 +420,10 @@ class AutoBehaviorPlugin(BehaviorPlugin):
 
 class InitiatedBehaviorPlugin(BehaviorPlugin):
 
+    # True if we're running in random behavior mode for debugging purposes,
+    # False otherwise.
+    random_behavior_mode = Bool(False)
+
     # copied from Generic BehaviorPlugin (SVD 2023-01-03)
     def prepare_trial(self, trial_type=None, auto_start=False):
         log.info('Preparing for next trial (trial_type %r, auto_start %r)',
@@ -489,6 +493,26 @@ class InitiatedBehaviorPlugin(BehaviorPlugin):
         self.invoke_actions(GoNogoEvent.trial_start.name, ts)
         self.advance_state('hold', ts)
         self.trial_info['trial_start'] = ts
+
+    def start_random_behavior(self):
+        log.info('Starting random behavior mode')
+        self.random_behavior_mode = True
+        timed_call(500, self.random_behavior_cb, GoNogoEvent.digital_np_start)
+
+    def stop_random_behavior(self):
+        self.random_behavior_mode = False
+
+    def random_behavior_cb(self, event):
+        if self.random_behavior_mode:
+            log.info('Handling event %r', event)
+            self.handle_event(event)
+            ms = np.random.uniform(100, 3000)
+            if event == GoNogoEvent.digital_np_start:
+                next_event = GoNogoEvent.digital_np_end
+            else:
+                next_event = GoNogoEvent.digital_np_start
+            log.info('Starting next event for %d ms from now', ms)
+            timed_call(ms, self.random_behavior_cb, next_event)
 
 ################################################################################
 # Manifest
@@ -815,6 +839,15 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                     else:
                         log.info('Requesting resume')
                         controller.request_resume()
+            Action:
+                text = 'Random poke generator'
+                checkable = True
+                triggered ::
+                    plugin = workbench.get_plugin(manifest.id)
+                    if checked:
+                        plugin.start_random_behavior()
+                    else:
+                        plugin.stop_random_behavior()
 
     Extension:
         id = 'plots'
