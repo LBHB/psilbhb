@@ -386,6 +386,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             else:
                 self.prepare_trial()
 
+
 class AutoBehaviorPlugin(BehaviorPlugin):
 
     # SVD COPYING CODE FROM OLD (pre-NP) BehaviorPlugin that will supercede modified version
@@ -627,6 +628,8 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         point = 'psi.data.sinks'
 
         BinaryStore:
+            #continuous_inputs = ['reward_contact_analog', 'microphone',
+            #                     'cal_microphone']
             continuous_inputs = ['reward_contact_analog', 'microphone']
 
     Extension:
@@ -636,6 +639,10 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         ContinuousInput:
             name = 'microphone'
             source_name = 'hw_ai::microphone_1'
+
+        #ContinuousInput:
+        #    name = 'cal_microphone'
+        #    source_name = 'hw_ai::microphone_2'
 
         ContinuousInput:
             name = 'sync_monitor'
@@ -866,6 +873,10 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 ChannelPlot:
                     source_name = 'microphone'
                     pen_color = 'black'
+
+                #ChannelPlot:
+                #    source_name = 'cal_microphone'
+                #    pen_color = 'blue'
 
                 ChannelPlot:
                     source_name = 'sync_monitor'
