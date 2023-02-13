@@ -337,3 +337,50 @@ class BaseBehaviorPlugin(ControllerPlugin):
 
     def stop_event_timer(self):
         deferred_call(self.stop_timer, 'event')
+
+
+from psi.data.plots import FFTContainer, ViewBox, FFTChannelPlot
+
+
+enamldef SignalFFTViewManifest(ExperimentManifest): manifest:
+
+    id = 'signal_fft_view'
+    name = 'signal_fft_view'
+    title = 'Signal view (PSD)'
+
+    alias fft_time_span: fft_plot.time_span
+    alias fft_freq_lb: fft_container.freq_lb
+    alias fft_freq_ub: fft_container.freq_ub
+    alias source_name: fft_plot.source_name
+    alias y_label: fft_vb.y_label
+    alias apply_calibration: fft_plot.apply_calibration
+    alias waveform_averages: fft_plot.waveform_averages
+
+    Extension:
+        id = manifest.id  + '.plots'
+        point = 'psi.data.plots'
+
+        FFTContainer: fft_container:
+            name << manifest.name + '_container'
+            label << manifest.title
+            freq_lb = 5
+            freq_ub = 50000
+
+            ViewBox: fft_vb:
+                name << manifest.name + '_vb'
+                y_min = -10
+                y_max = 100
+                y_mode = 'mouse'
+                save_limits = True
+
+                FFTChannelPlot: fft_plot:
+                    name << manifest.name + '_plot'
+                    source_name = 'microphone'
+                    pen_color = 'k'
+                    time_span = 0.25
+
+                #FFTChannelPlot: fft_plot:
+                #    name << manifest.name + '_cal_plot'
+                #    source_name = 'cal_microphone'
+                #    pen_color = 'blue'
+                #    time_span = 0.25
