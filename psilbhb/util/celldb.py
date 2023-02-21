@@ -14,6 +14,7 @@ import pandas.io.sql as psql
 from psi import get_config
 from psi.util import PSIJsonEncoder
 
+
 def readpsievents(logpath, runclass=None):
     # make sure correct path separator is used.
     logpath = logpath.replace("/", os.path.sep)
@@ -29,16 +30,21 @@ def readpsievents(logpath, runclass=None):
     if runclass=='NTD':
         row = df.iloc[-1]
         parmnames = ['target_delay','target_tone_start_time','target_tone_rise_time',
-                     'background_wav_sequence_level',
                      'target_tone_frequency','target_tone_polarity','target_tone_phase',
                      'hold_duration','response_duration',
-                     'background_wav_sequence_path','background_wav_sequence_duration','background_wav_sequence_normalization',
-                     'background_wav_sequence_norm_fixed_scale', 'background_wav_sequence_fit_range', 'background_wav_sequence_test_range',
-                     'background_wav_sequence_test_reps', 'iti_duration', 'to_duration',
+                     'background_wav_sequence_path','background_wav_sequence_level','background_wav_sequence_duration',
+                     'background_wav_sequence_normalization','background_wav_sequence_norm_fixed_scale',
+                     'background_wav_sequence_fit_range', 'background_wav_sequence_fit_reps',
+                     'background_wav_sequence_test_range','background_wav_sequence_test_reps','background_wav_sequence_random_seed',
+                     'background_1_wav_sequence_path','background_1_wav_sequence_level','background_1_wav_sequence_duration',
+                     'background_1_wav_sequence_normalization','background_1_wav_sequence_norm_fixed_scale',
+                     'background_1_wav_sequence_fit_range','background_1_wav_sequence_fit_reps',
+                     'background_1_wav_sequence_test_range','background_1_wav_sequence_test_reps','background_1_wav_sequence_random_seed',
+                     'iti_duration', 'to_duration',
                      'water_dispense_duration', 'go_probability', 'repeat_fa',
                      'remind_trials', 'warmup_trials', 'min_nogo', 'max_nogo'
                      ]
-        dataparm = {k: row[k] for k in parmnames}
+        dataparm = {k: row[k] for k in parmnames if k in row.index}
 
         sdtfile = os.path.join(logpath, 'sdt_analysis.csv')
         if os.path.exists(sdtfile):
@@ -53,9 +59,6 @@ def readpsievents(logpath, runclass=None):
         raise ValueError(f"readpsievents: runclass {runclass} not supported")
 
     return rawdata, dataparm, dataperf
-
-
-
 
 
 class celldb():
@@ -570,6 +573,20 @@ class celldb():
         except:
             pass
         return d
+
+    def refresh_rawdata(self, rawid):
+        rawdata = self.get_rawdata(rawid=rawid)
+        rawdata['parmbase']=rawdata['parmfile']
+        rawdata['rawid']=rawdata['id']
+        rawdata = rawdata.loc[0]
+        d, dataparm, dataperf = readpsievents(
+            os.path.join(rawdata['resppath'],rawdata['parmbase']), rawdata['runclass'])
+
+        self.sqlupdate('gDataRaw', rawdata['rawid'], d=d, idfield='id')
+        self.save_data(rawdata['rawid'], dataparm, parmtype=0, keep_existing=False)
+        self.save_data(rawdata['rawid'], dataperf, parmtype=1, keep_existing=False)
+
+
 
 def __main__():
 
