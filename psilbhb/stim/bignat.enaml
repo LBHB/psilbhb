@@ -18,13 +18,28 @@ from psi.context.api import (BoolParameter, ContextGroup, ContextRow, EnumParame
 import logging
 log = logging.getLogger(__name__)
 
+class BlockedSignalQueue(queue.InterleavedFIFOSignalQueue):
+
+    def __init__(self, fs, seed=0, *args, **kwargs):
+        super().__init__(fs, *args, **kwargs)
+        self._i = []
+
+    def next_key(self):
+        if self._complete:
+            raise QueueEmptyError
+        if not self._i:
+            # The blocked order is empty. Create a new set of indices.
+            i = np.arange(len(self._ordering))
+            self._i = i.tolist()
+        i = self._i.pop()
+        return self._ordering[i]
 
 class BigNaturalSequenceFactory(WavSequenceFactory):
 
     def __init__(self, fs, path, level=None, calibration=None, duration=-1,
                  normalization='pe', norm_fixed_scale=1,
                  fit_range=None, fit_reps=1, test_range=None, test_reps=0,
-                 random_seed=0):
+                 channel_config='1.1', random_seed=0):
         '''
         Parameters
         ----------
@@ -57,6 +72,9 @@ class BigNaturalSequenceFactory(WavSequenceFactory):
             level. If 'fixed', scale by a fixed value (norm_fixed_scale)
         norm_fixed_scale : float
             if normalization=='fixed', multiply the wavform by this value.
+        channel_config : str
+            X.Y if X > 1, generate sequences for each of the X channels, coordinating fit and test stim. Return
+            sequences for stream Y
         random_seed : int
             Random seed to use when initializing queue for random sequence.
         '''
@@ -65,8 +83,16 @@ class BigNaturalSequenceFactory(WavSequenceFactory):
         else:
             force_duration = None
 
-        all_wav = list(sorted(Path(path).glob('*.wav')))
+        try:
+            self.channel_count = int(channel_config.split(".")[0])
+        except:
+            self.channel_count = 1
+        try:
+            self.channel_id = int(channel_config.split(".")[1])
+        except:
+            self.channel_id = 1
 
+        all_wav = list(sorted(Path(path).glob('*.wav')))
 
         fit_wav = all_wav[fit_range] * fit_reps
         test_wav = all_wav[test_range] * test_reps
@@ -158,6 +184,12 @@ enamldef BigNaturalSequence(ContinuousBlock):
         label = 'Test Reps'
         default = 1
         dtype = 'double'
+
+    Parameter:
+        name = 'channel_config'
+        label = 'Total.Current channel'
+        default = '1.1'
+        dtype = 'S'
 
     Parameter:
         name = 'random_seed'
