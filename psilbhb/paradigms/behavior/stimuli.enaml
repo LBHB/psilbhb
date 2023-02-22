@@ -26,6 +26,18 @@ enamldef ToneInNaturalSoundsGoNogo(ExperimentManifest): manifest:
     id = 'tone_in_natural_sounds'
     required = True
 
+    #Extension:
+    #    id = manifest.id + '.context'
+    #    point = 'psi.context.items'
+
+    #    Parameter:
+    #        name = 'background_wav_sequence_level'
+    #        group_name = 'results'
+
+    #    Expression:
+    #        parameter = 'background_wav_sequence_level'
+    #        expression = 'background_1_wav_sequence_level'
+
     Extension:
         id = manifest.id + '.tokens'
         point = 'psi.token.tokens'
@@ -42,8 +54,14 @@ enamldef ToneInNaturalSoundsGoNogo(ExperimentManifest): manifest:
         point = 'psi.controller.io'
 
         ContinuousQueuedOutput:
+            name = 'background_1'
+            label = 'Background (speaker 1)'
+            target_name = 'hw_ao::speaker_1'
+            token = wav_sequence
+
+        ContinuousQueuedOutput:
             name = 'background'
-            label = 'Background'
+            label = 'Background (speaker 2)'
             target_name = 'hw_ao::speaker_2'
             token = wav_sequence
 

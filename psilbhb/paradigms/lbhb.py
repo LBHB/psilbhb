@@ -10,9 +10,10 @@ COMMON_PLUGINS = [
     {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser'},
     {'manifest': 'psilbhb.paradigms.video.PSIVideo'},
     {'manifest': 'psilbhb.paradigms.openephys.OpenEphysManifest'},
-    {'manifest': CORE_PATH + 'signal_mixins.SignalFFTViewManifest',
-        'attrs': {'fft_time_span': 1, 'fft_freq_lb': 5, 'fft_freq_ub': 24000, 'y_label': 'Level (dB)'}
-        },
+        {'manifest': PATH + 'behavior_mixins.SignalFFTViewManifest',
+        'attrs': {'fft_time_span': 1, 'fft_freq_lb': 5, 'fft_freq_ub': 24000,
+                'y_label': 'Level (dB)'}
+            },
 ]
 
 

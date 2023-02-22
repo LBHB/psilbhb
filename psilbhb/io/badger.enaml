@@ -43,7 +43,10 @@ enamldef IOManifest(ExperimentManifest): manifest:
 
         NIDAQEngine:
             name = 'NI'
-            hw_ai_monitor_period = 0.125
+            #hw_ai_monitor_period = 0.01
+            #hw_ao_buffer_size = 2.5
+            hw_ai_monitor_period = 0.2
+            hw_ao_buffer_size = 5
 
             NIDAQHardwareAIChannel:
                 label = 'Speaker 1 monitor'
@@ -58,8 +61,8 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 calibration_user_editable = True
 
             NIDAQHardwareAIChannel:
-                label = 'Speaker 2 monitor'
-                name = 'speaker_2_monitor'
+                label = 'Microphone 1'
+                name = 'microphone_1'
                 channel = 'Dev1/ai6'
                 start_trigger = '/Dev1/ao/StartTrigger'
                 fs = ai_fs
@@ -167,16 +170,25 @@ enamldef IOManifest(ExperimentManifest): manifest:
             # and remove the second lick spout so the ferret doesn't try to use
             # it.
             IRChannel:
+                # For go-nogo
                 name = 'reward_contact'
                 label = 'Reward IR'
                 channel = 'Dev1/ai0'
 
             IRChannel:
+                # For go-nogo
+                name = 'np_contact'
+                label = 'Nose-poke IR'
+                channel = 'Dev1/ai1'
+
+            IRChannel:
+                # for NAFC
                 name = 'spout_contact_1'
                 label = 'Spout IR 1'
                 channel = 'Dev1/ai0'
 
             IRChannel:
+                # for NAFC
                 name = 'spout_contact_2'
                 label = 'Spout IR 1'
                 channel = 'Dev1/ai1'
