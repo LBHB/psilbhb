@@ -23,7 +23,8 @@ class BigNaturalSequenceFactory(WavSequenceFactory):
 
     def __init__(self, fs, path, level=None, calibration=None, duration=-1,
                  normalization='pe', norm_fixed_scale=1,
-                 fit_range=None, fit_reps=1, test_range=None, test_reps=0):
+                 fit_range=None, fit_reps=1, test_range=None, test_reps=0,
+                 random_seed=0):
         '''
         Parameters
         ----------
@@ -56,6 +57,8 @@ class BigNaturalSequenceFactory(WavSequenceFactory):
             level. If 'fixed', scale by a fixed value (norm_fixed_scale)
         norm_fixed_scale : float
             if normalization=='fixed', multiply the wavform by this value.
+        random_seed : int
+            Random seed to use when initializing queue for random sequence.
         '''
         if duration > 0:
             force_duration = duration
@@ -85,10 +88,11 @@ class BigNaturalSequenceFactory(WavSequenceFactory):
         self.duration = duration
         self.normalization = normalization
         self.norm_fixed_scale = norm_fixed_scale
+        self.random_seed = random_seed
         self.reset()
 
     def reset(self):
-        self.queue = queue.BlockedRandomSignalQueue(self.fs)
+        self.queue = queue.BlockedRandomSignalQueue(self.fs, self.random_seed)
         metadata = [{'filename': w.filename.stem} for w in self.wav_files]
         self.queue.extend(self.wav_files, np.inf, duration=self.duration, metadata=metadata)
 
@@ -154,3 +158,9 @@ enamldef BigNaturalSequence(ContinuousBlock):
         label = 'Test Reps'
         default = 1
         dtype = 'double'
+
+    Parameter:
+        name = 'random_seed'
+        label = 'random seed'
+        default = 0
+        dtype = 'int'

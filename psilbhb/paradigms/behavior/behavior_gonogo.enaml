@@ -553,6 +553,9 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
 
         ExperimentAction:
             event = 'engines_configured'
+            command = 'background_1.start'
+        ExperimentAction:
+            event = 'engines_configured'
             command = 'background.start'
 
         ExperimentAction:
