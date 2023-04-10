@@ -8,7 +8,7 @@ from psi.context.api import ContextGroup, Expression, Parameter
 from psi.controller.api import ContinuousQueuedOutput, EpochOutput
 from psi.token.primitives import (Cos2Envelope, Silence, Tone, WavSequence)
 
-from psilbhb.stim.bignat import BigNaturalSequence
+from psilbhb.stim._bignat import BigNaturalSequence
 
 
 enamldef ToneBurst(Cos2Envelope):

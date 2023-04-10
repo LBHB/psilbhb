@@ -18,8 +18,22 @@ log = logging.getLogger(__name__)
 
 
 class WaveformSet():
-
     def __init__(self, fs=40000, level=65, calibration=None, channel_count=1):
+        """
+
+        :param fs:  float
+            Sampling rate of output. If wav file sampling rate is different, it
+            will be resampled to the correct sampling rate using a FFT-based
+            resampling algorithm.
+        :param level: float
+            Level to present wav files at (currently peSPL due to how the
+            normalization works).
+        :param calibration: instance of Calibration
+            Used to scale waveform to appropriate peSPL. If not provided,
+            waveform is not scaled.
+        :param channel_count: int
+
+        """
         self.level = level
         self.fs = fs
         self.calibration = calibration
@@ -44,10 +58,25 @@ class WavFileSet(WaveformSet):
         """
         :param filenames: list filenames (single channel) or list of lists
            (each file in inner list fed to a different channel)
-        :param normalization:
-        :param norm_fixed_scale:
-        :param force_duration:
-        :param random_seed:
+        :param normalization: {'pe', 'rms', 'fixed'}
+            Method for rescaling waveform. If `'pe'`, rescales to peak-equivalent
+            so the max value of the waveform matches the target level. If `'rms'`,
+            rescales so that the RMS value of the waveform matches the target
+            level. If 'fixed', scale by a fixed value (norm_fixed_scale)
+        :param norm_fixed_scale: float
+            if normalization=='fixed', multiply the wavform by this value.
+        :param force_duration: {None, float}
+            Duration of each wav file. If None, the wav file is loaded at the
+            beginning so that durations can be established. For large
+            directories, this can slow down the startup time of the program.
+            Knowing the exact duration may be important for some downstream
+            operations. For example, epoch extraction relative to the
+            presentation time of a particular wav file; estimating the overall
+            duration of the entire wav sequence, etc.  If you don't have a need
+            for these operations and want to speed up loading of wav files, set
+            this value to -1 (the default).
+        :param random_seed: int
+            Random seed to use when initializing queue for random sequence.
         :param kwargs: passthrough parameters to WaveformSet
         """
         self.filenames = filenames
@@ -111,44 +140,25 @@ class BigNaturalSequenceSet(WavFileSet):
                  fit_range=None, fit_reps=1, test_range=None, test_reps=0,
                  channel_count=1, channel_offset=1, binaural_combinations='single_offset',
                  **kwargs):
+        """
+        :param path:
+            Path to directory containing wav files.
+        :param duration: float
+            duration in sec. Truncate or zero pad as needed
+        :param include_silence:
+            include a silent waveform in the pool
+        :param fit_range: {None, slice, list}
+        :param fit_reps: int
+        :param test_range: {None, slice, list}
+        :param test_reps: int
+        :param channel_count: int
+        :param channel_offset: int
+        :param binaural_combinations: str
+        :param kwargs: passthrough parameters to WavefileSet
+       """
         '''
         Parameters
         ----------
-        fs : float
-            Sampling rate of output. If wav file sampling rate is different, it
-            will be resampled to the correct sampling rate using a FFT-based
-            resampling algorithm.
-        path : {str, Path}
-            Path to directory containing wav files.
-        level : float
-            Level to present wav files at (currently peSPL due to how the
-            normalization works).
-        calibration : instance of Calibration
-            Used to scale waveform to appropriate peSPL. If not provided,
-            waveform is not scaled.
-        duration : {None, float}
-            Duration of each wav file. If None, the wav file is loaded at the
-            beginning so that durations can be established. For large
-            directories, this can slow down the startup time of the program.
-            Knowing the exact duration may be important for some downstream
-            operations. For example, epoch extraction relative to the
-            presentation time of a particular wav file; estimating the overall
-            duration of the entire wav sequence, etc.  If you don't have a need
-            for these operations and want to speed up loading of wav files, set
-            this value to -1 (the default).
-        normalization : {'pe', 'rms', 'fixed'}
-            Method for rescaling waveform. If `'pe'`, rescales to peak-equivalent
-            so the max value of the waveform matches the target level. If `'rms'`,
-            rescales so that the RMS value of the waveform matches the target
-            level. If 'fixed', scale by a fixed value (norm_fixed_scale)
-        norm_fixed_scale : float
-            if normalization=='fixed', multiply the wavform by this value.
-        channel_count : int
-            Currently only really 1 or 2 (binaural)
-        binaural_combinations : str {'single_offset','all}
-            default is single_offset
-        random_seed : int
-            Random seed to use when initializing queue for random sequence.
         '''
         if duration > 0:
             force_duration = duration
@@ -160,14 +170,19 @@ class BigNaturalSequenceSet(WavFileSet):
             fit_range=slice(0)
             
         all_wav = list(sorted(Path(path).glob('*.wav')))
-
+        
+        if type(fit_range) is slice:
+            fit_range = list(range(len(all_wav))[fit_range])
+        if type(test_range) is slice:
+            test_range = list(range(len(all_wav))[test_range])
+            
         if include_silence:
             silent_f = [f for i,f in enumerate(all_wav) if str(f).endswith('x_silence.wav')]
-            ff = all_wav[fit_range] + silent_f
-            tt = all_wav[test_range] + silent_f
+            ff = [all_wav[f] for f in fit_range] + silent_f
+            tt = [all_wav[f] for f in test_range] + silent_f
         else:
-            ff = all_wav[fit_range]
-            tt = all_wav[test_range]
+            ff = [all_wav[f] for f in fit_range]
+            tt = [all_wav[f] for f in test_range]
 
         fit_wav = []
         test_wav = []
@@ -204,6 +219,8 @@ class BigNaturalSequenceSet(WavFileSet):
         self.fit_names = fit_wav
         self.test_names = test_wav
         self.duration = duration
+        self.fit_range = fit_range
+        self.test_range = test_range
 
         super().__init__(filenames, channel_count=channel_count, force_duration=force_duration, **kwargs)
 
@@ -261,16 +278,31 @@ class FgBgSet():
     """
 
     def __init__(self, FgSet=None, BgSet=None, combinations='simple',
-                 fg_switch_channels=False, fg_delay=1.0,
+                 fg_switch_channels=False, bg_switch_channels=False, 
+                 fg_go_index=None,
+                 fg_delay=1.0, fg_snr=0.0, response_window=None,
                  random_seed=0):
         """
-        :param FgSet: {WavFileSet, None}
-        :param BgSet: {WavFileSet, None}
+        FgBgSet polls FgSet and BgSet for .max_index, .waveform, .names, and .fs
+        :param FgSet: {WaveformSet, None}
+        :param BgSet: {WaveformSet, None}
         :param combinations: str
-            simple:
-            all: every possible combination of bg and fg
+            simple: random pairing
+            all: exhaustive, every possible combination of bg and fg
         :param fg_switch_channels: bool
+        :param bg_switch_channels: {bool, str}
+            channel of bg relative to fg
+            False: just play straight as BgSet provides them (for Bg managing binaural)
+            same: same as fg
+            combinatorial: same + opposite
+            opposite: opposite to fg only
+        :param fg_go_index: {list,np.array}
+            TODO: allow list of "go" indices?
+            0 or 1 for each entry in FgSet. len>=FgSet.max_index
         :param fg_delay: float
+        :param response_window: {tuple, np.array, None}
+            None converts to (0,1) = 0 to 1 sec after fg starts playing
+            If array, length should bg >= FgSet.max_index
         :param random_seed: int
         """
         if FgSet is None:
@@ -283,70 +315,208 @@ class FgBgSet():
             self.BgSet = BgSet
         self.combinations = combinations
         self.fg_switch_channels = fg_switch_channels
-        self.fg_delay = fg_delay
+        self.bg_switch_channels = bg_switch_channels
+        self.fg_go_index = fg_go_index
+        self._fg_delay = fg_delay
+        self._fg_snr = fg_snr
+        if response_window is None:
+            self.response_window = (0.0, 1.0)
+        else:
+            self.response_window = response_window
         self.random_seed = random_seed
-        self.current_trial = -1
+        self.current_trial_idx = -1
+
+        # trial management
+        self.trial_wav_idx = np.array([], dtype=int)
+        self.trial_outcomes = np.array([], dtype=int)
+        self.current_repetition = 0
+
         self.update()
-        
-    def update(self):
-        """figure out indexing to map trial idx to specific members of FgSet and BgSet"""
+
+    @property
+    def wav_per_rep(self):
+        return np.min([len(self.bg_index), len(self.fg_index)])
+
+    def update(self, trial_idx=None):
+        """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.
+        manage trials separately to allow for repeats, etc."""
         _rng = np.random.RandomState(self.random_seed)
 
         bg_range = np.arange(self.BgSet.max_index, dtype=int)
         fg_range = np.arange(self.FgSet.max_index, dtype=int)
         if self.fg_switch_channels:
             fg_channel = np.concatenate((np.zeros_like(fg_range), np.ones_like(fg_range)))
-            fg_range = np.concatenate((fg_range, fg_range))
+            fg_range = np.tile(fg_range, 2)
         else:
             fg_channel = np.zeros_like(fg_range)
+        if self.bg_switch_channels == False:
+            bg_channel = np.zeros_like(fg_range)
+        elif self.bg_switch_channels == 'same':
+            bg_channel = fg_channel.copy()
+        elif self.bg_switch_channels == 'opposite':
+            bg_channel = 1-fg_channel
+        elif self.bg_switch_channels == 'combinatorial':
+            bg_channel = np.concatenate((np.zeros_like(fg_channel), np.ones_like(fg_channel)))
+            fg_channel = np.tile(fg_channel, 2)
+            fg_range = np.tile(fg_range, 2)
+            bg_range = np.tile(bg_range, 2)
+        else:
+            raise ValueError(f"Unknown bg_switch_channels value: {self.bg_switch_channels}.")
+        if self.fg_go_index is not None:
+            fg_go = self.fg_go_index
+        else:
+            fg_go = np.ones_like(fg_range)
 
         bg_len = len(bg_range)
         fg_len = len(fg_range)
         bgi = np.array([], dtype=int)
         fgi = np.array([], dtype=int)
         fgc = np.array([], dtype=int)
+        bgc = np.array([], dtype=int)
+        fgg = np.array([], dtype=int)
         if self.combinations == 'simple':
-            total_trials = np.max([bg_len, fg_len, self.current_trial])
-            print(f'Updating FgBgSet {total_trials} trials...')
-            while (bg_len>0) & (len(bgi)<total_trials):
+            total_wav_set = np.max([bg_len, fg_len])
+            #print(f'Updating FgBgSet {total_wav_set} trials...')
+            while (bg_len>0) & (len(bgi) < total_wav_set):
                 bgi = np.concatenate((bgi, _rng.permutation(bg_range)))
-            while (fg_len>0) & (len(fgi)<total_trials):
+            while (fg_len>0) & (len(fgi) < total_wav_set):
                 ii = _rng.permutation(np.arange(len(fg_range)))
                 fgi = np.concatenate((fgi, fg_range[ii]))
                 fgc = np.concatenate((fgc, fg_channel[ii]))
+                bgc = np.concatenate((bgc, bg_channel[ii]))
+                fgg = np.concatenate((fgg, fg_go[ii]))
         else:
             raise ValueError(f"FgBgSet combinations format {self.combinations} not supported")
 
         self.bg_index = bgi
         self.fg_index = fgi
         self.fg_channel = fgc
+        self.bg_channel = bgc
+        self.fg_go = fgc
 
+        if (type(self._fg_snr) is np.array) | (type(self._fg_snr) is list):
+            self.fg_snr = np.array(self._fg_snr)
+        else:
+            self.fg_snr = np.zeros(self.FgSet.max_index) + self._fg_snr
+        if (type(self._fg_delay) is np.array) | (type(self._fg_delay) is list):
+            self.fg_delay = np.array(self._fg_delay)
+        else:
+            self.fg_delay = np.zeros(self.FgSet.max_index) + self._fg_delay
 
-    def get_background(self, trialidx=None):
-        if trialidx is None:
-            trialidx = self.current_trial
+        # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
+        if trial_idx is None:
+            trial_idx = self.current_trial_idx
+        if trial_idx >= len(self.trial_wav_idx):
+            new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
+            self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))
+            log.info(f'Added {len(new_trial_wav)}/{len(self.trial_wav_idx)} trials to trial_wav_idx')
+            self.current_repetition += 1
 
+    def trial_waveform(self, trial_idx=None, wav_set_idx=None):
+        if wav_set_idx is None:
+            if trial_idx is None:
+                self.current_trial_idx += 1
+                trial_idx = self.current_trial_idx
+            if len(self.trial_wav_idx) <= trial_idx:
+                self.update(trial_idx=trial_idx)
 
-    def get_foreground(self, trialidx=None):
-        if trialidx is None:
-            trialidx = self.current_trial
+            wav_set_idx = self.trial_wav_idx[trial_idx]
 
-
-    def get_trial_waveform(self, trialidx=None):
-        if trialidx is None:
-            self.current_trial += 1
-            trialidx = self.current_trial
-
-        wfg = self.FgSet.waveform(self.fg_index[trialidx])
-        cfg = self.fg_channel[trialidx]
-        if cfg>0:
+        wfg = self.FgSet.waveform(self.fg_index[wav_set_idx])
+        if self.fg_channel[wav_set_idx] == 1:
             wfg = np.concatenate((np.zeros_like(wfg), wfg), axis=1)
-        wbg = self.BgSet.waveform(self.bg_index[trialidx])
-        if wbg.shape[1]<wfg.shape[1]:
+        wbg = self.BgSet.waveform(self.bg_index[wav_set_idx])
+        if self.bg_channel[wav_set_idx] == 1:
+            wbg = np.concatenate((np.zeros_like(wbg), wbg), axis=1)
+        if wbg.shape[1] < wfg.shape[1]:
             wbg = np.concatenate((wbg, np.zeros_like(wbg)), axis=1)
-        if wfg.shape[1]<wbg.shape[1]:
+        if wfg.shape[1] < wbg.shape[1]:
             wfg = np.concatenate((wfg, np.zeros_like(wfg)), axis=1)
-        offsetbins = int(self.fg_delay * self.FgSet.fs)
+        fg_snr = self.fg_snr[self.fg_index[wav_set_idx]]
+        fg_scale = 10**(fg_snr / 20)
+        offsetbins = int(self.fg_delay[self.fg_index[wav_set_idx]] * self.FgSet.fs)
+
+        # combine fg and bg waveforms
         w = wbg
-        w[offsetbins:(offsetbins+wfg.shape[0]),:] += wfg
+        if wfg.shape[0]+offsetbins > wbg.shape[0]:
+            print(wfg.shape[0], offsetbins , wbg.shape[0])
+            w = np.concatenate((w, np.zeros((wfg.shape[0]+offsetbins-wbg.shape[0],
+                                             wbg.shape[1]))), axis=0)
+        w[offsetbins:(offsetbins+wfg.shape[0]), :] += wfg * fg_scale
+        
         return w
+
+    def trial_parameters(self, trial_idx=None):
+        if trial_idx is None:
+            trial_idx = self.current_trial_idx
+        if len(self.trial_wav_idx) <= trial_idx:
+            self.update(trial_idx=trial_idx)
+
+        wav_set_idx = self.trial_wav_idx[trial_idx]
+
+        fg_i = self.fg_index[wav_set_idx]
+        bg_i = self.bg_index[wav_set_idx]
+
+        is_go_trial = self.fg_go[wav_set_idx]
+        if is_go_trial:
+            # 1=spout 1, 2=spout 2
+            response_condition = self.fg_channel[wav_set_idx]+1
+        else:
+            response_condition = 0
+
+        if type(self.response_window) is tuple:
+            response_window = (self.fg_delay[fg_i] + self.response_window[0],
+                               self.fg_delay[fg_i] + self.response_window[1])
+        else:
+            response_window = (self.fg_delay[fg_i] + self.response_window[fg_i][0],
+                               self.fg_delay[fg_i] + self.response_window[fg_i][1])
+
+        d = {'trial_idx': trial_idx,
+             'wav_set_idx': wav_set_idx,
+             'fg_i': fg_i,
+             'bg_i': bg_i,
+             'fg_name': self.FgSet.names[fg_i],
+             'bg_name': self.BgSet.names[bg_i],
+             'fg_duration': self.FgSet.duration,
+             'bg_duration': self.BgSet.duration,
+             'fg_snr': self.fg_snr[fg_i],
+             'fg_delay': self.fg_delay[fg_i],
+             'fg_channel': self.fg_channel[wav_set_idx],
+             'bg_channel': self.bg_channel[wav_set_idx],
+             'response_condition': response_condition,
+             'response_window': response_window,
+             }
+        return d
+
+    def score_response(self, outcome, trial_idx=None):
+        """
+        current logic: if invalid or incorrect, trial should be repeated
+        :param outcome: int
+            -1 trial not scored (yet?) - happens if score_response skips a trial_idx
+            0 invalid
+            1 incorrect
+            2 correct
+        :param trial_idx: int
+            must be less than len(trial_wav_idx) to be valid. by default, updates score for 
+            current_trial_idx and increments current_trial_idx by 1.
+        :return:
+        """
+        if trial_idx is None:
+            trial_idx = self.current_trial_idx
+            # Only incrementing current trial index if trial_idx is None. Do we always 
+            # want to do this???
+            self.current_trial_idx = trial_idx + 1
+
+        if trial_idx>=len(self.trial_wav_idx):
+            raise ValueError(f"attempting to score response for trial_idx out of range")
+
+        if trial_idx>=len(self.trial_outcomes):
+            n = trial_idx - len(self.trial_outcomes) + 1
+            self.trial_outcomes = np.concatenate((self.trial_outcomes, np.zeros(n)-1))
+        self.trial_outcomes[trial_idx] = int(outcome)
+        if outcome in [0, 1]:
+            log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
+            self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
+        else:
+            log.info('Trial {trial_idx} outcome {outcome}: moving on')
+
