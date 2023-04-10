@@ -8,10 +8,12 @@ from scipy import signal
 from scipy.io import wavfile
 
 from psiaudio import util, queue
-from psiaudio.stim import FixedWaveform, WavSequenceFactory
+from psiaudio.stim import Waveform, FixedWaveform, ToneFactory, \
+    WavFileFactory, WavSequenceFactory, wavs_from_path, load_wav
 from psi import get_config
 from psi.token.api import ContinuousBlock
 from psi.context.api import EnumParameter, Parameter
+
 
 import logging
 log = logging.getLogger(__name__)
