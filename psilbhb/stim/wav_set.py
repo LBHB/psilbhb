@@ -134,7 +134,7 @@ class WavFileSet(WaveformSet):
         return self.wav_files[self.index_sorted[idx]].waveform()
 
 
-class BigNaturalSequenceSet(WavFileSet):
+class MultichannelWaveFileSet(WavFileSet):
 
     def __init__(self, path, duration=-1, include_silence=True,
                  fit_range=None, fit_reps=1, test_range=None, test_reps=0,
@@ -284,8 +284,8 @@ class FgBgSet():
                  random_seed=0):
         """
         FgBgSet polls FgSet and BgSet for .max_index, .waveform, .names, and .fs
-        :param FgSet: {WaveformSet, None}
-        :param BgSet: {WaveformSet, None}
+        :param FgSet: {WaveformSet, MultichannelWaveformSet, None}
+        :param BgSet: {WaveformSet, MultichannelWaveformSet, None}
         :param combinations: str
             simple: random pairing
             all: exhaustive, every possible combination of bg and fg
@@ -378,13 +378,25 @@ class FgBgSet():
             total_wav_set = np.max([bg_len, fg_len])
             #print(f'Updating FgBgSet {total_wav_set} trials...')
             while (bg_len>0) & (len(bgi) < total_wav_set):
-                bgi = np.concatenate((bgi, _rng.permutation(bg_range)))
+                #bgi = np.concatenate((bgi, _rng.permutation(bg_range)))
+                bgi = np.concatenate((bgi, bg_range))
             while (fg_len>0) & (len(fgi) < total_wav_set):
-                ii = _rng.permutation(np.arange(len(fg_range)))
-                fgi = np.concatenate((fgi, fg_range[ii]))
+                #ii = _rng.permutation(np.arange(len(fg_range)))
+                ii = np.arange(len(fg_range))
+                fgi = np.concatenate((fgi, fg_range))
                 fgc = np.concatenate((fgc, fg_channel[ii]))
                 bgc = np.concatenate((bgc, bg_channel[ii]))
                 fgg = np.concatenate((fgg, fg_go[ii]))
+        elif self.combinations == 'all':
+            total_wav_set = bg_len*fg_len
+            for i,bg in enumerate(bg_range):
+                bgi = np.concatenate((bgi, np.ones(len(fg_range), dtype=int)*bg))
+                ii = np.arange(len(fg_range), dtype=int)
+                fgi = np.concatenate((fgi, fg_range))
+                fgc = np.concatenate((fgc, fg_channel[ii]))
+                bgc = np.concatenate((bgc, bg_channel[ii]))
+                fgg = np.concatenate((fgg, fg_go[ii]))
+
         else:
             raise ValueError(f"FgBgSet combinations format {self.combinations} not supported")
 

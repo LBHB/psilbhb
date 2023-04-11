@@ -1,18 +1,18 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from wav_set import BigNaturalSequenceSet, FgBgSet
+from wav_set import MultichannelWaveFileSet, FgBgSet
 
 soundpath_fg = '/auto/data/sounds/vocalizations/v1'
 soundpath_bg = '/auto/data/sounds/backgrounds/v1'
 
-vv = BigNaturalSequenceSet(
+vv = MultichannelWaveFileSet(
     fs=44000, path=soundpath_fg, duration=3, normalization='rms',
-    fit_range=slice(0, 4), test_range=None, test_reps=2,
+    fit_range=slice(0, 3), test_range=None, test_reps=2,
     channel_count=1)
-bb = BigNaturalSequenceSet(
+bb = MultichannelWaveFileSet(
     fs=44000, path=soundpath_bg, duration=4, normalization='rms',
-    fit_range=[0, 2, 3, 4, 5], test_range=None, test_reps=2,
+    fit_range=[0, 2, 3, 4], test_range=None, test_reps=2,
     channel_count=1)
 
 print(vv.names)
@@ -24,6 +24,7 @@ fg_snr = -5
 
 fb = FgBgSet(FgSet=vv, BgSet=bb, fg_switch_channels=True,
              bg_switch_channels='combinatorial',
+             combinations='all',
              fg_snr=fg_snr, fg_delay=0.5)
 fb.update()  # not necessary but illustrative of back-end processing
 
