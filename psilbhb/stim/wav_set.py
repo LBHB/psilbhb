@@ -187,7 +187,12 @@ class MultichannelWaveFileSet(WavFileSet):
         fit_wav = []
         test_wav = []
         wav = []
-        if binaural_combinations == 'single_offset':
+        if channel_count == 1:
+            fit_wav = [[_f] for _f in ff] * fit_reps
+            test_wav = [[_t] for _t in tt] * test_reps
+            filenames = fit_wav + test_wav
+
+        elif binaural_combinations == 'single_offset':
             for channel_id in range(channel_count):
                 fit_wav.append(ff[(channel_id*channel_offset-1):] + ff[:(channel_id*channel_offset-1)])
                 test_wav.append(tt[(channel_id*channel_offset-1):] + tt[:(channel_id*channel_offset-1)])
@@ -458,13 +463,16 @@ class FgBgSet():
         
         return w
 
-    def trial_parameters(self, trial_idx=None):
-        if trial_idx is None:
-            trial_idx = self.current_trial_idx
-        if len(self.trial_wav_idx) <= trial_idx:
-            self.update(trial_idx=trial_idx)
+    def trial_parameters(self, trial_idx=None, wav_set_idx=None):
+        if wav_set_idx is None:
+            if trial_idx is None:
+                trial_idx = self.current_trial_idx
+            if len(self.trial_wav_idx) <= trial_idx:
+                self.update(trial_idx=trial_idx)
 
-        wav_set_idx = self.trial_wav_idx[trial_idx]
+            wav_set_idx = self.trial_wav_idx[trial_idx]
+        else:
+            trial_idx = 0
 
         fg_i = self.fg_index[wav_set_idx]
         bg_i = self.bg_index[wav_set_idx]
