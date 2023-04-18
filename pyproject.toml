@@ -15,6 +15,7 @@ dependencies = [
     "psivideo",
     "pymysql",
     "sqlalchemy",
+    "joblib",
 ]
 dynamic = ["version"]
 

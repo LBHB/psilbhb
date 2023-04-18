@@ -2,8 +2,9 @@ import logging
 log = logging.getLogger(__name__)
 
 import enum
+from threading import Event
 
-from atom.api import Bool, Int, Str, Typed
+from atom.api import Bool, Int, Str, Typed, Value
 from enaml.application import timed_call
 from enaml.core.api import d_
 from enaml.widgets.api import Action, ToolBar
@@ -168,6 +169,11 @@ class BehaviorPlugin(BaseBehaviorPlugin):
 
     next_trial_state = Str()
 
+    # threading.Event that is set when it's OK to run actions. It will be
+    # cleared when a trial is about to start and then set again once the target
+    # is uploaded to the buffer.
+    can_run_actions = Value()
+
     def request_trial(self, trial_type):
         log.info('Requesting trial')
         self.prepare_trial(trial_type=trial_type, auto_start=True)
@@ -177,6 +183,11 @@ class BehaviorPlugin(BaseBehaviorPlugin):
 
     def _default_trial_state(self):
         return GoNogoTrialState.waiting_for_resume
+
+    def _default_can_run_actions(self):
+        event = Event()
+        event.set()
+        return event
 
     event_map = {
         ('rising', 'reward_contact'): GoNogoEvent.reward_start,
@@ -197,6 +208,12 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         GoNogoTrialType.nogo_forced: 'nogo',
         GoNogoTrialType.nogo_repeat: 'nogo',
     }
+
+    def invoke_actions(self, *args, **kwargs):
+        log.trace('Waiting for can run actions to be set')
+        self.can_run_actions.wait()
+        log.trace('Done waiting')
+        super().invoke_actions(*args, **kwargs)
 
     def can_modify(self):
         return self.trial_state in (
@@ -261,15 +278,6 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         self.invoke_actions('trial_ready')
         if auto_start or not self.manual_control:
             self.start_trial()
-
-    def start_trial(self):
-        log.info('Starting next trial')
-        # This is broken into a separate method to allow the toolbar to call
-        # this method for training.
-        ts = self.get_ts()
-        self.invoke_actions(GoNogoEvent.trial_start.name, ts)
-        self.advance_state('hold', ts)
-        self.trial_info['trial_start'] = ts
 
     def handle_waiting_for_hold(self, event, timestamp):
         if event in (GoNogoEvent.reward_start, GoNogoEvent.digital_reward_start):
@@ -487,13 +495,18 @@ class InitiatedBehaviorPlugin(BehaviorPlugin):
                 self.invoke_actions('trial_prepare')
 
     def start_trial(self):
-        log.info('Starting next trial')
         # This is broken into a separate method to allow the toolbar to call
         # this method for training.
-        ts = self.get_ts()
-        self.invoke_actions(GoNogoEvent.trial_start.name, ts)
+        with self.get_output('target').engine.lock:
+            log.info('Starting next trial')
+            log.trace('Obtained lock for engine connected to target')
+            ts = self.get_ts()
+            self.invoke_actions(GoNogoEvent.trial_start.name, ts)
+            log.trace('Releasing lock for engine connected to target')
+
         self.advance_state('hold', ts)
         self.trial_info['trial_start'] = ts
+
 
     def start_random_behavior(self):
         log.info('Starting random behavior mode')

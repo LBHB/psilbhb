@@ -415,12 +415,14 @@ class celldb():
     def create_rawfile(self, siteid=None,
                        runclass=None, filenum=0, behavior="passive", timejuice=0,
                        pupil=False, psi_format=True,
-                       dataroot='/auto/data/daq/'):
+                       dataroot='/auto/data/daq/',
+                       rawroot=None):
         if siteid is None:
             sitedata = self.get_current_site()
             siteid = sitedata.siteid
         else:
             sitedata = self.get_current_site(siteid=siteid)
+
         penname = sitedata['penname']
         if runclass is None:
             raise ValueError('Three-letter runclass must be specified for new_raw_file')
@@ -446,7 +448,7 @@ class celldb():
         else:
             resppath = f'{dataroot}/{sitedata.animal}/{penname}/'
         rawdata = self.get_rawdata(siteid)
-        if filenum==0:
+        if filenum == 0:
             if len(rawdata) > 0:
                 prevparmfile = rawdata.iloc[-1]['parmfile']
                 if (filenum==0) and sitedata.training:
@@ -485,6 +487,9 @@ class celldb():
                 evpfilename = f"{resppath}{parmbase}.evp"
                 rawpath = f'{resppath}raw/{siteid}{filestr}/'
 
+            if rawroot is not None:
+                resppath = resppath.replace(str(dataroot),str(rawroot))
+
             d = pd.DataFrame({
                 'cellid': siteid,
                 'masterid': masterid,
@@ -508,10 +513,11 @@ class celldb():
             rawid = self.sqlinsert('gDataRaw', d)
             print(f'Added gDataRaw entry {parmbase}')
             rawdata = {'rawid': rawid, 'resppath': resppath, 'parmbase': parmbase,
-                       'pupil_file': pupilfile, 'rawpath': rawpath,
-                       'runclass': runclass}
+                       'pupil_file': pupilfile, 'respfile': rawpath,
+                       'runclass': runclass, 'evpfilename':evpfilename}
         else:
             rawdata = rawdata.loc[rawdata.parmfile==parmbase].to_dict()
+
         return rawdata
 
     def save_data(self, rawid, datadict, parmtype=0, keep_existing=False):

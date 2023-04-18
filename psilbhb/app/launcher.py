@@ -311,19 +311,28 @@ class CellDbLauncher(SimpleLauncher):
         if self.training == 'Yes':
             behavior = 'active'
             dataroot = get_config('TRAINING_ROOT')
+            oeroot = get_config('OPENEPHYS_ROOT')
         elif self.training == 'Physiology+behavior':
             behavior = 'active'
             dataroot = get_config('DATA_ROOT')
+            oeroot = get_config('OPENEPHYS_ROOT')
         else:
             behavior = 'passive'
             dataroot = get_config('DATA_ROOT')
-        rawdata=self.db.create_rawfile(siteid=self.siteid, runclass=self.runclass,
+            oeroot = get_config('OPENEPHYS_ROOT')
+
+        rawdata = self.db.create_rawfile(siteid=self.siteid, runclass=self.runclass,
                                filenum=int(self.runnumber), behavior=behavior,
                                pupil=True, psi_format=True,
-                               dataroot=dataroot)
+                               dataroot=dataroot, rawroot=oeroot)
         path = os.path.join(rawdata['resppath'], rawdata['parmbase'])
+        rawpath = rawdata['respfile']
+        psipath = rawpath.replace('/raw','')
         try:
+            print('creating path', path)
             os.makedirs(path)
+            print('creating path', psipath)
+            os.makedirs(psipath)
         except OSError as error:
             print(error)
 
@@ -346,30 +355,33 @@ class CellDbLauncher(SimpleLauncher):
         print(' '.join(args))
         subprocess.check_output(args)
 
-        d, dataparm, dataperf = readpsievents(
-            os.path.join(rawdata['resppath'],rawdata['parmbase']), rawdata['runclass'])
-        self.db.sqlupdate('gDataRaw', rawdata['rawid'], d=d, idfield='id')
-        self.db.save_data(rawdata['rawid'], dataparm, parmtype=0, keep_existing=False)
-        self.db.save_data(rawdata['rawid'], dataperf, parmtype=1, keep_existing=False)
+        try:
+            print('returned from subprocess')
+            print(f'psipath: {psipath}')
+            d, dataparm, dataperf = readpsievents(psipath, rawdata['runclass'])
+            self.db.sqlupdate('gDataRaw', rawdata['rawid'], d=d, idfield='id')
+            self.db.save_data(rawdata['rawid'], dataparm, parmtype=0, keep_existing=False)
+            self.db.save_data(rawdata['rawid'], dataperf, parmtype=1, keep_existing=False)
 
-        # save global parameters
-        filename = self.base_folder / "globalparams.json"
-        save_parms = ['experimenter','animal','training','runclass','base_folder']
-        d = {k: str(getattr(self, k)) for k in save_parms}
-        for k in rawdata.keys():
-            d[k] = str(rawdata[k])
+            # save global parameters
+            filename = self.base_folder / "globalparams.json"
+            save_parms = ['experimenter','animal','training','runclass','base_folder']
+            d = {k: str(getattr(self, k)) for k in save_parms}
+            for k in rawdata.keys():
+                d[k] = str(rawdata[k])
 
-        config_parms = ['BASE_DIRECTORY', 'LOG_ROOT', 'DATA_ROOT',
-                        'TRAINING_ROOT','VIDEO_ROOT','PROCESSED_ROOT',
-                        'CAL_ROOT','PREFERENCES_ROOT','LAYOUT_ROOT',
-                        'IO_ROOT','OPENEPHYS_URI',
-                        'MYSQL_HOST','MYSQL_DB']
-        for k in config_parms:
-            d[k] = str(get_config(k))
+            config_parms = ['BASE_DIRECTORY', 'LOG_ROOT', 'DATA_ROOT',
+                            'TRAINING_ROOT','VIDEO_ROOT','PROCESSED_ROOT',
+                            'CAL_ROOT','PREFERENCES_ROOT','LAYOUT_ROOT',
+                            'IO_ROOT','OPENEPHYS_URI',
+                            'MYSQL_HOST','MYSQL_DB']
+            for k in config_parms:
+                d[k] = str(get_config(k))
 
-        with open(filename, 'w') as file:
-            file.write(json.dumps(d))
-
+            with open(filename, 'w') as file:
+                file.write(json.dumps(d))
+        except:
+            print('Results read/process error')
         self._update_choices()
         self._update_site()
 
@@ -393,4 +405,3 @@ def launch(klass, experiment_type, root_folder='DATA_ROOT', view_klass=None):
         raise
 
 main_db = partial(launch, CellDbLauncher, 'animal')
-
