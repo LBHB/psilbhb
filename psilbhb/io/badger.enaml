@@ -43,10 +43,11 @@ enamldef IOManifest(ExperimentManifest): manifest:
 
         NIDAQEngine:
             name = 'NI'
-            #hw_ai_monitor_period = 0.01
-            #hw_ao_buffer_size = 2.5
-            hw_ai_monitor_period = 0.2
-            hw_ao_buffer_size = 5
+            hw_ai_monitor_period = 0.1
+            hw_ao_monitor_period = 0.1
+            hw_ao_buffer_size = 2
+            #hw_ai_monitor_period = 0.2
+            #hw_ao_buffer_size = 5
 
             NIDAQHardwareAIChannel:
                 label = 'Speaker 1 monitor'
@@ -71,6 +72,18 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 terminal_mode = 'RSE'
                 unit = 'V'
                 calibration_user_editable = True
+
+            #NIDAQHardwareAIChannel:
+            #    label = 'Microphone 2'
+            #    name = 'microphone_2'
+            #    channel = 'Dev1/ai7'
+            #    start_trigger = '/Dev1/ao/StartTrigger'
+            #    fs = ai_fs
+            #    expected_range = (-10, 10)
+            #    dtype = 'float64'
+            #    terminal_mode = 'RSE'
+            #    unit = 'V'
+            #    calibration_user_editable = True
 
             NIDAQHardwareAIChannel:
                 label = 'Microphone 3'

@@ -43,7 +43,7 @@ try:
     OPENEPHYS_HOST, OPENEPHYS_PORT = OPENEPHYS_URI.split(':')
     OPENEPHYS_ROOT = get_config('OPENEPHYS_ROOT')
     DATA_ROOT = get_config('DATA_ROOT')
-except Exception as e:
+except Exception:
     raise KeyError(OPENEPHYS_CONFIG_ERROR)
 
 

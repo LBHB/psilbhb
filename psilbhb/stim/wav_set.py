@@ -8,13 +8,86 @@ from scipy import signal
 from scipy.io import wavfile
 
 from psiaudio import queue
+from psiaudio import util
 
 from psiaudio.stim import Waveform, FixedWaveform, ToneFactory, \
-    WavFileFactory, WavSequenceFactory, wavs_from_path, load_wav
+    WavFileFactory, WavSequenceFactory, wavs_from_path
 
 import logging
 log = logging.getLogger(__name__)
 
+
+def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_scale=1,
+             force_duration=None):
+    '''
+    Load wav file, scale, and resample
+    Parameters
+    ----------
+    fs : float
+        Desired sampling rate for wav file. If wav file sampling rate is
+        different, it will be resampled to the correct sampling rate using a
+        FFT-based resampling algorithm.
+    filename : {str, Path}
+        Path to wav file
+    level : float
+        Level to present wav files at. If normalization is `'pe'`, level will
+        be in units of peSPL (assuming calibration is in units of SPL). If
+        normalization is in `'rms'`, level will be dB SPL RMS.
+    calibration : instance of Calibration
+        Used to scale waveform to appropriate peSPL. If not provided,
+        waveform is not scaled.
+    normalization : {'pe', 'rms', 'fixed'}
+        Method for rescaling waveform. If `'pe'`, rescales to peak-equivalent
+        so the max value of the waveform matches the target level. If `'rms'`,
+        rescales so that the RMS value of the waveform matches the target
+        level. If 'fixed', scale by a fixed value (norm_fixed_scale)
+    norm_fixed_scale : float
+        if normalization=='fixed', multiply the wavform by this value.
+    force_duration : {None, float}
+        if not None, truncate or zero-pad waveform to force_duration sec
+    '''
+    #log.warning('Loading wav file %r', locals())
+    file_fs, waveform = wavfile.read(filename, mmap=True)
+    # Rescale to range -1.0 to 1.0
+    if waveform.dtype != np.float32:
+        ii = np.iinfo(waveform.dtype)
+        waveform = waveform.astype(np.float32)
+        waveform = (waveform - ii.min) / (ii.max - ii.min) * 2 - 1
+
+    if normalization == 'pe':
+        waveform = waveform / waveform.max()
+    elif normalization == 'rms':
+        waveform = waveform / util.rms(waveform)
+    elif normalization == 'fixed':
+        waveform = waveform * norm_fixed_scale
+        waveform = remove_clicks(waveform, max_threshold=15)
+    else:
+        raise ValueError(f'Unrecognized normalization: {normalization}')
+
+    if calibration is not None:
+        sf = calibration.get_sf(1e3, level)
+        waveform *= sf
+
+    waveform[waveform>5]=5
+    waveform[waveform<-5]=-5
+    #if np.max(np.abs(waveform)) > 5:
+    #    raise ValueError('waveform value too large')
+
+    if force_duration is not None:
+        final_samples = int(force_duration*file_fs)
+        if len(waveform) > final_samples:
+            waveform = waveform[:final_samples]
+            log.info(f'truncated to {final_samples} samples')
+        elif len(waveform) < final_samples:
+            waveform = np.concatenate([waveform, np.zeros(final_samples-len(waveform))])
+            log.info(f'padded with {final_samples-len(waveform)} samples')
+
+    # Resample if sampling rate does not match
+    if fs != file_fs:
+        waveform_resampled = util.resample_fft(waveform, file_fs, fs)
+        return waveform_resampled
+
+    return waveform
 
 
 class WaveformSet():
@@ -134,7 +207,7 @@ class WavFileSet(WaveformSet):
         return self.wav_files[self.index_sorted[idx]].waveform()
 
 
-class MultichannelWaveFileSet(WavFileSet):
+class MCWavFileSet(WavFileSet):
 
     def __init__(self, path, duration=-1, include_silence=True,
                  fit_range=None, fit_reps=1, test_range=None, test_reps=0,
@@ -460,8 +533,9 @@ class FgBgSet():
             w = np.concatenate((w, np.zeros((wfg.shape[0]+offsetbins-wbg.shape[0],
                                              wbg.shape[1]))), axis=0)
         w[offsetbins:(offsetbins+wfg.shape[0]), :] += wfg * fg_scale
-        
-        return w
+        if w.shape[1] < 2:
+            w = np.concatenate((w, np.zeros_like(w)), axis=1)
+        return w.T
 
     def trial_parameters(self, trial_idx=None, wav_set_idx=None):
         if wav_set_idx is None:

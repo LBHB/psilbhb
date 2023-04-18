@@ -1,16 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from wav_set import MultichannelWaveFileSet, FgBgSet
+from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet
 
-soundpath_fg = '/auto/data/sounds/vocalizations/v1'
-soundpath_bg = '/auto/data/sounds/backgrounds/v1'
+soundpath_fg = 'h:/sounds/vocalizations/v1'
+soundpath_bg = 'h:/sounds/backgrounds/v1'
 
-vv = MultichannelWaveFileSet(
+vv = MCWavFileSet(
     fs=44000, path=soundpath_fg, duration=3, normalization='rms',
     fit_range=slice(0, 3), test_range=None, test_reps=2,
     channel_count=1)
-bb = MultichannelWaveFileSet(
+bb = MCWavFileSet(
     fs=44000, path=soundpath_bg, duration=4, normalization='rms',
     fit_range=[0, 2, 3, 4], test_range=None, test_reps=2,
     channel_count=1)
@@ -73,11 +73,11 @@ def test_vowels():
     # '10_OO_106.wav', '11_OO_151.wav', '12_OO_201.wav',
     # 'x_silence.wav']
     fs=44000
-    vv = MultichannelWaveFileSet(
+    vv = MCWavFileSet(
         fs=fs, path=soundpath_fg, duration=0.24, normalization='rms',
         fit_range=[0,1,2,6,7,8,6,7,8,3,4,5], test_range=None, test_reps=1,
         channel_count=1, binaural_combinations='all', include_silence=False)
-    vv2 = MultichannelWaveFileSet(
+    vv2 = MCWavFileSet(
         fs=fs, path=soundpath_fg, duration=0.24, normalization='rms',
         fit_range=[12,12,12,3,4,5,12,12,12,12,12,12], test_range=None, test_reps=1,
         channel_count=1, binaural_combinations='all', include_silence=False)
@@ -137,3 +137,4 @@ def test_vowels():
 
     d = fb.trial_parameters(trial_idx)
 
+plt.show()

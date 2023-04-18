@@ -8,41 +8,52 @@ from enaml.application import timed_call
 from enaml.core.api import d_
 from enaml.widgets.api import Action, ToolBar
 from enaml.workbench.api import Extension
+from enaml.workbench.core.api import Command
 import numpy as np
 
-from psi.context.api import (BoolParameter, ContextGroup, ContextRow,
-                             SequenceSelector, Parameter, Result)
+
+from psi.context.api import (BoolParameter, EnumParameter, ContextGroup,
+                             ContextRow, SequenceSelector, Parameter, Result)
 
 from psi.controller.api import (ContinuousInput, ControllerManifest,
-                                ControllerPlugin, ExperimentAction,
-                                ExperimentEvent, ExperimentState, TimedTrigger,
-                                Trigger, Toggle)
+                                ControllerPlugin, EpochOutput, ExperimentAction,
+                                ExperimentEvent, ExperimentState, SimpleOutput,
+                                TimedTrigger, Trigger, Toggle)
 
 from psi.data.plots import (EventPlot, FFTContainer, FFTChannelPlot, TimeContainer,
                             ChannelPlot, ViewBox, TimeseriesPlot)
 from psi.data.sinks.api import BinaryStore
 
 from .behavior_mixins import (BaseBehaviorPlugin, TrialType, TrialState)
+from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet
 
 ### Sketch of function for initializing FgBgSet based on enaml context(s)
 
 def configure_stimuli(event):
     context = event.workbench.get_plugin('psi.context')
     controller = event.workbench.get_plugin('psi.controller')
-    output = controller.get_output('output_name')
-    # Params is now dictionary with all the values
+    output = controller.get_output('output_1')
     params = context.get_values()
 
-    vv = MultichannelWaveFileSet(
-        fs=output.fs, path=params['fg_path'], duration=3, normalization='rms',
-        fit_range=slice(0, 3), test_range=None, test_reps=2,
-        channel_count=1)
-    bb = MultichannelWaveFileSet(
-        fs=output.fs, path=soundpath_bg, duration=4, normalization='rms',
-        fit_range=[0, 2, 3, 4], test_range=None, test_reps=2,
-        channel_count=1)
+    vv = MCWavFileSet(
+        fs=output.fs, path=params['fg_path'], duration=params['fg_duration'],
+        normalization=params['fg_normalization'],
+        fit_range=params['fg_fit_range'], test_range=params['fg_test_range'],
+        fit_reps=params['fg_fit_reps'], test_reps=params['fg_test_reps'],
+        channel_count=params['fg_channel_count'])
+    bb = MCWavFileSet(
+        fs=output.fs, path=params['bg_path'], duration=params['bg_duration'],
+        normalization=params['bg_normalization'],
+        fit_range=params['bg_fit_range'], test_range=params['bg_test_range'],
+        fit_reps=params['bg_fit_reps'], test_reps=params['bg_test_reps'],
+        channel_count=params['bg_channel_count'])
 
-    controller.fgbg = value
+    controller.fgbg = FgBgSet(FgSet=vv, BgSet=bb,
+                              fg_switch_channels=params['fg_switch_channels'],
+                              bg_switch_channels=params['bg_switch_channels'],
+                              combinations=params['combinations'],
+                              fg_snr=params['fg_snr'],
+                              fg_delay=params['fg_delay'])
 
 
 
@@ -189,6 +200,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
 
     next_trial_state = Str()
 
+    fgbg = Typed(FgBgSet)
+
     def request_trial(self, trial_type):
         log.info('Requesting trial')
         self.prepare_trial(trial_type=trial_type, auto_start=True)
@@ -287,7 +300,14 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         log.info('Starting next trial')
         # This is broken into a separate method to allow the toolbar to call
         # this method for training.
-        ts = self.get_ts()
+        w = self.fgbg.trial_waveform(self.trial)
+        o1 = self.get_output('output_1')
+        o2 = self.get_output('output_2')
+        with o1.engine.lock:
+            ts = self.get_ts()
+            o1.play_waveform(w[0], ts + 0.5, False)
+            o2.play_waveform(w[1], ts + 0.5)
+
         self.invoke_actions(GoNogoEvent.trial_start.name, ts)
         self.advance_state('hold', ts)
         self.trial_info['trial_start'] = ts
@@ -547,10 +567,10 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
     factory = BehaviorPlugin
 
     Extension:
-        id = manifest.id + '.commands'
+        id = manifest.id + '.behavior_commands'
         point = 'enaml.workbench.core.commands'
         Command:
-            name = 'configure_stimuli'
+            id = 'configure_stimuli'
             handler = configure_stimuli
 
     Extension:
@@ -580,13 +600,6 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             name = 'trial_ready'
 
         ExperimentAction:
-            event = 'engines_configured'
-            command = 'background_1.start'
-        ExperimentAction:
-            event = 'engines_configured'
-            command = 'background.start'
-
-        ExperimentAction:
             event = 'reward_contact_digital_acquired'
             command = 'psi.controller.process_et'
             kwargs = {'name': 'reward_contact'}
@@ -609,67 +622,59 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             command = 'room_light_toggle.toggle'
             kwargs = {'state': C.lookup('keep_lights_on')}
 
-        #ExperimentAction:
-        #    event = 'to_start'
-        #    command = 'background.pause'
-
         ExperimentAction:
             event = 'to_end'
             command = 'room_light_toggle.on'
 
-        #ExperimentAction:
-        #    event = 'to_end'
-        #    command = 'background.resume'
-
-        #ExperimentAction:
-        #    event = 'experiment_paused'
-        #    command = 'background.pause'
-        #    kwargs = {'delay': 0.5}
-
-        #ExperimentAction:
-        #    event = 'experiment_resumed'
-        #    command = 'background.resume'
-        #    kwargs = {'delay': 0.5}
-
         ExperimentAction:
-            event = 'context_initialized'
+            event = 'experiment_prepare'
             command = 'configure_stimuli'
 
-        ExperimentAction:
-            # The operations required to actually generate and upload the token
-            # take some time, so we have to allow for a small delay that is
-            # defined by the target_delay parameter.
-            event = 'trial_start'
-            command = 'target.start'
-            kwargs = {'delay': C.lookup('target_delay')}
-            weight = 0
+        #ExperimentAction:
+        #    # The operations required to actually generate and upload the token
+        #    # take some time, so we have to allow for a small delay that is
+        #    # defined by the target_delay parameter.
+        #    event = 'trial_start'
+        #    command = 'target.start'
+        #    kwargs = {'delay': C.lookup('target_delay')}
+        #    weight = 0
 
-        ExperimentAction:
-            # This schedules a TTL pulse to be sent via the channel linked to
-            # the sync_trigger output. The TTL pulse will start at the exact
-            # same time as target_start and last for 0.5 sec. Whenever an
-            # ExperimentAction is triggered, kwargs will automatically include
-            # the event name (in this case, "target_start") and the timestamp
-            # the event occurred (this is how the sync_trigger.trigger command
-            # knows when to schedule the trigger to begin). If the event was
-            # hardware-timed, then the timestamp will be accurate down to the
-            # sample).
-            event = 'target_start'
-            command = 'sync_trigger.trigger'
-            kwargs = {'duration': 0.5}
+        #ExperimentAction:
+        #    # This schedules a TTL pulse to be sent via the channel linked to
+        #    # the sync_trigger output. The TTL pulse will start at the exact
+        #    # same time as target_start and last for 0.5 sec. Whenever an
+        #    # ExperimentAction is triggered, kwargs will automatically include
+        #    # the event name (in this case, "target_start") and the timestamp
+        #    # the event occurred (this is how the sync_trigger.trigger command
+        #    # knows when to schedule the trigger to begin). If the event was
+        #    # hardware-timed, then the timestamp will be accurate down to the
+        #    # sample).
+        #    event = 'target_start'
+        #    command = 'sync_trigger.trigger'
+        #    kwargs = {'duration': 0.5}
 
     Extension:
         id = manifest.id + '.data'
         point = 'psi.data.sinks'
 
         BinaryStore:
-            #continuous_inputs = ['reward_contact_analog', 'microphone',
-            #                     'cal_microphone']
             continuous_inputs = ['reward_contact_analog', 'microphone']
 
     Extension:
         id = 'io'
         point = 'psi.controller.io'
+
+        EpochOutput:
+            name = 'output_1'
+            label = 'Output 1'
+            target_name = 'hw_ao::speaker_1'
+            configurable = False
+
+        EpochOutput:
+            name = 'output_2'
+            label = 'Output 2'
+            target_name = 'hw_ao::speaker_2'
+            configurable = False
 
         ContinuousInput:
             name = 'microphone'
@@ -708,6 +713,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 compact_label = 'combinations'
                 default = 'simple'
                 choices = {'simple': "'simple'", 'all': "'all'"}
+                scope = 'experiment'
 
             EnumParameter:
                 name = 'fg_switch_channels'
@@ -715,6 +721,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 compact_label = 'fg_switch_channels'
                 default = 'No'
                 choices = {'No': "False", 'Yes': "True"}
+                scope = 'experiment'
 
             EnumParameter:
                 name = 'bg_switch_channels'
@@ -723,36 +730,42 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 default = 'No'
                 choices = {'No': "False", 'same': "'same'",
                            'opposite': "'opposite'", 'combinatorial': "'combinatorial'"}
+                scope = 'experiment'
 
             Parameter:
                 name = 'fg_go_index'
                 label = 'fg_go_index'
                 expression = 'None'
                 dtype = 'object'
+                scope = 'experiment'
 
             Parameter:
                 name = 'fg_delay'
                 label = 'fg_delay'
                 expression = '1.0'
                 dtype = 'object'
+                scope = 'experiment'
 
             Parameter:
                 name = 'fg_snr'
                 label = 'fg_snr'
                 expression = '0.0'
                 dtype = 'object'
+                scope = 'experiment'
 
             Parameter:
                 name = 'response_window'
                 label = 'response_window'
                 expression = '(0.0, 1.0)'
                 dtype = 'object'
+                scope = 'experiment'
 
             Parameter:
                 name = 'random_seed'
                 label = 'random_seed'
                 default = 0
                 dtype = 'int'
+                scope = 'experiment'
 
         ContextGroup:
             # Instance of MultichannelWaveformSet, defines
@@ -761,73 +774,80 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             label = 'FgSet'
 
             Parameter:
-                name = 'path'
+                name = 'fg_path'
                 label = 'folder'
                 dtype = 'S'
+                scope = 'experiment'
 
             Parameter:
-                name = 'level'
+                name = 'fg_level'
                 label = 'level (dB peSPL)'
                 dtype = 'double'
+                scope = 'experiment'
 
             Parameter:
-                name = 'duration'
+                name = 'fg_duration'
                 label = 'duration (s)'
                 default = -1
                 dtype = 'double'
+                scope = 'experiment'
 
             EnumParameter:
-                name = 'normalization'
+                name = 'fg_normalization'
                 label = 'normalization'
                 compact_label = 'norm'
                 default = 'max'
                 choices = {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}
+                scope = 'experiment'
 
             Parameter:
-                name = 'norm_fixed_scale'
+                name = 'fg_norm_fixed_scale'
                 label = 'fixed norm value'
                 default = 1
                 dtype = 'double'
+                scope = 'experiment'
 
             Parameter:
-                name = 'fit_range'
+                name = 'fg_fit_range'
                 label = 'Fit Index Range'
                 expression = 'slice(None)'
                 dtype = 'object'
+                scope = 'experiment'
 
             Parameter:
-                name = 'fit_reps'
+                name = 'fg_fit_reps'
                 label = 'Fit Reps'
                 default = 1
                 dtype = 'double'
+                scope = 'experiment'
 
             Parameter:
-                name = 'test_range'
+                name = 'fg_test_range'
                 label = 'Test Index Range'
                 expression = 'slice(0)'
                 dtype = 'object'
 
             Parameter:
-                name = 'test_reps'
+                name = 'fg_test_reps'
                 label = 'Test Reps'
                 default = 1
                 dtype = 'double'
 
             Parameter:
-                name = 'channel_count'
+                name = 'fg_channel_count'
                 label = 'number of channels'
                 default = 1
                 dtype = 'int'
 
-            Parameter:
-                name = 'binaural_combinations'
+            EnumParameter:
+                name = 'fg_binaural_combinations'
                 label = 'how to combine wavs for binaural condition'
                 compact_label = 'bin_comb'
                 default = 'single_offset'
                 choices = {'single_offset': "'single_offset'", 'all': "'all'"}
 
             Parameter:
-                name = 'channel_offset'
+                name = 'fg_channel_offset'
                 label = 'index offset between binaural stim'
                 default = 1
                 dtype = 'int'
@@ -841,73 +861,73 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             label = 'BgSet'
 
             Parameter:
-                name = 'path'
+                name = 'bg_path'
                 label = 'folder'
                 dtype = 'S'
 
             Parameter:
-                name = 'level'
+                name = 'bg_level'
                 label = 'level (dB peSPL)'
                 dtype = 'double'
 
             Parameter:
-                name = 'duration'
+                name = 'bg_duration'
                 label = 'duration (s)'
                 default = -1
                 dtype = 'double'
 
             EnumParameter:
-                name = 'normalization'
+                name = 'bg_normalization'
                 label = 'normalization'
                 compact_label = 'norm'
                 default = 'max'
                 choices = {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}
 
             Parameter:
-                name = 'norm_fixed_scale'
+                name = 'bg_norm_fixed_scale'
                 label = 'fixed norm value'
                 default = 1
                 dtype = 'double'
 
             Parameter:
-                name = 'fit_range'
+                name = 'bg_fit_range'
                 label = 'Fit Index Range'
                 expression = 'slice(None)'
                 dtype = 'object'
 
             Parameter:
-                name = 'fit_reps'
+                name = 'bg_fit_reps'
                 label = 'Fit Reps'
                 default = 1
                 dtype = 'double'
 
             Parameter:
-                name = 'test_range'
+                name = 'bg_test_range'
                 label = 'Test Index Range'
                 expression = 'slice(0)'
                 dtype = 'object'
 
             Parameter:
-                name = 'test_reps'
+                name = 'bg_test_reps'
                 label = 'Test Reps'
                 default = 1
                 dtype = 'double'
 
             Parameter:
-                name = 'channel_count'
+                name = 'bg_channel_count'
                 label = 'number of channels'
                 default = 1
                 dtype = 'int'
 
-            Parameter:
-                name = 'binaural_combinations'
+            EnumParameter:
+                name = 'bg_binaural_combinations'
                 label = 'how to combine wavs for binaural condition'
                 compact_label = 'bin_comb'
                 default = 'single_offset'
                 choices = {'single_offset': "'single_offset'", 'all': "'all'"}
 
             Parameter:
-                name = 'channel_offset'
+                name = 'bg_channel_offset'
                 label = 'index offset between binaural stim'
                 default = 1
                 dtype = 'int'
@@ -1129,16 +1149,11 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                     source_name = 'microphone'
                     pen_color = 'black'
 
-                #ChannelPlot:
-                #    source_name = 'cal_microphone'
-                #    pen_color = 'blue'
-
                 ChannelPlot:
                     source_name = 'sync_monitor'
                     pen_color = 'red'
 
             ViewBox:
-                #name = 'reward_contact'
                 name = 'IR_sensors'
                 y_min = 0
                 y_max = 5

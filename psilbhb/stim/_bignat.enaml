@@ -15,7 +15,7 @@ from psi.token.api import ContinuousBlock
 from psi.context.api import (BoolParameter, ContextGroup, ContextRow, EnumParameter,
                              SequenceSelector, Parameter, Result)
 
-from bignat import BigNaturalSequenceFactory
+from .bignat import BigNaturalSequenceFactory
 
 import logging
 log = logging.getLogger(__name__)

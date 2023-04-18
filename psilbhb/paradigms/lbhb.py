@@ -38,9 +38,7 @@ ParadigmDescription(
 ParadigmDescription(
     'NTD-2AFC', 'Two AFC tone detection in natural background',
     'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'behavior_NAFC.BehaviorManifest', 'attrs': {'NAFC': 2}},
-        #{'manifest': PATH + 'stimuli.ToneInNaturalSoundsNAFC'},
-        {'manifest': PATH + 'stimuli.ToneInSilenceNAFC'},
+        {'manifest': PATH + 'behavior_2afc.BehaviorManifest'},
     ],
 )
 
