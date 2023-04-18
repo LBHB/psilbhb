@@ -2,7 +2,7 @@ import logging
 log = logging.getLogger(__name__)
 
 import json
-import os.path
+from pathlib import Path
 
 import enaml
 from enaml.core.api import Conditional, Include, Looper
@@ -155,7 +155,6 @@ enamldef LauncherView(MainWindow): main:
             ObjectCombo:
                 items << launcher.available_io[:]
                 selected := launcher.io
-                to_string = lambda x: x.stem.replace('_', ' ')
 
             Conditional:
                 condition << len(get_editable_channels(launcher.io)) > 0

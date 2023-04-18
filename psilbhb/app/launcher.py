@@ -10,7 +10,7 @@ import subprocess
 from datetime import datetime
 import json
 
-from atom.api import Atom, Bool, Enum, List, Typed, Str, Int
+from atom.api import Atom, Bool, Enum, List, Typed, Str, Int, Value
 import enaml
 from enaml.qt.qt_application import QtApplication
 
@@ -32,7 +32,7 @@ from psilbhb.util.celldb import celldb, readpsievents
 
 class SimpleLauncher(Atom):
 
-    io = Typed(Path)
+    io = Value()
     experiment = Typed(ParadigmDescription).tag(template=True, required=True)
     calibration = Typed(Path)
     preferences = Typed(Path)
