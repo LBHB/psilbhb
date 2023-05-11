@@ -52,7 +52,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
             NIDAQHardwareAIChannel:
                 label = 'Speaker 1 monitor'
                 name = 'speaker_1_monitor'
-                channel = 'Dev1/ai4'
+                channel = 'Dev1/ai3'
                 start_trigger = '/Dev1/ao/StartTrigger'
                 fs = ai_fs
                 expected_range = (-10, 10)
@@ -85,29 +85,17 @@ enamldef IOManifest(ExperimentManifest): manifest:
             #    unit = 'V'
             #    calibration_user_editable = True
 
-            NIDAQHardwareAIChannel:
-                label = 'Microphone 3'
-                name = 'microphone_3'
-                channel = 'Dev1/ai2'
-                start_trigger = '/Dev1/ao/StartTrigger'
-                fs = ai_fs
-                expected_range = (-10, 10)
-                dtype = 'float64'
-                terminal_mode = 'RSE'
-                unit = 'V'
-                calibration = FlatCalibration.from_mv_pa(2.38)
-
-            NIDAQHardwareAIChannel:
-                label = 'Sync Monitor'
-                name = 'sync_monitor'
-                channel = 'Dev1/ai3'
-                start_trigger = '/Dev1/ao/StartTrigger'
-                fs = ai_fs
-                expected_range = (-10, 10)
-                dtype = 'float64'
-                terminal_mode = 'RSE'
-                unit = 'V'
-                calibration = FlatCalibration.from_mv_pa(2.38)
+            #NIDAQHardwareAIChannel:
+            #    label = 'Sync Monitor'
+            #    name = 'sync_monitor'
+            #    channel = 'Dev1/ai3'
+            #    start_trigger = '/Dev1/ao/StartTrigger'
+            #    fs = ai_fs
+            #    expected_range = (-10, 10)
+            #    dtype = 'float64'
+            #    terminal_mode = 'RSE'
+            #    unit = 'V'
+            #    calibration = FlatCalibration.from_mv_pa(2.38)
 
             NIDAQHardwareAOChannel:
                 label = 'Speaker 1'
@@ -189,7 +177,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 channel = 'Dev1/ai0'
 
             IRChannel:
-                # For go-nogo
+                # For go-nogo and NAFC
                 name = 'np_contact'
                 label = 'Nose-poke IR'
                 channel = 'Dev1/ai1'
@@ -203,5 +191,5 @@ enamldef IOManifest(ExperimentManifest): manifest:
             IRChannel:
                 # for NAFC
                 name = 'spout_contact_2'
-                label = 'Spout IR 1'
-                channel = 'Dev1/ai1'
+                label = 'Spout IR 2'
+                channel = 'Dev1/ai2'
