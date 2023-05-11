@@ -55,20 +55,20 @@ enamldef ToneInNaturalSoundsGoNogo(ExperimentManifest): manifest:
 
         ContinuousQueuedOutput:
             name = 'background_1'
-            label = 'Background (speaker 1)'
-            target_name = 'hw_ao::speaker_1'
+            label = 'Background (speaker 2)'
+            target_name = 'hw_ao::speaker_2'
             token = wav_sequence
 
         ContinuousQueuedOutput:
             name = 'background'
-            label = 'Background (speaker 2)'
-            target_name = 'hw_ao::speaker_2'
+            label = 'Background (speaker 1)'
+            target_name = 'hw_ao::speaker_1'
             token = wav_sequence
 
         EpochOutput:
             name = 'target'
             label = 'Target'
-            target_name = 'hw_ao::speaker_2'
+            target_name = 'hw_ao::speaker_1'
             token = tone_burst
 
 
