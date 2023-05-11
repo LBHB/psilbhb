@@ -56,11 +56,10 @@ def configure_stimuli(event):
                               fg_delay=params['fg_delay'])
 
 
-
 ################################################################################
 # Supporting
 ################################################################################
-class GoNogoTrialType(TrialType):
+class NAFCTrialType(TrialType):
     '''
     The go-nogo experiments consist of a "remind" phase in which only go trials
     (drawn from the remind sequence) are presented. Once the specified number
@@ -71,7 +70,6 @@ class GoNogoTrialType(TrialType):
     which we draw go and nogo trials from the go and nogo sequences,
     respectively.
     '''
-
     #: A regular go trial
     go = 'go'
 
@@ -213,23 +211,23 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         return GoNogoTrialState.waiting_for_resume
 
     event_map = {
-        ('rising', 'reward_contact'): GoNogoEvent.reward_start,
-        ('falling', 'reward_contact'): GoNogoEvent.reward_end,
+        ('rising', 'spout_contact_1'): GoNogoEvent.reward_start,
+        ('falling', 'spout_contact_1'): GoNogoEvent.reward_end,
         ('rising', 'np_contact'): GoNogoEvent.np_start,
         ('falling', 'np_contact'): GoNogoEvent.np_end,
     }
 
     selector_map = {
-        GoNogoTrialType.go: 'go',
-        GoNogoTrialType.go_manual: 'go',
-        GoNogoTrialType.go_warmup: 'remind',
-        GoNogoTrialType.go_warmup_remind: 'remind',
-        GoNogoTrialType.go_remind: 'remind',
-        GoNogoTrialType.go_forced: 'go',
-        GoNogoTrialType.nogo: 'nogo',
-        GoNogoTrialType.nogo_warmup: 'nogo',
-        GoNogoTrialType.nogo_forced: 'nogo',
-        GoNogoTrialType.nogo_repeat: 'nogo',
+        NAFCTrialType.go: 'go',
+        NAFCTrialType.go_manual: 'go',
+        NAFCTrialType.go_warmup: 'remind',
+        NAFCTrialType.go_warmup_remind: 'remind',
+        NAFCTrialType.go_remind: 'remind',
+        NAFCTrialType.go_forced: 'go',
+        NAFCTrialType.nogo: 'nogo',
+        NAFCTrialType.nogo_warmup: 'nogo',
+        NAFCTrialType.nogo_forced: 'nogo',
+        NAFCTrialType.nogo_repeat: 'nogo',
     }
 
     def can_modify(self):
@@ -256,22 +254,22 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         p = self.context.get_value('go_probability')
 
         if self.trial <= n_remind:
-            return GoNogoTrialType.go_warmup_remind
+            return NAFCTrialType.go_warmup_remind
         if self._remind_requested:
             self._remind_requested = False
-            return GoNogoTrialType.go_remind
+            return NAFCTrialType.go_remind
         if self.trial <= n_remind + n_warmup:
-            return GoNogoTrialType.go_warmup if \
-                self.rng.uniform() <= p else GoNogoTrialType.nogo_warmup
+            return NAFCTrialType.go_warmup if \
+                self.rng.uniform() <= p else NAFCTrialType.nogo_warmup
         elif self.consecutive_nogo < min_nogo:
-            return GoNogoTrialType.nogo_forced
+            return NAFCTrialType.nogo_forced
         elif self.consecutive_nogo >= max_nogo:
-            return GoNogoTrialType.go_forced
+            return NAFCTrialType.go_forced
         elif self.prior_score == GoNogoTrialScore.false_alarm:
-            return GoNogoTrialType.nogo_repeat
+            return NAFCTrialType.nogo_repeat
         else:
-            return GoNogoTrialType.go if \
-                self.rng.uniform() <= p else GoNogoTrialType.nogo
+            return NAFCTrialType.go if \
+                self.rng.uniform() <= p else NAFCTrialType.nogo
 
     def prepare_trial(self, trial_type=None, auto_start=False):
         log.info('Preparing for next trial (trial_type %r, auto_start %r)',
@@ -293,6 +291,14 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         }
         self.trial_state = GoNogoTrialState.waiting_for_trial_start
         self.invoke_actions('trial_ready')
+
+        w = self.fgbg.trial_waveform(self.trial)
+        o1 = self.get_output('output_1')
+        o2 = self.get_output('output_2')
+        with o1.engine.lock:
+            o1.set_waveform(w[0])
+            o2.set_waveform(w[1])
+
         if auto_start or not self.manual_control:
             self.start_trial()
 
@@ -300,13 +306,12 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         log.info('Starting next trial')
         # This is broken into a separate method to allow the toolbar to call
         # this method for training.
-        w = self.fgbg.trial_waveform(self.trial)
         o1 = self.get_output('output_1')
         o2 = self.get_output('output_2')
         with o1.engine.lock:
             ts = self.get_ts()
-            o1.play_waveform(w[0], ts + 0.5, False)
-            o2.play_waveform(w[1], ts + 0.5)
+            o1.start_waveform(ts + 0.5, False)
+            o2.start_waveform(ts + 0.5, True)
 
         self.invoke_actions(GoNogoEvent.trial_start.name, ts)
         self.advance_state('hold', ts)
@@ -432,8 +437,8 @@ class AutoBehaviorPlugin(BehaviorPlugin):
 
     # SVD COPYING CODE FROM OLD (pre-NP) BehaviorPlugin that will supercede modified version
     event_map = {
-        ('rising', 'reward_contact'): GoNogoEvent.reward_start,
-        ('falling', 'reward_contact'): GoNogoEvent.reward_end,
+        ('rising', 'spout_contact_1'): GoNogoEvent.reward_start,
+        ('falling', 'spout_contact_1'): GoNogoEvent.reward_end,
     }
     def prepare_trial(self, trial_type=None, auto_start=False):
         log.info('Preparing for next trial (trial_type %r, auto_start %r)',
@@ -600,9 +605,14 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             name = 'trial_ready'
 
         ExperimentAction:
-            event = 'reward_contact_digital_acquired'
+            event = 'spout_contact_1_digital_acquired'
             command = 'psi.controller.process_et'
-            kwargs = {'name': 'reward_contact'}
+            kwargs = {'name': 'spout_contact_1'}
+
+        ExperimentAction:
+            event = 'spout_contact_2_digital_acquired'
+            command = 'psi.controller.process_et'
+            kwargs = {'name': 'spout_contact_2'}
 
         ExperimentAction:
             event = 'np_contact_digital_acquired'
@@ -657,8 +667,11 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         id = manifest.id + '.data'
         point = 'psi.data.sinks'
 
-        BinaryStore:
-            continuous_inputs = ['reward_contact_analog', 'microphone']
+        #BinaryStore:
+        #    continuous_inputs = ['spout_contact_1_analog',
+        #                         'spout_contact_2_analog',
+        #                         'np_contact_analog',
+        #                         'microphone']
 
     Extension:
         id = 'io'
@@ -680,13 +693,17 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             name = 'microphone'
             source_name = 'hw_ai::microphone_1'
 
+        ContinuousInput:
+            name = 'speaker_1_monitor'
+            source_name = 'hw_ai::speaker_1_monitor'
+
         #ContinuousInput:
         #    name = 'cal_microphone'
         #    source_name = 'hw_ai::microphone_2'
 
-        ContinuousInput:
-            name = 'sync_monitor'
-            source_name = 'hw_ai::sync_monitor'
+        #ContinuousInput:
+        #    name = 'sync_monitor'
+        #    source_name = 'hw_ai::sync_monitor'
 
         TimedTrigger:
             # This is a hardware-timed trigger that allows us to schedule a
@@ -1089,7 +1106,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             Action:
                 text = 'Start Trial'
                 triggered ::
-                    controller.request_trial(GoNogoTrialType.go_manual)
+                    controller.request_trial(NAFCTrialType.go_manual)
                 enabled << controller.experiment_state == 'running' \
                     and controller.manual_control
             Action:
@@ -1150,8 +1167,12 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                     pen_color = 'black'
 
                 ChannelPlot:
-                    source_name = 'sync_monitor'
-                    pen_color = 'red'
+                    source_name = 'speaker_1_monitor'
+                    pen_color = 'blue'
+
+                #ChannelPlot:
+                #    source_name = 'sync_monitor'
+                #    pen_color = 'red'
 
             ViewBox:
                 name = 'IR_sensors'
@@ -1159,12 +1180,19 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 y_max = 5
 
                 ChannelPlot:
-                    source_name = 'reward_contact_analog'
+                    decimate_mode = 'none'
+                    source_name = 'spout_contact_1'
                     pen_color = 'blue'
 
                 ChannelPlot:
-                    source_name = 'np_contact_analog'
+                    decimate_mode = 'none'
+                    source_name = 'spout_contact_2'
                     pen_color = 'red'
+
+                ChannelPlot:
+                    decimate_mode = 'none'
+                    source_name = 'np_contact_analog'
+                    pen_color = 'green'
 
 
 enamldef AutoBehaviorManifest(BehaviorManifest): manifest:
