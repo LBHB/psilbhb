@@ -207,10 +207,12 @@ class CellDbLauncher(SimpleLauncher):
     runnumber = Str().tag(required=False)
     penname = Str().tag(required=False)
     note = Str().tag(required=False)
+    channelcount = Str().tag(required=True)
 
     available_animals = list(animal_data['animal'])
     available_experimenters = list(user_data['userid'])
-    available_runclasses = ['NTD','FTC']
+    available_runclasses = ['NTD', 'NFB', 'PHD', 'FTC']
+    available_training = ['Yes','Physiology+behavior','Physiology+passive']
 
     training_folder = Typed(Path)
 
@@ -273,6 +275,9 @@ class CellDbLauncher(SimpleLauncher):
             self.siteid = site_data['cellid']
             rawdata = self.db.get_rawdata(siteid=self.siteid)
             self.runnumber = str(len(rawdata)+1)
+            lastpendata = self.db.last_pen_data()
+            if len(lastpendata)>0:
+                self.channelcount=str(lastpendata.loc[0, 'numchans'])
         self._update()
 
     def _update(self):
@@ -311,20 +316,21 @@ class CellDbLauncher(SimpleLauncher):
         if self.training == 'Yes':
             behavior = 'active'
             dataroot = get_config('TRAINING_ROOT')
-            oeroot = get_config('OPENEPHYS_ROOT')
         elif self.training == 'Physiology+behavior':
             behavior = 'active'
             dataroot = get_config('DATA_ROOT')
-            oeroot = get_config('OPENEPHYS_ROOT')
         else:
             behavior = 'passive'
             dataroot = get_config('DATA_ROOT')
-            oeroot = get_config('OPENEPHYS_ROOT')
+
+        oeroot = get_config('OPENEPHYS_ROOT')
+        oeroot2 = get_config('OPENEPHYS_ROOT2')
 
         rawdata = self.db.create_rawfile(siteid=self.siteid, runclass=self.runclass,
                                filenum=int(self.runnumber), behavior=behavior,
                                pupil=True, psi_format=True,
                                dataroot=dataroot, rawroot=oeroot)
+        log.info('Created raw data entry')
         path = os.path.join(rawdata['resppath'], rawdata['parmbase'])
         rawpath = rawdata['respfile']
         psipath = rawpath.replace('/raw','')
@@ -405,3 +411,7 @@ def launch(klass, experiment_type, root_folder='DATA_ROOT', view_klass=None):
         raise
 
 main_db = partial(launch, CellDbLauncher, 'animal')
+
+if __name__ == "__main__":
+    main_db()
+
