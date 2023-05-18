@@ -17,29 +17,7 @@ from psi import get_config, get_config_folder
 from psi.util import get_tagged_values
 from psi.controller.api import Channel
 from psi.core.enaml.api import load_manifest_from_file
-from psi.controller.calibration.util import load_calibration
 from psi.experiment.api import main_icon
-
-
-def get_editable_channels(io_file):
-    manifest = load_manifest_from_file(io_file, 'IOManifest')
-    channels = [o for o in manifest().traverse() if isinstance(o, Channel)]
-    return [c for c in channels if c.calibration_user_editable]
-
-
-def configure_calibration(io_file, cal_file):
-    editable_channels = get_editable_channels(io_file)
-
-    # Load the selected calibration
-    if cal_file is not None:
-        load_calibration(cal_file, editable_channels)
-
-    # Open the GUI for editing the calibration
-    with enaml.imports():
-        from psi.controller.calibration.calibration_gui import Main
-        window = Main(io_file=io_file, channels=editable_channels,
-                      modality='application_modal')
-        result = window.show()
 
 
 def load_defaults(launcher, experiments):
@@ -87,24 +65,6 @@ def set_defaults(launcher, experiments):
         json.dump(settings, fh, indent=2)
 
 
-enamldef CalibrationGroup(HGroup):
-    padding = 0
-    spacing = 0
-    align_widths = False
-    enabled << len(get_editable_channels(launcher.io)) > 0
-
-    ObjectCombo: select_calibration:
-        items << launcher.available_calibrations[:]
-        selected := launcher.calibration
-        to_string = lambda x: x.stem.replace('_', ' ')
-
-    PushButton:
-        constraints = [width == 30]
-        text = '⚙'
-        clicked ::
-            configure_calibration(launcher.io, launcher.calibration)
-
-
 enamldef PluginPopup(PopupView): popup:
     attr plugins
     arrow_size = 20
@@ -121,7 +81,6 @@ enamldef LauncherView(MainWindow): main:
 
     attr launcher
     title << 'Psiexperiment LBHB: ' + launcher.experiment_type
-    attr calibration_widgets = [Label(text='Calibration'), CalibrationGroup()]
     icon = main_icon
 
     initialized ::
@@ -156,11 +115,6 @@ enamldef LauncherView(MainWindow): main:
                 items << launcher.available_io[:]
                 selected := launcher.io
 
-            Conditional:
-                condition << len(get_editable_channels(launcher.io)) > 0
-                Include:
-                    objects << calibration_widgets
-
             Label:
                 text = 'Experiment'
 
@@ -186,22 +140,13 @@ enamldef LauncherView(MainWindow): main:
                 text = 'Settings'
                 vertical_align = 'top'
 
-            VGroup: settings_group:
-                padding = 0
-                spacing = 0
-
-                CheckBox:
-                    text = 'Use prior settings for {}'.format(launcher.experiment_type)
-                    checked := launcher.use_prior_preferences
-
-                ObjectCombo: preferences:
-                    enabled << not launcher.use_prior_preferences
-                    constraints = [
-                        width == 300
-                    ]
-                    items << launcher.available_preferences[:]
-                    to_string = lambda x: x.stem.replace('_', ' ')
-                    selected := launcher.preferences
+            ObjectCombo: preferences:
+                constraints = [
+                    width == 300
+                ]
+                items << launcher.available_preferences[:]
+                to_string = lambda x: x.stem.replace('_', ' ')
+                selected := launcher.preferences
 
             Label:
                 text = 'Save data?'
