@@ -11,8 +11,6 @@ from psiaudio import util, queue
 from psiaudio.stim import Waveform, FixedWaveform, ToneFactory, \
     WavFileFactory, WavSequenceFactory, wavs_from_path, load_wav
 from psi import get_config
-from psi.token.api import ContinuousBlock
-from psi.context.api import EnumParameter, Parameter
 
 
 import logging
@@ -227,75 +225,3 @@ class BigNaturalSequenceFactory(WavSequenceFactory):
         self.queue = queue.BlockedRandomSignalQueue(self.fs, self.random_seed)
         metadata = [{'filename': w.filename.stem} for w in self.wav_files]
         self.queue.extend(self.wav_files, np.inf, duration=self.duration, metadata=metadata)
-
-
-enamldef BigNaturalSequence(ContinuousBlock):
-
-    factory = BigNaturalSequenceFactory
-    name = 'Large sequence of natural sound wav files'
-    label = 'bignat'
-
-    Parameter:
-        name = 'path'
-        label = 'folder'
-        dtype = 'S'
-
-    Parameter:
-        name = 'level'
-        label = 'level (dB peSPL)'
-        dtype = 'double'
-
-    Parameter:
-        name = 'duration'
-        label = 'duration (s)'
-        default = -1
-        dtype = 'double'
-
-    EnumParameter:
-        name = 'normalization'
-        label = 'normalization'
-        compact_label = 'norm'
-        default = 'max'
-        choices = {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}
-
-    Parameter:
-        name = 'norm_fixed_scale'
-        label = 'fixed norm value'
-        default = 1
-        dtype = 'double'
-
-    Parameter:
-        name = 'fit_range'
-        label = 'Fit Index Range'
-        expression = 'slice(None)'
-        dtype = 'object'
-
-    Parameter:
-        name = 'fit_reps'
-        label = 'Fit Reps'
-        default = 1
-        dtype = 'double'
-
-    Parameter:
-        name = 'test_range'
-        label = 'Test Index Range'
-        expression = 'slice(0)'
-        dtype = 'object'
-
-    Parameter:
-        name = 'test_reps'
-        label = 'Test Reps'
-        default = 1
-        dtype = 'double'
-
-    Parameter:
-        name = 'channel_config'
-        label = 'Total.Current channel'
-        default = '1.1'
-        dtype = 'str'
-
-    Parameter:
-        name = 'random_seed'
-        label = 'random seed'
-        default = 0
-        dtype = 'int'
