@@ -1,4 +1,3 @@
-
 from functools import partial
 import itertools
 from pathlib import Path
@@ -357,7 +356,7 @@ class FgBgSet():
 
     def __init__(self, FgSet=None, BgSet=None, combinations='simple',
                  fg_switch_channels=False, bg_switch_channels=False, 
-                 fg_go_index=None,
+                 catch_frequency=0,
                  fg_delay=1.0, fg_snr=0.0, response_window=None,
                  random_seed=0):
         """
@@ -374,9 +373,9 @@ class FgBgSet():
             same: same as fg
             combinatorial: same + opposite
             opposite: opposite to fg only
-        :param fg_go_index: {list,np.array}
-            TODO: allow list of "go" indices?
-            0 or 1 for each entry in FgSet. len>=FgSet.max_index
+        :param catch_frequency: float
+            TODO: add fraction catch_frequency of trials with no target on top of
+            regular trial set
         :param fg_delay: float
         :param response_window: {tuple, np.array, None}
             None converts to (0,1) = 0 to 1 sec after fg starts playing
@@ -394,7 +393,7 @@ class FgBgSet():
         self.combinations = combinations
         self.fg_switch_channels = fg_switch_channels
         self.bg_switch_channels = bg_switch_channels
-        self.fg_go_index = fg_go_index
+        self.catch_frequency = catch_frequency
         self._fg_delay = fg_delay
         self._fg_snr = fg_snr
         if response_window is None:
@@ -440,10 +439,8 @@ class FgBgSet():
             bg_range = np.tile(bg_range, 2)
         else:
             raise ValueError(f"Unknown bg_switch_channels value: {self.bg_switch_channels}.")
-        if self.fg_go_index is not None:
-            fg_go = self.fg_go_index
-        else:
-            fg_go = np.ones_like(fg_range)
+        if self.catch_frequency>0:
+            raise ValueError(f"Support for catch_frequency>0 not yet implemented")
 
         bg_len = len(bg_range)
         fg_len = len(fg_range)
@@ -464,7 +461,7 @@ class FgBgSet():
                 fgi = np.concatenate((fgi, fg_range))
                 fgc = np.concatenate((fgc, fg_channel[ii]))
                 bgc = np.concatenate((bgc, bg_channel[ii]))
-                fgg = np.concatenate((fgg, fg_go[ii]))
+                fgg = np.concatenate((fgg, np.ones(len(fg_range))))
         elif self.combinations == 'all':
             total_wav_set = bg_len*fg_len
             for i,bg in enumerate(bg_range):
@@ -473,7 +470,7 @@ class FgBgSet():
                 fgi = np.concatenate((fgi, fg_range))
                 fgc = np.concatenate((fgc, fg_channel[ii]))
                 bgc = np.concatenate((bgc, bg_channel[ii]))
-                fgg = np.concatenate((fgg, fg_go[ii]))
+                fgg = np.concatenate((fgg, np.ones(len(fg_range))))
 
         else:
             raise ValueError(f"FgBgSet combinations format {self.combinations} not supported")
@@ -482,7 +479,7 @@ class FgBgSet():
         self.fg_index = fgi
         self.fg_channel = fgc
         self.bg_channel = bgc
-        self.fg_go = fgc
+        self.fg_go = fgg
 
         if (type(self._fg_snr) is np.array) | (type(self._fg_snr) is list):
             self.fg_snr = np.array(self._fg_snr)
@@ -613,4 +610,3 @@ class FgBgSet():
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
         else:
             log.info('Trial {trial_idx} outcome {outcome}: moving on')
-
