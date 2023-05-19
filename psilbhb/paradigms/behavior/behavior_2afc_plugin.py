@@ -39,7 +39,6 @@ def configure_stimuli(event):
                               fg_snr=params['fg_snr'],
                               fg_delay=params['fg_delay'])
 
-# Why use Enums? Less bugs due to typos.
 
 ################################################################################
 # Supporting
@@ -255,7 +254,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         self.trial_info['trial_start'] = ts
 
     def handle_waiting_for_hold(self, event, timestamp):
-        if event.value[:2] == ('spout', 'start'):
+        if event.value[:2] == ('response', 'start'):
             side = event.value[2]
             event = getattr(NAFCResponse, f'early_{side}')
             self.end_trial(event, NAFCTrialScore.invalid)
@@ -315,8 +314,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         else:
             self.advance_state('iti', ts)
 
-        # Report result back to FgBgSet
-        self.fgbg.score_response(score.value, self.trial)
+        self.fgbg.score_response(score.value, self.context.get_value('repeat_incorrect'), self.trial)
 
         # Apply pending changes that way any parameters (such as repeat_FA or
         # go_probability) are reflected in determining the next trial type.

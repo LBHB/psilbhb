@@ -455,6 +455,10 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             name = 'trial'
             label = 'Trial'
 
+            BoolParameter:
+                name = 'repeat_incorrect'
+                label = 'Repeat incorrect/invalid trials?'
+                default = True
             Parameter:
                 name = 'snr'
                 label = 'SNR (dB)'

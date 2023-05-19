@@ -579,7 +579,7 @@ class FgBgSet():
              }
         return d
 
-    def score_response(self, outcome, trial_idx=None):
+    def score_response(self, outcome, repeat_incorrect=True, trial_idx=None):
         """
         current logic: if invalid or incorrect, trial should be repeated
         :param outcome: int
@@ -587,6 +587,8 @@ class FgBgSet():
             0 invalid
             1 incorrect
             2 correct
+        :param repeat_incorrect: bool
+            If True, repeat incorrect and invalid trials.
         :param trial_idx: int
             must be less than len(trial_wav_idx) to be valid. by default, updates score for 
             current_trial_idx and increments current_trial_idx by 1.
@@ -605,7 +607,7 @@ class FgBgSet():
             n = trial_idx - len(self.trial_outcomes) + 1
             self.trial_outcomes = np.concatenate((self.trial_outcomes, np.zeros(n)-1))
         self.trial_outcomes[trial_idx] = int(outcome)
-        if outcome in [0, 1]:
+        if repeat_incorrect and (outcome in [0, 1]):
             log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
         else:
