@@ -406,7 +406,8 @@ class FgBgSet():
         # trial management
         self.trial_wav_idx = np.array([], dtype=int)
         self.trial_outcomes = np.array([], dtype=int)
-        self.current_repetition = 0
+        self.trial_is_repeat = np.array([], dtype=int)
+        self.current_full_rep = 0
 
         self.update()
 
@@ -497,7 +498,8 @@ class FgBgSet():
             new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))
             log.info(f'Added {len(new_trial_wav)}/{len(self.trial_wav_idx)} trials to trial_wav_idx')
-            self.current_repetition += 1
+            self.current_full_rep += 1
+            self.trial_is_repeat = np.concatenate((self.trial_is_repeat, np.zeros_like(new_trial_wav)))
 
     def trial_waveform(self, trial_idx=None, wav_set_idx=None):
         if wav_set_idx is None:
@@ -576,6 +578,8 @@ class FgBgSet():
              'bg_channel': self.bg_channel[wav_set_idx],
              'response_condition': response_condition,
              'response_window': response_window,
+             'current_full_rep': self.current_full_rep,
+             'trial_is_repeat': self.trial_is_repeat[trial_idx],
              }
         return d
 
@@ -610,5 +614,6 @@ class FgBgSet():
         if repeat_incorrect and (outcome in [0, 1]):
             log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
+            self.trial_is_repeat = np.concatenate((self.trial_is_repeat, [1]))
         else:
             log.info('Trial {trial_idx} outcome {outcome}: moving on')
