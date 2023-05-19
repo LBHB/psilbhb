@@ -9,7 +9,7 @@ from enaml.core.api import d_
 import numpy as np
 
 from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet
-from .behavior_mixins import (BaseBehaviorPlugin, TrialType, TrialState)
+from .behavior_mixins import (BaseBehaviorPlugin, TrialState)
 
 ### Sketch of function for initializing FgBgSet based on enaml context(s)
 
@@ -44,52 +44,6 @@ def configure_stimuli(event):
 ################################################################################
 # Supporting
 ################################################################################
-class NAFCTrialType(TrialType):
-    '''
-    The NAFC experiments consist of a "remind" phase in which only go trials
-    (drawn from the remind sequence) are presented. Once the specified number
-    of reminder trials are presented, the experiment moves into the "warmup"
-    phase during which go trials (drawn from the remind sequence) are drawn
-    with the specified go probability (i.e., nogo trials are also presented).
-    Once the warmup phase is complete, we move into the actual experiment in
-    which we draw go and nogo trials from the go and nogo sequences,
-    respectively.
-    '''
-    #: A regular go trial
-    go = 'go'
-
-    #: A go trial during the warmup period during the interval where go/nogo
-    #: trials are randomly selected.
-    go_warmup = 'go_warmup'
-
-    #: A go trial presented during the warmup period during the interval where
-    #: only go trials are presented.
-    go_warmup_remind = 'go_warmup_remind'
-
-    #: A go trial requested by the user that's drawm from the remind sequence.
-    go_remind = 'go_remind'
-
-    #: A go trial manually initiated by the user (e.g., for shaping purposes).
-    go_manual = 'go_manual'
-
-    #: A go trial presented because the maximum number of consecutive nogo
-    #: trials have been reached.
-    go_forced = 'go_forced'
-
-    #: A regular nogo trial
-    nogo = 'nogo'
-
-    #: A nogo trial presented because the minimum number of consecutive nogo
-    #: trials has not been reached.
-    nogo_forced = 'nogo_forced'
-
-    #: A nogo trial repeated because the animal false alarmed.
-    nogo_repeat = 'nogo_repeat'
-
-    #: A nogo trial repeated because the animal false alarmed.
-    nogo_warmup = 'nogo_warmup'
-
-
 class NAFCTrialScore(enum.Enum):
     '''
     Defines the different types of scores for each trial in a go-nogo
@@ -103,10 +57,10 @@ class NAFCTrialScore(enum.Enum):
 class NAFCResponse(enum.Enum):
 
     no_response = 'no_response'
-    spout_1 = 'spout 1'
-    spout_2 = 'spout 2'
-    early_1 = 'early 1'
-    early_2 = 'early 2'
+    spout_1 = 'spout_1'
+    spout_2 = 'spout_2'
+    early_1 = 'early_1'
+    early_2 = 'early_2'
 
 
 class NAFCTrialState(TrialState):
@@ -188,15 +142,13 @@ class BehaviorPlugin(BaseBehaviorPlugin):
     # False otherwise.
     random_behavior_mode = Bool(False)
 
-    consecutive_nogo = Int(0)
-
-    next_trial_state = Str()
-
     fgbg = Typed(FgBgSet)
 
-    def request_trial(self, trial_type):
+    side = Int(-1)
+
+    def request_trial(self):
         log.info('Requesting trial')
-        self.prepare_trial(trial_type=trial_type, auto_start=True)
+        self.prepare_trial(auto_start=True)
 
     def _default_rng(self):
         return np.random.RandomState()
@@ -213,19 +165,6 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         ('falling', 'np_contact'): NAFCEvent.np_end,
     }
 
-    selector_map = {
-        NAFCTrialType.go: 'go',
-        NAFCTrialType.go_manual: 'go',
-        NAFCTrialType.go_warmup: 'remind',
-        NAFCTrialType.go_warmup_remind: 'remind',
-        NAFCTrialType.go_remind: 'remind',
-        NAFCTrialType.go_forced: 'go',
-        NAFCTrialType.nogo: 'nogo',
-        NAFCTrialType.nogo_warmup: 'nogo',
-        NAFCTrialType.nogo_forced: 'nogo',
-        NAFCTrialType.nogo_repeat: 'nogo',
-    }
-
     def can_modify(self):
         return self.trial_state in (
             NAFCTrialState.waiting_for_trial_start,
@@ -239,52 +178,14 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             return True
         return False
 
-    def next_trial_type(self):
-        '''
-        Determine next trial type (i.e., remind, warmup, nogo, go). This is
-        adapted from the go-nogo, but we are keeping a number of elements from
-        that.
-        '''
-        min_nogo = self.context.get_value('min_nogo')
-        max_nogo = self.context.get_value('max_nogo')
-        n_remind = self.context.get_value('remind_trials')
-        n_warmup = self.context.get_value('warmup_trials')
-        p = self.context.get_value('go_probability')
-
-        if self.trial <= n_remind:
-            return NAFCTrialType.go_warmup_remind
-        if self._remind_requested:
-            self._remind_requested = False
-            return NAFCTrialType.go_remind
-        if self.trial <= n_remind + n_warmup:
-            return NAFCTrialType.go_warmup if \
-                self.rng.uniform() <= p else NAFCTrialType.nogo_warmup
-        elif self.consecutive_nogo < min_nogo:
-            return NAFCTrialType.nogo_forced
-        elif self.consecutive_nogo >= max_nogo:
-            return NAFCTrialType.go_forced
-        elif self.prior_score == NAFCTrialScore.false_alarm:
-            return NAFCTrialType.nogo_repeat
-        else:
-            return NAFCTrialType.go if \
-                self.rng.uniform() <= p else NAFCTrialType.nogo
-
-    def prepare_trial(self, trial_type=None, auto_start=False):
-        log.info('Preparing for next trial (trial_type %r, auto_start %r)',
-                 trial_type, auto_start)
+    def prepare_trial(self, auto_start=False):
+        log.info('Preparing for next trial (auto_start %r)', auto_start)
         # Figure out next trial and set up selector.
         self.trial += 1
-        if trial_type is None:
-            self.trial_type = self.next_trial_type()
-        else:
-            self.trial_type = trial_type
-        selector = self.selector_map[self.trial_type]
-        self.context.next_setting(selector)
         self.manual_control = self.context.get_value('manual_control')
         self.trial_info = {
             'response_start': np.nan,
             'response_ts': np.nan,
-            'trial_type': self.trial_type.value,
             'trial_number': self.trial,
         }
         self.trial_state = NAFCTrialState.waiting_for_trial_start
@@ -304,6 +205,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         # All parameters in this dictionary get logged to the trial log.
         fgbg_info = self.fgbg.trial_parameters(self.trial)
         self.trial_info.update(fgbg_info)
+        self.side = fgbg_info['response_condition']
 
         self.invoke_actions('trial_ready')
         if auto_start:
@@ -355,8 +257,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         elif event == NAFCEvent.hold_duration_elapsed:
             log.info('Hold duration over')
             # If we are in training mode, deliver a reward preemptively
-            if self.context.get_value('training_mode') and \
-                    self.trial_type.value.startswith('go'):
+            if self.context.get_value('training_mode'):
                 self.invoke_actions('deliver_reward', timestamp)
             self.advance_state('response', timestamp)
             self.trial_info['response_start'] = timestamp
@@ -368,10 +269,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             self.invoke_actions('response_end', timestamp)
             self.trial_info['response_ts'] = timestamp
             self.trial_info['response_side'] = side
-            if self.trial_type.value.startswith('nogo'):
-                score = NAFCTrialScore.false_alarm
-            elif self.trial_info['response_side'] == \
-                self.trial_info['response_condition']:
+            if self.trial_info['response_side'] == self.side:
                 score = NAFCTrialScore.correct
                 # If we are in training mode, the reward has already been
                 # delivered.
@@ -385,37 +283,29 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             self.invoke_actions('response_end', timestamp)
             self.trial_info['response_ts'] = np.nan
             self.trial_info['response_side'] = np.nan
-            if self.trial_type.value.startswith('nogo'):
-                score = NAFCTrialScore.correct_reject
-            else:
-                score = NAFCTrialScore.invalid
-            self.end_trial(NAFCResponse.no_response, score)
+            self.end_trial(NAFCResponse.no_response, NAFCTrialScore.invalid)
 
     def end_trial(self, response, score):
         self.stop_event_timer()
         ts = self.get_ts()
 
         self.prior_score = score
-        base_trial_type = self.trial_info['trial_type'].split('_', 1)[0]
-
-        self.consecutive_nogo = self.consecutive_nogo + 1 \
-            if base_trial_type == 'nogo' else 0
 
         response_time = self.trial_info['response_ts']-self.trial_info['trial_start']
         self.trial_info.update({
             'response': response.value,
             'score': score.value,
-            'correct': score in (NAFCTrialScore.correct_reject, NAFCTrialScore.hit),
+            'correct': score == NAFCTrialScore.correct,
             'response_time': response_time,
         })
         self.trial_info.update(self.context.get_values())
         self.invoke_actions('trial_end', ts, kw={'result': self.trial_info.copy()})
 
-        if score == NAFCTrialScore.false_alarm:
+        if score == NAFCTrialScore.incorrect:
             # Call timeout actions and the wait for animal to withdraw from spout
             self.invoke_actions('to_start', ts)
             self.start_wait_for_reward_end(ts, 'to')
-        elif score == NAFCTrialScore.hit:
+        elif score == NAFCTrialScore.correct:
             # Animal will still be on the spout. Need to wait for animal to
             # withdraw.
             self.start_wait_for_reward_end(ts, 'iti')

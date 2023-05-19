@@ -1,26 +1,52 @@
 import logging
 log = logging.getLogger(__name__)
 
-from enaml.widgets.api import Action, ToolBar
+from enaml.widgets.api import Action, Label, ToolBar
 from enaml.workbench.api import Extension
 from enaml.workbench.core.api import Command
 
 from psi.context.api import (
-    BoolParameter, EnumParameter, ContextGroup, ContextRow, SequenceSelector,
-    Parameter, Result
+    BoolParameter, EnumParameter, ContextGroup, ContextRow, Parameter, Result
 )
 from psi.controller.api import (
     ContinuousInput, ControllerManifest, ControllerPlugin, EpochOutput,
     ExperimentAction, ExperimentEvent, ExperimentState, SimpleOutput,
     TimedTrigger, Trigger, Toggle
 )
+from psi.data.sinks.api import EventLog, TrialLog
+from psi.experiment.api import StatusItem
 from psi.data.plots import (
     EventPlot, FFTContainer, FFTChannelPlot, TimeContainer, ChannelPlot,
     ViewBox, TimeseriesPlot
 )
 from psi.data.sinks.api import BinaryStore
 
-from .behavior_2afc_plugin import BehaviorPlugin, configure_stimuli, NAFCEvent, NAFCTrialType
+from .behavior_2afc_plugin import BehaviorPlugin, configure_stimuli, NAFCEvent
+
+
+def get_status(trial, trial_state, experiment_state, side):
+    # Experiment not running
+    if experiment_state == 'paused':
+        return 'Experiment paused'
+    elif experiment_state == 'initialized':
+        return 'Waiting to start'
+    elif experiment_state == 'stopped':
+        return 'Experiment complete'
+    state = '' if trial_state is None else trial_state.value
+    return 'Trial {} - {} (respond on {})'.format(trial, state, side)
+
+
+def process_et(event):
+    plugin = event.workbench.get_plugin('psi.controller')
+    name = event.parameters['name']
+    events = event.parameters['data'].events
+    for _, (edge, ts) in events[['event', 'ts']].iterrows():
+        plugin.et_callback(name, edge, ts)
+
+
+def update_trial_log(event):
+    core = event.workbench.get_plugin('enaml.workbench.core')
+    core.invoke_command('trial_log.save', {'data': event.parameters['result']})
 
 
 enamldef BehaviorManifest(ControllerManifest): manifest:
@@ -31,15 +57,44 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
     factory = BehaviorPlugin
 
     Extension:
+        id = manifest.id + '.status'
+        point = 'psi.experiment.status'
+
+        StatusItem:
+            label = 'Experiment state'
+            Label:
+                text << get_status(
+                    workbench.get_plugin('psi.controller').trial,
+                    workbench.get_plugin('psi.controller').trial_state,
+                    workbench.get_plugin('psi.controller').experiment_state,
+                    workbench.get_plugin('psi.controller').side,
+                )
+
+    Extension:
         id = manifest.id + '.behavior_commands'
         point = 'enaml.workbench.core.commands'
         Command:
             id = 'configure_stimuli'
             handler = configure_stimuli
+        Command:
+            id = 'psi.controller.process_et'
+            handler = process_et
+        Command:
+            id = 'psi.controller.update_trial_log'
+            handler = update_trial_log
+        Command:
+            id = 'psi.controller.prepare_trial'
+            handler = lambda x: controller.prepare_trial()
+        Command:
+            id = 'psi.controller.start_trial'
+            handler = lambda x: controller.start_trial
 
     Extension:
         id = manifest.id + '.events'
         point = 'psi.controller.actions'
+
+        ExperimentState:
+            name = 'trial'
 
         ExperimentState:
             name = 'digital_reward'
@@ -99,13 +154,31 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             event = 'experiment_prepare'
             command = 'configure_stimuli'
 
+        # This action is mandatory and must be executed before any other
+        # commands that require some information from context. By default, an
+        # infinite number of cycles are specified.
+        ExperimentAction:
+            event = 'experiment_initialize'
+            command = 'psi.context.initialize'
+            kwargs = {'selector': None}
+        ExperimentAction:
+            event = 'trial_end'
+            command = 'psi.controller.update_trial_log'
+
     Extension:
         id = manifest.id + '.data'
         point = 'psi.data.sinks'
-
         BinaryStore:
             name = 'initiated_data'
-            continuous_inputs = ['np_contact_analog']
+            continuous_inputs = [
+                'np_contact_analog',
+                'spout_contact_1_analog',
+                'spout_contact_2_analog'
+            ]
+        EventLog:
+            show_widget = True
+        TrialLog:
+            show_widget = True
 
     Extension:
         id = 'io'
@@ -431,53 +504,6 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 compact_label = 'NP'
                 default = 0.25
 
-        ContextRow:
-            fmt = ['Number of nogo trials', min_nogo, 'to', max_nogo]
-            group_name = 'selector'
-
-            Parameter: min_nogo:
-                name = 'min_nogo'
-                label = 'Min. consecutive nogo trials'
-                compact_label = 'Min. NoGO'
-                default = 2
-                scope = 'arbitrary'
-
-            Parameter: max_nogo:
-                name = 'max_nogo'
-                label = 'Max. consecutive nogo trials'
-                compact_label = 'Max. NoGO'
-                default = 5
-                scope = 'arbitrary'
-
-        ContextGroup:
-            name = 'selector'
-            label = 'Next value'
-
-            Parameter:
-                name = 'go_probability'
-                label = 'Go probability'
-                compact_label = 'Pr'
-                default = 0.5
-                scope = 'arbitrary'
-            BoolParameter:
-                name = 'repeat_fa'
-                label = 'Repeat FA?'
-                compact_label = 'RFA'
-                scope = 'arbitrary'
-                default = True
-            Parameter:
-                name = 'remind_trials'
-                label = 'Remind trials'
-                compact_label = 'N remind'
-                scope = 'experiment'
-                default = 10
-            Parameter:
-                name = 'warmup_trials'
-                label = 'Warmup trials'
-                compact_label = 'N warmup'
-                scope = 'experiment'
-                default = 20
-
         ContextGroup:
             name = 'results'
             label = 'Trial results'
@@ -512,19 +538,6 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 dtype = 'float64'
 
     Extension:
-        id = 'selectors'
-        point = 'psi.context.selectors'
-        SequenceSelector:
-            name = 'go'
-            label = 'Go sequence'
-        SequenceSelector:
-            name = 'nogo'
-            label = 'Nogo sequence'
-        SequenceSelector:
-            name = 'remind'
-            label = 'Remind sequence'
-
-    Extension:
         id = manifest.id + '.toolbar'
         point = 'psi.experiment.toolbar'
 
@@ -537,7 +550,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             Action:
                 text = 'Start Trial'
                 triggered ::
-                    controller.request_trial(NAFCTrialType.go_manual)
+                    controller.request_trial()
                 enabled << controller.experiment_state == 'running' \
                     and controller.manual_control
             Action:

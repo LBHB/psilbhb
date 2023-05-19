@@ -6,7 +6,6 @@ CORE_PATH = 'psi.paradigms.core.'
 
 
 COMMON_PLUGINS = [
-    {'manifest': PATH + 'behavior_mixins.BaseGoNogoMixin'},
     {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser'},
     {'manifest': 'psilbhb.paradigms.video.PSIVideo'},
     {'manifest': 'psilbhb.paradigms.openephys.OpenEphysManifest'},
@@ -21,6 +20,7 @@ COMMON_PLUGINS = [
 ParadigmDescription(
     'NTD-gonogo-np', 'Go-nogo tone detection in natural background (initiated)',
     'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'behavior_mixins.BaseGoNogoMixin'},
         {'manifest': PATH + 'behavior_gonogo.InitiatedBehaviorManifest'},
         {'manifest': PATH + 'stimuli.ToneInNaturalSoundsGoNogo'},
     ],
@@ -29,7 +29,7 @@ ParadigmDescription(
 ParadigmDescription(
     'NFB', 'Two AFC foreground detection in natural background',
     'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'behavior_2afc.InitiatedBehaviorManifest'},
+        {'manifest': PATH + 'behavior_2afc.BehaviorManifest'},
     ],
 )
 
@@ -40,12 +40,3 @@ ParadigmDescription(
         {'manifest': PATH + 'stimuli.ToneInSilenceGoNogo'},
     ],
 )
-
-ParadigmDescription(
-    'NTD-gonogo', 'Go-nogo tone detection in natural background (DEPRECATED)',
-    'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'behavior_gonogo.AutoBehaviorManifest'},
-        {'manifest': PATH + 'stimuli.ToneInNaturalSoundsGoNogo'},
-    ],
-)
-
