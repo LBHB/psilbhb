@@ -142,6 +142,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
     # False otherwise.
     random_behavior_mode = Bool(False)
 
+    next_trial_state = Str()
+
     fgbg = Typed(FgBgSet)
 
     side = Int(-1)
@@ -205,13 +207,16 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         # All parameters in this dictionary get logged to the trial log.
         fgbg_info = self.fgbg.trial_parameters(self.trial)
         self.trial_info.update(fgbg_info)
-        self.side = fgbg_info['response_condition']
+        self.side = int(fgbg_info['response_condition'])
 
         self.invoke_actions('trial_ready')
         if auto_start:
             self.start_trial()
         else:
             self.trial_state = NAFCTrialState.waiting_for_np_start
+
+    def handle_waiting_for_trial_start(self, event, timestamp):
+        pass
 
     def handle_waiting_for_np_start(self, event, timestamp):
         if event.value[:2] == ('np', 'start'):
@@ -289,8 +294,6 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         self.stop_event_timer()
         ts = self.get_ts()
 
-        self.prior_score = score
-
         response_time = self.trial_info['response_ts']-self.trial_info['trial_start']
         self.trial_info.update({
             'response': response.value,
@@ -310,9 +313,10 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             # withdraw.
             self.start_wait_for_reward_end(ts, 'iti')
         else:
-            # This is a correct reject or a miss, which indicates the animal is
-            # not on the spout. No need to wait for lick spout withdrwawal.
             self.advance_state('iti', ts)
+
+        # Report result back to FgBgSet
+        self.fgbg.score_response(score.value, self.trial)
 
         # Apply pending changes that way any parameters (such as repeat_FA or
         # go_probability) are reflected in determining the next trial type.
@@ -325,16 +329,13 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         elapsed_event = getattr(NAFCEvent, f'{state}_duration_elapsed')
         self.start_event_timer(f'{state}_duration', elapsed_event)
 
-    def handle_waiting_for_reward_end(self, event, timestamp):
-        if event.value[:2] == ('response', 'end'):
-            self.advance_state(self.next_trial_state, timestamp)
-
-    def handle_waiting_for_trial_start(self, event, timestamp):
-        pass
-
     def start_wait_for_reward_end(self, timestamp, next_state):
         self.trial_state = NAFCTrialState.waiting_for_reward_end
         self.next_trial_state = next_state
+
+    def handle_waiting_for_reward_end(self, event, timestamp):
+        if event.value[:2] == ('response', 'end'):
+            self.advance_state(self.next_trial_state, timestamp)
 
     def handle_waiting_for_to(self, event, timestamp):
         if event == NAFCEvent.to_duration_elapsed:
