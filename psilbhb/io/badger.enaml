@@ -73,18 +73,6 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 unit = 'V'
                 calibration_user_editable = True
 
-            #NIDAQHardwareAIChannel:
-            #    label = 'Microphone 2'
-            #    name = 'microphone_2'
-            #    channel = 'Dev1/ai7'
-            #    start_trigger = '/Dev1/ao/StartTrigger'
-            #    fs = ai_fs
-            #    expected_range = (-10, 10)
-            #    dtype = 'float64'
-            #    terminal_mode = 'RSE'
-            #    unit = 'V'
-            #    calibration_user_editable = True
-
             NIDAQHardwareAIChannel:
                 label = 'Sync Monitor'
                 name = 'sync_monitor'
@@ -164,7 +152,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                     name = 'room_light_toggle'
                     label = 'Room light'
 
-            # We maek the same input channel available under two names,
+            # We make the same input channel available under two names,
             # reward_contact and spout_contact_1, so that we can easily switch
             # between the go-nogo and NAFC experiments. Well, easily from a
             # software perspective. You still will need to go into the chamber
