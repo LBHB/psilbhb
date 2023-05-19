@@ -676,29 +676,29 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         id = manifest.id + '.items'
         point = 'psi.context.items'
 
-        ContextGroup:
-            name = 'FgBgSet'
+    #    ContextGroup:
+    #        name = 'FgBgSet'
 
-            Parameter:
-                name = 'path'
-                label = 'folder'
-                dtype = 'S'
+    #        Parameter:
+    #            name = 'path'
+    #            label = 'folder'
+    #            dtype = 'S'
 
-        ContextGroup:
-            name = 'FgSet'
+    #    ContextGroup:
+    #        name = 'FgSet'
 
-            Parameter:
-                name = 'path'
-                label = 'folder'
-                dtype = 'S'
+    #        Parameter:
+    #            name = 'path'
+    #            label = 'folder'
+    #            dtype = 'S'
 
-        ContextGroup:
-            name = 'BgSet'
+    #    ContextGroup:
+    #        name = 'BgSet'
 
-            Parameter:
-                name = 'path'
-                label = 'folder'
-                dtype = 'S'
+    #        Parameter:
+    #            name = 'path'
+    #            label = 'folder'
+    #            dtype = 'S'
 
         ContextGroup:
             name = 'trial'

@@ -6,6 +6,7 @@ import os
 from sqlalchemy import create_engine, desc, exc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.automap import automap_base
+from sqlalchemy.sql import text
 
 import pandas as pd
 import pandas.io.sql as psql
@@ -136,11 +137,12 @@ class celldb():
 
         d = None
         try:
-            d = pd.read_sql_query(sql=sql, con=engine, params=params)
+            d = pd.read_sql_query(sql=text(sql), con=engine, params=params)
         except exc.SQLAlchemyError as OpErr:
             if OpErr._message().count('Lost connection to MySQL server during query')>0:
                 log.warning('Lost connection to MySQL server during query, trying again.')
                 d = pd.read_sql_query(sql=sql, con=engine, params=params)
+
         if d is None:
             raise ValueError(f"pd_query error on sql={sql} params={params}")
         return d
@@ -148,7 +150,7 @@ class celldb():
     def sqlexec(self, sql):
         engine = self.Engine()
         conn = engine.connect()
-        conn.execute(sql)
+        conn.execute(text(sql))
 
         return True
 
@@ -161,17 +163,33 @@ class celldb():
 
         # creating column list for insertion
         cols = "`,`".join([str(i) for i in d.columns.tolist()])
+        #sql = f"REPLACE INTO `{table}` (`" +cols + "`) VALUES (" + "%s,"*(len(d.columns.tolist())-1) + "%s)"
+        sql = f"REPLACE INTO `{table}` (`" +cols + "`) VALUES "
+        print(sql)
+        values = []
+        for i,row in d.iterrows():
+            r=[]
+            for _r in list(row.values):
+                if type(_r) is bool:
+                    r.append(str(int(_r)))
+                elif type(_r) is str:
+                    r.append('"'+_r+'"')
+                else:
+                    r.append(str(_r))
+            v = '(' + ','.join(r) + ')'
+            print(v)
+
+            values.append(v)
+        sql = sql + ",".join(values)
 
         # Insert DataFrame in a bulk insert
-        sql = f"REPLACE INTO `{table}` (`" +cols + "`) VALUES (" + "%s,"*(len(d.columns.tolist())-1) + "%s)"
-        rows=[]
-        for i,row in d.iterrows():
-            rows.append(tuple(row.values))
+        print(sql)
+
         if self.TESTMODE:
             print(sql)
             return sql
         else:
-            res = conn.execute(sql, rows)
+            res = conn.execute(text(sql))
             return res.lastrowid
 
     def sqlupdate(self, table, id, d=None, idfield='id'):
@@ -206,10 +224,12 @@ class celldb():
             active_string = " AND onschedule<2"
         else:
             active_string = ""
+
         if name is None:
-            d = self.pd_query(f"SELECT * FROM gAnimal WHERE lab=%s {active_string} AND species=%s", (lab,species))
+            sql = f"SELECT * FROM gAnimal WHERE lab='{lab}' {active_string} AND species='{species}'"
         else:
-            d = self.pd_query("SELECT * FROM gAnimal WHERE animal=%s", (name,))
+            sql = f"SELECT * FROM gAnimal WHERE animal='{name}'"
+        d = self.pd_query(sql)
 
         return d
 
@@ -229,6 +249,29 @@ class celldb():
 
         return self.pd_query(sql)
 
+    def last_pen_data(self, animal=None, training=None):
+        """
+        get more recent entry in gPenetration for animal/training condition.
+        :param animal:
+        :param training:
+        :return: pendata: dataframe
+        """
+        if animal is None:
+            animal = self.animal
+        if training is None:
+            training = self.training
+
+        sql = f"SELECT max(id) as maxid FROM gPenetration WHERE training={training} AND animal='{animal}'"
+        lastpendata = self.pd_query(sql)
+        maxid = lastpendata.loc[0, 'maxid']
+        if maxid is None:
+            maxid=0
+
+        sql = f"SELECT * FROM gPenetration WHERE id={maxid}"
+        lastpendata = self.pd_query(sql)
+
+        return lastpendata
+
     def get_current_penname(self, animal=None, training=None,
                             force_next=False, create_if_missing=True):
         """
@@ -247,19 +290,17 @@ class celldb():
         if len(d_animal)>0:
             cellprefix = d_animal.loc[0, 'cellprefix']
         else:
-            raise ValueError(f"animal {animal} not found in celldb.gAnimal")
+            raise ValueError(f"Animal {animal} not found in celldb.gAnimal")
 
-        sql = 'SELECT max(id) as maxid FROM gPenetration WHERE training=%s AND animal=%s'
-        lastpendata = self.pd_query(sql, (training, animal))
+
         today = datetime.date.today().strftime("%Y-%m-%d")
         need_to_create = False
 
+        lastpendata = self.last_pen_data(animal=animal, training=training)
         if len(lastpendata) == 0:
             print('No penetrations exist for this animal. Guessing info from scratch.')
             pennum=1
         else:
-            sql = f"SELECT * FROM gPenetration WHERE id={lastpendata.loc[0,'maxid']}"
-            lastpendata = self.pd_query(sql)
             penname = lastpendata.loc[0,'penname']
             pendate = lastpendata.loc[0,'pendate']
 
@@ -322,7 +363,6 @@ class celldb():
             training = self.training
         if penname is None:
             penname = self.get_current_penname(animal, training=training, force_next=True)
-
         today = datetime.date.today().strftime("%Y-%m-%d")
 
         racknotes=''
@@ -330,6 +370,7 @@ class celldb():
         probenotes=''
         electrodenotes=''
         ear=''
+        print('Creating new penetration')
         d=pd.DataFrame({
             'penname': penname,
             'animal': animal,
@@ -349,6 +390,7 @@ class celldb():
             'info': 'psilbhb.celldb'
         }, index=[0])
 
+        print('Calling sql insert')
         self.sqlinsert('gPenetration', d)
         print(f"Created new penetration {penname}")
         self.create_site(penname=penname, animal=animal,

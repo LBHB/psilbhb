@@ -176,8 +176,14 @@ enamldef LauncherView(MainWindow): main:
                 text = 'Training'
 
             ObjectCombo: training:
-                items << ['Yes','Physiology+behavior','Physiology+passive']
+                items << launcher.available_training
                 selected := launcher.training
+
+            Label:
+                text = 'Channel count'
+
+            Field: channelcount:
+                text := launcher.channelcount
 
             Label:
                 text = 'SiteID'
@@ -213,8 +219,6 @@ enamldef LauncherView(MainWindow): main:
 
                 Label: base_folder:
                     text << str(launcher.base_folder)
-
-
 
         HGroup: button_bar:
             leading_spacer = spacer(0)
