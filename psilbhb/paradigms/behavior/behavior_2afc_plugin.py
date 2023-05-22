@@ -262,7 +262,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             log.info('Hold duration over')
             # If we are in training mode, deliver a reward preemptively
             if self.context.get_value('training_mode'):
-                self.invoke_actions('deliver_reward', timestamp)
+                side = event.value[2]
+                self.invoke_actions(f'deliver_reward_{side}', timestamp)
             self.advance_state('response', timestamp)
             self.trial_info['response_start'] = timestamp
 
@@ -278,7 +279,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
                 # If we are in training mode, the reward has already been
                 # delivered.
                 if not self.context.get_value('training_mode'):
-                    self.invoke_actions('deliver_reward', timestamp)
+                    self.invoke_actions(f'deliver_reward_{side}', timestamp)
             else:
                 score = NAFCTrialScore.incorrect
             response = getattr(NAFCResponse, f'spout_{side}')

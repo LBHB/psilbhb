@@ -114,7 +114,9 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         ExperimentEvent:
             name = 'to_duration_elapsed'
         ExperimentEvent:
-            name = 'deliver_reward'
+            name = 'deliver_reward_1'
+        ExperimentEvent:
+            name = 'deliver_reward_2'
         ExperimentEvent:
             name = 'trial_ready'
 
