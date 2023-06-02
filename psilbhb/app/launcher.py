@@ -211,7 +211,7 @@ class CellDbLauncher(SimpleLauncher):
 
     available_animals = list(animal_data['animal'])
     available_experimenters = list(user_data['userid'])
-    available_runclasses = ['NTD', 'NFB', 'PHD', 'FTC']
+    #available_runclasses = ['NTD', 'NFB', 'PHD', 'FTC']
     available_training = ['Yes','Physiology+behavior','Physiology+passive']
 
     training_folder = Typed(Path)
@@ -239,10 +239,12 @@ class CellDbLauncher(SimpleLauncher):
     def _observe_training(self, event):
         self._update_site()
 
-    def _observe_runclass(self, event):
-        self._update()
+    #def _observe_runclass(self, event):
+    #    self._update()
+
     def _observe_runnumber(self, event):
         self._update()
+
     def _observe_siteid(self, event):
         self._update()
 
@@ -281,6 +283,9 @@ class CellDbLauncher(SimpleLauncher):
         self._update()
 
     def _update(self):
+
+        r = self.experiment.name
+        self.runclass  =r.split('-')[0]
 
         exclude = [] if self.save_data else ['note' ]
         required_vals = get_tagged_values(self, 'required')

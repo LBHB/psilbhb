@@ -66,6 +66,11 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
     if calibration is not None:
         sf = calibration.get_sf(1e3, level)
         waveform *= sf
+    elif level is not None:
+        attenuatedB = 80-level
+        sf = 10 ** (-attenuatedB/20)
+        waveform *= (5 * sf)  # 5V RMS = 80 dB
+        #log.info(f"Atten: {attenuatedB} SF: {sf} RMS: {waveform.std()}")
 
     waveform[waveform>5]=5
     waveform[waveform<-5]=-5
@@ -125,7 +130,7 @@ class WaveformSet():
 
 class WavFileSet(WaveformSet):
 
-    def __init__(self, filenames, normalization='pe',
+    def __init__(self, filenames, normalization='pe', level=65,
                  norm_fixed_scale=1, force_duration=None, random_seed=0, **kwargs):
         """
         :param filenames: list filenames (single channel) or list of lists
@@ -156,8 +161,8 @@ class WavFileSet(WaveformSet):
         self.norm_fixed_scale = norm_fixed_scale
         self.force_duration = force_duration
         self.random_seed = random_seed
-
-        super().__init__(**kwargs)
+        self.level = level
+        super().__init__(level=level, **kwargs)
 
     def waveform(self, idx):
         files = self.filenames[idx]
@@ -211,7 +216,7 @@ class MCWavFileSet(WavFileSet):
     def __init__(self, path, duration=-1, include_silence=True,
                  fit_range=None, fit_reps=1, test_range=None, test_reps=0,
                  channel_count=1, channel_offset=1, binaural_combinations='single_offset',
-                 **kwargs):
+                 level=65, **kwargs):
         """
         :param path:
             Path to directory containing wav files.
@@ -298,8 +303,8 @@ class MCWavFileSet(WavFileSet):
         self.duration = duration
         self.fit_range = fit_range
         self.test_range = test_range
-
-        super().__init__(filenames, channel_count=channel_count, force_duration=force_duration, **kwargs)
+        self.level = level
+        super().__init__(filenames, level=level, channel_count=channel_count, force_duration=force_duration, **kwargs)
 
 
 class FgBgSet():
@@ -356,7 +361,7 @@ class FgBgSet():
 
     def __init__(self, FgSet=None, BgSet=None, combinations='simple',
                  fg_switch_channels=False, bg_switch_channels=False, 
-                 catch_frequency=0,
+                 catch_frequency=0, primary_channel=0,
                  fg_delay=1.0, fg_snr=0.0, response_window=None,
                  random_seed=0):
         """
@@ -396,6 +401,7 @@ class FgBgSet():
         self.catch_frequency = catch_frequency
         self._fg_delay = fg_delay
         self._fg_snr = fg_snr
+        self.primary_channel = primary_channel
         if response_window is None:
             self.response_window = (0.0, 1.0)
         else:
@@ -426,7 +432,7 @@ class FgBgSet():
             fg_channel = np.concatenate((np.zeros_like(fg_range), np.ones_like(fg_range)))
             fg_range = np.tile(fg_range, 2)
         else:
-            fg_channel = np.zeros_like(fg_range)
+            fg_channel = np.zeros_like(fg_range) + self.primary_channel
         if self.bg_switch_channels == False:
             bg_channel = np.zeros_like(fg_range)
         elif self.bg_switch_channels == 'same':
@@ -515,6 +521,8 @@ class FgBgSet():
         if self.fg_channel[wav_set_idx] == 1:
             wfg = np.concatenate((np.zeros_like(wfg), wfg), axis=1)
         wbg = self.BgSet.waveform(self.bg_index[wav_set_idx])
+        log.info(f"fg level: {self.FgSet.level} bg level: {self.BgSet.level} FG RMS: {wfg.std():.3f} BG RMS: {wbg.std():.3f}")
+
         if self.bg_channel[wav_set_idx] == 1:
             wbg = np.concatenate((np.zeros_like(wbg), wbg), axis=1)
         if wbg.shape[1] < wfg.shape[1]:
@@ -579,6 +587,7 @@ class FgBgSet():
              'response_condition': response_condition,
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
+             'primary_channel': self.primary_channel,
              'trial_is_repeat': self.trial_is_repeat[trial_idx],
              }
         return d

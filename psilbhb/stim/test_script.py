@@ -14,11 +14,11 @@ else:
 vv = MCWavFileSet(
     fs=44000, path=soundpath_fg, duration=3, normalization='rms',
     fit_range=slice(0, 1), test_range=None, test_reps=2,
-    channel_count=1)
+    channel_count=1, level=60)
 bb = MCWavFileSet(
     fs=44000, path=soundpath_bg, duration=4, normalization='rms',
     fit_range=[0, 4], test_range=None, test_reps=2,
-    channel_count=1)
+    channel_count=1, level=0)
 
 print(vv.names)
 
@@ -59,18 +59,18 @@ wf = fb.FgSet.waveform(fb.fg_index[trial_idx])
 #    d = fb.trial_parameters(i)
 #    print(d['response_condition'])
 
-#f, ax = plt.subplots(2,1, sharex='col', sharey='col')
-#t=np.arange(w.shape[0])/fb.FgSet.fs
-#ax[0].plot(t,w[:,0])
-#ax[0].plot(t,wb[:,0])
-#ax[0].set_title('channel 1')
-#if w.shape[1]>1:
-#    ax[1].plot(t,w[:,1],label='f+b')
-#if wb.shape[1]>1:
-#    ax[1].plot(t,wb[:,1],label='b')
-#ax[1].legend()
-#ax[1].set_title('channel 2')
-#plt.tight_layout()
+f, ax = plt.subplots(2,1, sharex='col', sharey='col')
+t=np.arange(w.shape[0])/fb.FgSet.fs
+ax[0].plot(t,w[:,0])
+ax[0].plot(t,wb[:,0])
+ax[0].set_title('channel 1')
+if w.shape[1]>1:
+    ax[1].plot(t,w[:,1],label='f+b')
+if wb.shape[1]>1:
+    ax[1].plot(t,wb[:,1],label='b')
+ax[1].legend()
+ax[1].set_title('channel 2')
+plt.tight_layout()
 
 
 #def test_vowels():

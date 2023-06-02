@@ -17,7 +17,7 @@ COMMON_PLUGINS = [
 
 
 ParadigmDescription(
-    'NTD-gonogo-np', 'Go-nogo tone detection in natural background (initiated)',
+    'NTD-gonogo-np', '(NTD) Go-nogo tone detection in natural background (initiated)',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_mixins.BaseGoNogoMixin'},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser'},
@@ -27,7 +27,7 @@ ParadigmDescription(
 )
 
 ParadigmDescription(
-    'NFB', 'Two AFC foreground detection in natural background',
+    'NFB', '(NFB) Two AFC foreground detection in natural background',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_2afc.BehaviorManifest'},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
@@ -41,7 +41,7 @@ ParadigmDescription(
 )
 
 ParadigmDescription(
-    'STD', 'Go-nogo tone detection in silence',
+    'STD', '(STD) Go-nogo tone detection in silence',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_gonogo.BehaviorManifest'},
         {'manifest': PATH + 'stimuli.ToneInSilenceGoNogo'},

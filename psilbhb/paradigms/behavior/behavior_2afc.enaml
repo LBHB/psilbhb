@@ -205,6 +205,9 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         ContinuousInput:
             name = 'speaker_1_monitor'
             source_name = 'hw_ai::speaker_1_monitor'
+        #ContinuousInput:
+        #    name = 'speaker_2_monitor'
+        #    source_name = 'hw_ai::speaker_2_monitor'
 
         TimedTrigger:
             # This is a hardware-timed trigger that allows us to schedule a
@@ -248,6 +251,14 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 default = 'No'
                 choices = {'No': "False", 'same': "'same'",
                            'opposite': "'opposite'", 'combinatorial': "'combinatorial'"}
+                scope = 'experiment'
+
+            EnumParameter:
+                name = 'primary_channel'
+                label = 'primary_channel'
+                compact_label = 'primary_channel'
+                default = '0'
+                choices = {'0': 0, '1': 1}
                 scope = 'experiment'
 
             Parameter:
@@ -632,6 +643,10 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 ChannelPlot:
                     source_name = 'speaker_1_monitor'
                     pen_color = 'blue'
+
+                #ChannelPlot:
+                #    source_name = 'speaker_2_monitor'
+                #    pen_color = 'red'
 
                 #ChannelPlot:
                 #    source_name = 'sync_monitor'

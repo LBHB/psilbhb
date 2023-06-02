@@ -197,12 +197,12 @@ enamldef LauncherView(MainWindow): main:
             Field: runnumber:
                 text := launcher.runnumber
 
-            Label:
-                text = 'Run Class'
+            #Label:
+            #    text = 'Run Class'
 
-            ObjectCombo: runclass:
-                items << launcher.available_runclasses
-                selected := launcher.runclass
+            #ObjectCombo: runclass:
+            #    items << launcher.available_runclasses
+            #    selected := launcher.runclass
 
             Label:
                 text = 'Note'

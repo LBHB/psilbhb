@@ -21,13 +21,13 @@ def configure_stimuli(event):
 
     vv = MCWavFileSet(
         fs=output.fs, path=params['fg_path'], duration=params['fg_duration'],
-        normalization=params['fg_normalization'],
+        normalization=params['fg_normalization'], level=params['fg_level'],
         fit_range=params['fg_fit_range'], test_range=params['fg_test_range'],
         fit_reps=params['fg_fit_reps'], test_reps=params['fg_test_reps'],
         channel_count=params['fg_channel_count'])
     bb = MCWavFileSet(
         fs=output.fs, path=params['bg_path'], duration=params['bg_duration'],
-        normalization=params['bg_normalization'],
+        normalization=params['bg_normalization'], level=params['bg_level'],
         fit_range=params['bg_fit_range'], test_range=params['bg_test_range'],
         fit_reps=params['bg_fit_reps'], test_reps=params['bg_test_reps'],
         channel_count=params['bg_channel_count'])
@@ -35,6 +35,7 @@ def configure_stimuli(event):
     controller.fgbg = FgBgSet(FgSet=vv, BgSet=bb,
                               fg_switch_channels=params['fg_switch_channels'],
                               bg_switch_channels=params['bg_switch_channels'],
+                              primary_channel=params['primary_channel'],
                               combinations=params['combinations'],
                               fg_snr=params['fg_snr'],
                               fg_delay=params['fg_delay'])
