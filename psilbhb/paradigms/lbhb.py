@@ -20,7 +20,10 @@ ParadigmDescription(
     'NTD-gonogo-np', '(NTD) Go-nogo tone detection in natural background (initiated)',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_mixins.BaseGoNogoMixin'},
-        {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser'},
+        #{'manifest': PATH + 'behavior_mixins.WaterBolusDispenser'},
+        {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
+         'attrs': {'output_name': 'water_dispense_1',
+                   'event_name': 'deliver_reward'}},
         {'manifest': PATH + 'behavior_gonogo.InitiatedBehaviorManifest'},
         {'manifest': PATH + 'stimuli.ToneInNaturalSoundsGoNogo'},
     ],
