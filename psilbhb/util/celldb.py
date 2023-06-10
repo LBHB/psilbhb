@@ -36,11 +36,13 @@ def readpsievents(logpath, runclass=None):
                      'background_wav_sequence_path','background_wav_sequence_level','background_wav_sequence_duration',
                      'background_wav_sequence_normalization','background_wav_sequence_norm_fixed_scale',
                      'background_wav_sequence_fit_range', 'background_wav_sequence_fit_reps',
-                     'background_wav_sequence_test_range','background_wav_sequence_test_reps','background_wav_sequence_random_seed',
+                     'background_wav_sequence_test_range','background_wav_sequence_test_reps',
+                     'background_wav_sequence_channel_config','background_wav_sequence_random_seed',
                      'background_1_wav_sequence_path','background_1_wav_sequence_level','background_1_wav_sequence_duration',
                      'background_1_wav_sequence_normalization','background_1_wav_sequence_norm_fixed_scale',
                      'background_1_wav_sequence_fit_range','background_1_wav_sequence_fit_reps',
-                     'background_1_wav_sequence_test_range','background_1_wav_sequence_test_reps','background_1_wav_sequence_random_seed',
+                     'background_1_wav_sequence_test_range','background_1_wav_sequence_test_reps',
+                     'background_1_wav_sequence_channel_config','background_1_wav_sequence_random_seed',
                      'iti_duration', 'to_duration',
                      'water_dispense_duration', 'go_probability', 'repeat_fa',
                      'remind_trials', 'warmup_trials', 'min_nogo', 'max_nogo'
@@ -56,6 +58,34 @@ def readpsievents(logpath, runclass=None):
             dataperf = {k: list(df_perf[k]) for k in perfname}
         else:
             dataperf = {}
+    elif runclass=='NFB':
+        parmnames = ['fg_duration',
+         'bg_duration', 'fg_snr', 'fg_delay', 'fg_channel', 'bg_channel',
+         'response_condition', 'response_window', 'current_full_rep',
+         'primary_channel',
+         'combinations', 'fg_switch_channels', 'bg_switch_channels',
+         'fg_go_index', 'random_seed', 'fg_path', 'fg_level', 'fg_normalization',
+         'fg_norm_fixed_scale', 'fg_fit_range', 'fg_fit_reps', 'fg_test_range',
+         'fg_test_reps', 'fg_channel_count', 'fg_binaural_combinations',
+         'fg_channel_offset', 'bg_path', 'bg_level', 'bg_normalization',
+         'bg_norm_fixed_scale', 'bg_fit_range', 'bg_fit_reps', 'bg_test_range',
+         'bg_test_reps', 'bg_channel_count', 'bg_binaural_combinations',
+         'bg_channel_offset', 'repeat_incorrect', 'iti_duration', 'to_duration',
+         'response_duration', 'target_delay', 'np_duration', 'hold_duration',
+         'training_mode', 'manual_control', 'keep_lights_on',
+         'water_dispense_duration']
+        row = df.iloc[-1]
+        dataparm = {k: row[k] for k in parmnames if k in row.index}
+
+        correct_trials = (df['score']==2)
+        dataperf = {'trials': df.shape[0],
+                    'correct': (df['score']==2).sum(),
+                    'invalid': (df['score']==0).sum(),
+                    'incorrect': (df['score']==1).sum(),
+                    'repeat_trials': df['trial_is_repeat'].sum(),
+                    'rt': (df.loc[correct_trials,'response_ts']-
+                           df.loc[correct_trials,'response_start']).mean()
+                    }
     else:
         raise ValueError(f"readpsievents: runclass {runclass} not supported")
 
@@ -173,7 +203,7 @@ class celldb():
                 if type(_r) is bool:
                     r.append(str(int(_r)))
                 elif type(_r) is str:
-                    r.append('"'+_r+'"')
+                    r.append('"'+_r.replace('"','')+'"')
                 else:
                     r.append(str(_r))
             v = '(' + ','.join(r) + ')'
@@ -213,7 +243,7 @@ class celldb():
         if self.TESTMODE:
             print(sql)
         else:
-            conn.execute(sql)
+            conn.execute(text(sql))
 
     def get_users(self):
         d = self.pd_query("SELECT id,userid,email FROM gUserPrefs WHERE active")

@@ -369,7 +369,9 @@ class CellDbLauncher(SimpleLauncher):
         try:
             print('returned from subprocess')
             print(f'psipath: {psipath}')
+            print(rawdata)
             d, dataparm, dataperf = readpsievents(psipath, rawdata['runclass'])
+
             self.db.sqlupdate('gDataRaw', rawdata['rawid'], d=d, idfield='id')
             self.db.save_data(rawdata['rawid'], dataparm, parmtype=0, keep_existing=False)
             self.db.save_data(rawdata['rawid'], dataperf, parmtype=1, keep_existing=False)
@@ -418,5 +420,5 @@ def launch(klass, experiment_type, root_folder='DATA_ROOT', view_klass=None):
 main_db = partial(launch, CellDbLauncher, 'animal')
 
 if __name__ == "__main__":
-    main_db()
+    f = main_db()
 

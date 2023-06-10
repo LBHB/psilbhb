@@ -61,6 +61,8 @@ class NAFCResponse(enum.Enum):
     spout_2 = 'spout_2'
     early_1 = 'early_1'
     early_2 = 'early_2'
+    early_0 = 'early_0'
+    early_np = 'early_np'
 
 
 class NAFCTrialState(TrialState):
@@ -247,18 +249,20 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         o2 = self.get_output('output_2')
         with o1.engine.lock:
             ts = self.get_ts()
-            o1.start_waveform(ts + 0.5, False)
-            o2.start_waveform(ts + 0.5, True)
+            o1.start_waveform(ts + 0.1, False)
+            o2.start_waveform(ts + 0.1, True)
 
         self.invoke_actions('trial_start', ts)
         self.advance_state('hold', ts)
         self.trial_info['trial_start'] = ts
 
     def handle_waiting_for_hold(self, event, timestamp):
-        if event.value[:2] == ('response', 'start'):
-            side = event.value[2]
-            event = getattr(NAFCResponse, f'early_{side}')
-            self.end_trial(event, NAFCTrialScore.invalid)
+        if event.value[:2] == ('np', 'end'):
+
+            self.invoke_actions('response_end', timestamp)
+            self.trial_info['response_ts'] = timestamp
+            self.trial_info['response_side'] = np.nan
+            self.end_trial(NAFCResponse.early_np, NAFCTrialScore.invalid)
         elif event == NAFCEvent.hold_duration_elapsed:
             log.info('Hold duration over')
             # If we are in training mode, deliver a reward preemptively
@@ -309,6 +313,17 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             # Call timeout actions and the wait for animal to withdraw from spout
             self.invoke_actions('to_start', ts)
             self.start_wait_for_reward_end(ts, 'to')
+        elif score == NAFCTrialScore.invalid:
+            # Early withdraw from nose-poke
+            # want to stop sound and start TO
+            o1 = self.get_output('output_1')
+            o2 = self.get_output('output_2')
+            with o1.engine.lock:
+                ts = self.get_ts()
+                o1.stop_waveform(ts + 0.1, False)
+                o2.stop_waveform(ts + 0.1, True)
+            self.invoke_actions('to_start', ts)
+            self.advance_state('to', ts)
         elif score == NAFCTrialScore.correct:
             # Animal will still be on the spout. Need to wait for animal to
             # withdraw.

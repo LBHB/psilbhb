@@ -496,8 +496,13 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 label = 'Target delay (s)'
                 default = 0.5
             Parameter:
+                name = 'np_duration'
+                label = 'Nose-poke start duration (s)'
+                compact_label = 'NP'
+                default = 0.25
+            Parameter:
                 name = 'hold_duration'
-                label = 'Hold duration (s)'
+                label = 'Nose-poke hold duration (s)'
                 compact_label = 'Hold'
                 default = 0.0
             BoolParameter:
@@ -515,11 +520,6 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 label = 'Lights on during TO?'
                 scope = 'arbitrary'
                 default = False
-            Parameter:
-                name = 'np_duration'
-                label = 'Nose poke duration (s)'
-                compact_label = 'NP'
-                default = 0.25
 
         ContextGroup:
             name = 'results'
