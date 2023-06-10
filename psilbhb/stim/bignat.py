@@ -138,7 +138,7 @@ class BigNaturalSequenceFactory(WavSequenceFactory):
     def __init__(self, fs, path, level=None, calibration=None, duration=-1,
                  normalization='pe', norm_fixed_scale=1,
                  fit_range=None, fit_reps=1, test_range=None, test_reps=0,
-                 channel_config='1.1', random_seed=0):
+                 channel_config='1.1', include_silence=True, random_seed=0):
         '''
         Parameters
         ----------
@@ -201,6 +201,8 @@ class BigNaturalSequenceFactory(WavSequenceFactory):
 
         fit_wav = fit_wav[(self.channel_id-1):] + fit_wav[:(self.channel_id-1)]
         test_wav = test_wav[(self.channel_id-1):] + test_wav[:(self.channel_id-1)]
+        if include_silence & (self.channel_count>1):
+            test_wav += silent_f
 
         fit_wav *= fit_reps
         test_wav *= test_reps
@@ -219,6 +221,8 @@ class BigNaturalSequenceFactory(WavSequenceFactory):
         self.normalization = normalization
         self.norm_fixed_scale = norm_fixed_scale
         self.random_seed = random_seed
+        self.include_silence = include_silence
+
         self.reset()
 
     def reset(self):
