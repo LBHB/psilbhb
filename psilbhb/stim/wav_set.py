@@ -461,8 +461,26 @@ class FgBgSet(WavSet):
             fg_channel = np.tile(fg_channel, 2)
             fg_range = np.tile(fg_range, 2)
             bg_range = np.tile(bg_range, 2)
+        elif self.bg_switch_channels == 'combinatorial+diotic':
+            bg_channel = np.concatenate((np.zeros_like(fg_channel), np.ones_like(fg_channel), -np.ones_like(fg_channel)))
+            fg_channel = np.tile(fg_channel, 3)
+            fg_range = np.tile(fg_range, 3)
+            bg_range = np.tile(bg_range, 3)
         else:
             raise ValueError(f"Unknown bg_switch_channels value: {self.bg_switch_channels}.")
+
+        if (type(self._fg_snr) is np.array) | (type(self._fg_snr) is list):
+            # multiple SNRs requested, tile
+            fg_snr = np.concatenate(
+                [np.zeros(len(fg_range)) + snr for snr in self._fg_snr]
+            )
+            bg_channel = np.tile(bg_channel, len(self._fg_snr))
+            fg_channel = np.tile(fg_channel, len(self._fg_snr))
+            fg_range = np.tile(fg_range, len(self._fg_snr))
+            #bg_range = np.tile(bg_range, len(self._fg_snr))
+        else:
+            fg_snr = np.zeros(len(fg_range)) + self._fg_snr
+
         if self.catch_frequency>0:
             raise ValueError(f"Support for catch_frequency>0 not yet implemented")
 
@@ -473,6 +491,7 @@ class FgBgSet(WavSet):
         fgc = np.array([], dtype=int)
         bgc = np.array([], dtype=int)
         fgg = np.array([], dtype=int)
+        fsnr = np.array([], dtype=int)
         if self.combinations == 'simple':
             total_wav_set = np.max([bg_len, fg_len])
             #print(f'Updating FgBgSet {total_wav_set} trials...')
@@ -494,6 +513,7 @@ class FgBgSet(WavSet):
                 fgi = np.concatenate((fgi, fg_range))
                 fgc = np.concatenate((fgc, fg_channel[ii]))
                 bgc = np.concatenate((bgc, bg_channel[ii]))
+                fsnr = np.concatenate((fsnr, fg_snr[ii]))
                 fgg = np.concatenate((fgg, np.ones(len(fg_range))))
 
         else:
@@ -503,12 +523,9 @@ class FgBgSet(WavSet):
         self.fg_index = fgi
         self.fg_channel = fgc
         self.bg_channel = bgc
+        self.fg_snr = fsnr
         self.fg_go = fgg
 
-        if (type(self._fg_snr) is np.array) | (type(self._fg_snr) is list):
-            self.fg_snr = np.array(self._fg_snr)
-        else:
-            self.fg_snr = np.zeros(self.FgSet.max_index) + self._fg_snr
         if (type(self._fg_delay) is np.array) | (type(self._fg_delay) is list):
             self.fg_delay = np.array(self._fg_delay)
         else:
@@ -542,11 +559,14 @@ class FgBgSet(WavSet):
 
         if self.bg_channel[wav_set_idx] == 1:
             wbg = np.concatenate((np.zeros_like(wbg), wbg), axis=1)
+        elif self.bg_channel[wav_set_idx] == -1:
+            wbg = np.concatenate((wbg, wbg), axis=1)
+
         if wbg.shape[1] < wfg.shape[1]:
             wbg = np.concatenate((wbg, np.zeros_like(wbg)), axis=1)
         if wfg.shape[1] < wbg.shape[1]:
             wfg = np.concatenate((wfg, np.zeros_like(wfg)), axis=1)
-        fg_snr = self.fg_snr[self.fg_index[wav_set_idx]]
+        fg_snr = self.fg_snr[wav_set_idx]
         fg_scale = 10**(fg_snr / 20)
         offsetbins = int(self.fg_delay[self.fg_index[wav_set_idx]] * self.FgSet.fs)
 
@@ -578,7 +598,7 @@ class FgBgSet(WavSet):
         is_go_trial = self.fg_go[wav_set_idx]
         if is_go_trial:
             # 1=spout 1, 2=spout 2
-            response_condition = self.fg_channel[wav_set_idx]+1
+            response_condition = int(self.fg_channel[wav_set_idx]+1)
         else:
             response_condition = 0
 
@@ -597,7 +617,7 @@ class FgBgSet(WavSet):
              'bg_name': self.BgSet.names[bg_i],
              'fg_duration': self.FgSet.duration,
              'bg_duration': self.BgSet.duration,
-             'fg_snr': self.fg_snr[fg_i],
+             'snr': self.fg_snr[wav_set_idx],
              'fg_delay': self.fg_delay[fg_i],
              'fg_channel': self.fg_channel[wav_set_idx],
              'bg_channel': self.bg_channel[wav_set_idx],
