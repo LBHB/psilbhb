@@ -513,6 +513,7 @@ class celldb():
         year = datetime.datetime.now().strftime("%Y")
         month = datetime.datetime.now().strftime("%m")
         day = datetime.datetime.now().strftime("%d")
+        dataroot = str(dataroot).replace('\\', '/')
 
         # determine path + parmfilename
         if sitedata.training:
@@ -560,7 +561,7 @@ class celldb():
                 rawpath = f'{resppath}raw/{siteid}{filestr}/'
 
             if rawroot is not None:
-                resppath = resppath.replace(str(dataroot),str(rawroot))
+                resppath = resppath.replace(str(dataroot),str(rawroot).replace('\\','/'))
 
             d = pd.DataFrame({
                 'cellid': siteid,
@@ -657,8 +658,13 @@ class celldb():
         rawdata['parmbase']=rawdata['parmfile']
         rawdata['rawid']=rawdata['id']
         rawdata = rawdata.loc[0]
-        d, dataparm, dataperf = readpsievents(
-            os.path.join(rawdata['resppath'],rawdata['parmbase']), rawdata['runclass'])
+        try:
+            d, dataparm, dataperf = readpsievents(
+                os.path.join(rawdata['resppath'],rawdata['parmbase']), rawdata['runclass'])
+        except:
+            resppath_alt=rawdata['resppath'].replace('d:','e:')
+            d, dataparm, dataperf = readpsievents(
+                os.path.join(resppath_alt, rawdata['parmbase']), rawdata['runclass'])
 
         self.sqlupdate('gDataRaw', rawdata['rawid'], d=d, idfield='id')
         self.save_data(rawdata['rawid'], dataparm, parmtype=0, keep_existing=False)

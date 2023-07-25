@@ -320,7 +320,8 @@ class CellDbLauncher(SimpleLauncher):
     def launch_subprocess(self):
         if self.training == 'Yes':
             behavior = 'active'
-            dataroot = get_config('TRAINING_ROOT')
+            dataroot = get_config('DATA_ROOT')
+            #dataroot = get_config('TRAINING_ROOT')
         elif self.training == 'Physiology+behavior':
             behavior = 'active'
             dataroot = get_config('DATA_ROOT')
