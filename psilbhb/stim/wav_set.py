@@ -176,6 +176,21 @@ class WavFileSet(WaveformSet):
              for f in files]
         return np.stack(w, axis=1)
 
+    def waveform_zero(self, channel_count=None):
+        if channel_count is None:
+            files = self.filenames[0]
+            if type(files) is str:
+                files = [files]
+            channel_count = len(files)
+        if self.force_duration is None:
+            force_duration = 0
+        else:
+            force_duration = self.force_duration
+
+        sample_count = int(self.fs * force_duration)
+
+        return np.zeros((sample_count, channel_count))
+
     @property
     def names(self):
         l = []
@@ -306,8 +321,10 @@ class MCWavFileSet(WavFileSet):
         self.level = level
         super().__init__(filenames, level=level, channel_count=channel_count, force_duration=force_duration, **kwargs)
 
+class WavSet:
+    pass
 
-class FgBgSet():
+class FgBgSet(WavSet):
     """
     Target+background class – generic self-initiated trial
         Allows yoked target and background ids
@@ -610,6 +627,211 @@ class FgBgSet():
         if trial_idx is None:
             trial_idx = self.current_trial_idx
             # Only incrementing current trial index if trial_idx is None. Do we always 
+            # want to do this???
+            self.current_trial_idx = trial_idx + 1
+
+        if trial_idx>=len(self.trial_wav_idx):
+            raise ValueError(f"attempting to score response for trial_idx out of range")
+
+        if trial_idx>=len(self.trial_outcomes):
+            n = trial_idx - len(self.trial_outcomes) + 1
+            self.trial_outcomes = np.concatenate((self.trial_outcomes, np.zeros(n)-1))
+        self.trial_outcomes[trial_idx] = int(outcome)
+        if repeat_incorrect and (outcome in [0, 1]):
+            log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
+            self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
+            self.trial_is_repeat = np.concatenate((self.trial_is_repeat, [1]))
+        else:
+            log.info('Trial {trial_idx} outcome {outcome}: moving on')
+
+
+class VowelSet(WavSet):
+
+    def __init__(self, sound_path='/auto/data/sounds/vowels/v2/',
+                 target_set=['EE_106'],
+                 non_target_set=['IH_106'],
+                 catch_set=['AW_106+UH_106'],
+                 switch_channels=False, primary_channel=0, repeat_count=1,
+                 isi=0.2, tar_to_cat_ratio=5,
+                 response_window=None, random_seed=0):
+        self.wavset = MCWavFileSet(
+            fs=44000, path=sound_path, duration=0.24, normalization='rms',
+            fit_range=slice(0, -1), test_range=None, test_reps=2,
+            channel_count=1, level=60)
+        self.target_set = target_set
+        self.non_target_set = non_target_set
+        self.catch_set = catch_set
+        self.switch_channels = switch_channels
+        self.primary_channel = primary_channel
+        self.repeat_count = repeat_count
+        self.isi = isi
+        self.tar_to_cat_ratio = tar_to_cat_ratio
+        self.random_seed = random_seed
+        self.current_trial_idx = -1
+        if response_window is None:
+            self.response_window = [0, 1]
+        else:
+            self.response_window = response_window
+        self.duration = 0
+
+        # trial management
+        self.trial_wav_idx = np.array([], dtype=int)
+        self.trial_outcomes = np.array([], dtype=int)
+        self.trial_is_repeat = np.array([], dtype=int)
+        self.current_full_rep = 0
+
+        self.update()
+
+    @property
+    def wav_per_rep(self):
+        return len(self.stim1idx)
+
+    def update(self, trial_idx=None):
+        """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.
+        manage trials separately to allow for repeats, etc."""
+        _rng = np.random.RandomState(self.random_seed)
+        ttc=self.tar_to_cat_ratio
+        all_stim = self.target_set*ttc + self.non_target_set*ttc + self.catch_set
+        all_cat = ['T'] * len(self.target_set)*ttc + \
+                  ['N'] * len(self.non_target_set)*ttc + \
+            ['C'] * len(self.catch_set)
+        stim1 = [(s+'+').split('+')[0] for s in all_stim]
+        stim2 = [(s+'+').split('+')[1] for s in all_stim]
+        names = self.wavset.names
+
+        if self.primary_channel==0:
+            stim1idx = [[i for i in names if (s!='') & i.startswith(s)][slice(0,1)] for s in stim1]
+            stim2idx = [[i for i in names if (s!='') & i.startswith(s)][slice(0,1)] for s in stim2]
+        else:
+            stim1idx = [[i for i in names if (s!='') & i.startswith(s)][slice(0,1)] for s in stim2]
+            stim2idx = [[i for i in names if (s!='') & i.startswith(s)][slice(0,1)] for s in stim1]
+
+        stim1idx = [names.index(s[0]) if len(s)>0 else -1 for s in stim1idx]
+        stim2idx = [names.index(s[0]) if len(s)>0 else -1 for s in stim2idx]
+        if self.switch_channels:
+            self.stim1idx = stim1idx + stim2idx
+            self.stim2idx = stim2idx + stim1idx
+            self.stim_cat = all_cat * 2
+        else:
+            self.stim1idx = stim1idx
+            self.stim2idx = stim2idx
+            self.stim_cat = all_cat
+        self.duration = self.repeat_count * self.wavset.duration + \
+                        (self.repeat_count-1) * self.isi
+        # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
+        if trial_idx is None:
+            trial_idx = self.current_trial_idx
+        if trial_idx >= len(self.trial_wav_idx):
+            for rep in np.arange(self.current_full_rep+1):
+                new_trial_wav = _rng.permutation(np.arange(len(self.stim1idx), dtype=int))
+            self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))
+            log.info(f'Added {len(new_trial_wav)}/{len(self.trial_wav_idx)} trials to trial_wav_idx')
+            self.current_full_rep += 1
+            self.trial_is_repeat = np.concatenate((self.trial_is_repeat, np.zeros_like(new_trial_wav)))
+
+    def trial_waveform(self, trial_idx=None, wav_set_idx=None):
+        if wav_set_idx is None:
+            if trial_idx is None:
+                self.current_trial_idx += 1
+                trial_idx = self.current_trial_idx
+            if len(self.trial_wav_idx) <= trial_idx:
+                self.update(trial_idx=trial_idx)
+
+            wav_set_idx = self.trial_wav_idx[trial_idx]
+
+        s1idx = self.stim1idx[wav_set_idx]
+        if s1idx >= 0:
+            w1 = self.wavset.waveform(s1idx)
+        else:
+            w1 = self.wavset.waveform_zero()
+        s2idx = self.stim2idx[wav_set_idx]
+        if s2idx >= 0:
+            w2 = self.wavset.waveform(s2idx)
+        else:
+            w2 = self.wavset.waveform_zero()
+        w = np.concatenate([w1, w2], axis=1)
+        
+        if self.repeat_count>1:
+            isi_bins = int(self.wavset.fs * self.isi)
+            w_silence=np.zeros((isi_bins, w.shape[1]))
+            w_all = [w] + [w_silence, w] * (self.repeat_count-1)
+            w = np.concatenate(w_all, axis=0)
+
+        return w.T
+
+    def trial_parameters(self, trial_idx=None, wav_set_idx=None):
+        """
+        :param trial_idx:
+        :param wav_set_idx:
+        :return: dict
+           'response_condition': (1: spout 1, 2: spout 2, -1: either spout)
+        """
+        if wav_set_idx is None:
+            if trial_idx is None:
+                self.current_trial_idx += 1
+                trial_idx = self.current_trial_idx
+            if len(self.trial_wav_idx) <= trial_idx:
+                self.update(trial_idx=trial_idx)
+
+            wav_set_idx = self.trial_wav_idx[trial_idx]
+        else:
+            trial_idx = 0
+
+        s1idx = self.stim1idx[wav_set_idx]
+        s2idx = self.stim2idx[wav_set_idx]
+        if s1idx>0:
+            s1_name = self.wavset.names[s1idx]
+        else:
+            s1_name = ''
+        if s2idx>0:
+            s2_name = self.wavset.names[s2idx]
+        else:
+            s2_name = ''
+
+        stim_cat = self.stim_cat[wav_set_idx]
+        if stim_cat == 'T':
+            response_condition = 1
+        elif stim_cat == 'N':
+            response_condition = 2
+        elif stim_cat == 'C':
+            response_condition = -1
+
+        response_window = self.response_window
+
+        d = {'trial_idx': trial_idx,
+             'wav_set_idx': wav_set_idx,
+             's1idx': s1idx,
+             's2idx': s2idx,
+             's1_name': s1_name,
+             's2_name': s2_name,
+             'duration': self.duration,
+             'response_condition': response_condition,
+             'response_window': response_window,
+             'current_full_rep': self.current_full_rep,
+             'primary_channel': self.primary_channel,
+             'trial_is_repeat': self.trial_is_repeat[trial_idx],
+             }
+        return d
+
+    def score_response(self, outcome, repeat_incorrect=True, trial_idx=None):
+        """
+        current logic: if invalid or incorrect, trial should be repeated
+        :param outcome: int
+            -1 trial not scored (yet?) - happens if score_response skips a trial_idx
+            0 invalid
+            1 incorrect
+            2 correct
+            3 correct - either response ok
+        :param repeat_incorrect: bool
+            If True, repeat incorrect and invalid trials.
+        :param trial_idx: int
+            must be less than len(trial_wav_idx) to be valid. by default, updates score for
+            current_trial_idx and increments current_trial_idx by 1.
+        :return:
+        """
+        if trial_idx is None:
+            trial_idx = self.current_trial_idx
+            # Only incrementing current trial index if trial_idx is None. Do we always
             # want to do this???
             self.current_trial_idx = trial_idx + 1
 

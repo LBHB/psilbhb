@@ -33,6 +33,23 @@ ParadigmDescription(
     'NFB', '(NFB) Two AFC foreground detection in natural background',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_2afc.BehaviorManifest'},
+        {'manifest': PATH + 'wav_set_manifest.FgBgSetManifest'},
+        {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
+         'attrs': {'output_name': 'water_dispense_1',
+                   'event_name': 'deliver_reward_1'}},
+        {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
+         'attrs': {'output_name': 'water_dispense_2',
+                   'event_name': 'deliver_reward_2',
+                   'add_params': False}},
+    ],
+)
+
+
+ParadigmDescription(
+    'VOW', '(VOW) Two AFC foreground detection in natural background',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'behavior_2afc.BehaviorManifest'},
+        {'manifest': PATH + 'wav_set_manifest.VowelSetManifest'},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_1',
                    'event_name': 'deliver_reward_1'}},

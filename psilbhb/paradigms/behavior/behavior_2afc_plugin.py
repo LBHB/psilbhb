@@ -8,37 +8,12 @@ from enaml.application import timed_call
 from enaml.core.api import d_
 import numpy as np
 
-from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet
+from psilbhb.stim.wav_set import WavSet
 from .behavior_mixins import (BaseBehaviorPlugin, TrialState)
 
-### Sketch of function for initializing FgBgSet based on enaml context(s)
+### Sketch of function for initializing WavSet based on enaml context(s)
 
-def configure_stimuli(event):
-    context = event.workbench.get_plugin('psi.context')
-    controller = event.workbench.get_plugin('psi.controller')
-    output = controller.get_output('output_1')
-    params = context.get_values()
 
-    vv = MCWavFileSet(
-        fs=output.fs, path=params['fg_path'], duration=params['fg_duration'],
-        normalization=params['fg_normalization'], level=params['fg_level'],
-        fit_range=params['fg_fit_range'], test_range=params['fg_test_range'],
-        fit_reps=params['fg_fit_reps'], test_reps=params['fg_test_reps'],
-        channel_count=params['fg_channel_count'])
-    bb = MCWavFileSet(
-        fs=output.fs, path=params['bg_path'], duration=params['bg_duration'],
-        normalization=params['bg_normalization'], level=params['bg_level'],
-        fit_range=params['bg_fit_range'], test_range=params['bg_test_range'],
-        fit_reps=params['bg_fit_reps'], test_reps=params['bg_test_reps'],
-        channel_count=params['bg_channel_count'])
-
-    controller.fgbg = FgBgSet(FgSet=vv, BgSet=bb,
-                              fg_switch_channels=params['fg_switch_channels'],
-                              bg_switch_channels=params['bg_switch_channels'],
-                              primary_channel=params['primary_channel'],
-                              combinations=params['combinations'],
-                              fg_snr=params['fg_snr'],
-                              fg_delay=params['fg_delay'])
 
 
 ################################################################################
@@ -146,7 +121,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
 
     next_trial_state = Str()
 
-    fgbg = Typed(FgBgSet)
+    wavset = Typed(WavSet)
 
     side = Int(-1)
 
@@ -199,7 +174,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         # waveform on each output individually. This does not actually play the
         # waveform yet. It's just ready once all other conditions have been met
         # (see `start_trial` where we actually start playing the waveform).
-        w = self.fgbg.trial_waveform(self.trial)
+        w = self.wavset.trial_waveform(self.trial)
         o1 = self.get_output('output_1')
         o2 = self.get_output('output_2')
         with o1.engine.lock:
@@ -207,9 +182,9 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             o2.set_waveform(w[1])
 
         # All parameters in this dictionary get logged to the trial log.
-        fgbg_info = self.fgbg.trial_parameters(self.trial)
-        self.trial_info.update(fgbg_info)
-        self.side = int(fgbg_info['response_condition'])
+        wavset_info = self.wavset.trial_parameters(self.trial)
+        self.trial_info.update(wavset_info)
+        self.side = self.trial_info['response_condition']
 
         self.invoke_actions('trial_ready')
         if auto_start:
@@ -274,12 +249,18 @@ class BehaviorPlugin(BaseBehaviorPlugin):
 
     def handle_waiting_for_response(self, event, timestamp):
         log.error(event)
+        # Event is a tuple of 'response', 'start', side, True/False where False indicates animal initiated event and True indicates human initiated event via button
         if event.value[:2] == ('response', 'start'):
             side = event.value[2]
             self.invoke_actions('response_end', timestamp)
             self.trial_info['response_ts'] = timestamp
             self.trial_info['response_side'] = side
-            if self.trial_info['response_side'] == self.side:
+            if self.side == -1:
+                score = NAFCTrialScore.correct
+                if not self.context.get_value('training_mode'):
+                    self.invoke_actions(f'deliver_reward_{side}', timestamp)
+
+            elif self.trial_info['response_side'] == self.side:
                 score = NAFCTrialScore.correct
                 # If we are in training mode, the reward has already been
                 # delivered.
@@ -331,7 +312,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         else:
             self.advance_state('iti', ts)
 
-        self.fgbg.score_response(score.value, self.context.get_value('repeat_incorrect'), self.trial)
+        self.wavset.score_response(score.value, self.context.get_value('repeat_incorrect'), self.trial)
 
         # Apply pending changes that way any parameters (such as repeat_FA or
         # go_probability) are reflected in determining the next trial type.
