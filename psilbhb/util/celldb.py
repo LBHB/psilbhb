@@ -2,6 +2,7 @@ import datetime
 import json
 import numpy as np
 import os
+import shutil
 
 from sqlalchemy import create_engine, desc, exc
 from sqlalchemy.orm import sessionmaker
@@ -701,3 +702,30 @@ def __main__():
 
     d=c.read_data(rawid)
     print(d[['name','value']])
+
+
+def flush_training(prefix="LMD", local_folder="e:/data", dest_root='/auto/data/daq'):
+    c = celldb()
+    sql = f"SELECT * FROM gDataRaw WHERE not(bad) AND cellid like '{prefix}%' AND respfile LIKE '{local_folder}%'"
+    print(sql)
+    df_to_move = c.pd_query(sql)
+    for i,r in df_to_move.iterrows():
+        dataroot,f=os.path.split(r['respfile'])
+        dataroot,f=os.path.split(dataroot)
+        destpath = dataroot.replace(local_folder, dest_root)
+        print(f"{dataroot} --> {destpath}")
+        #shutil.copytree(dataroot, destpath, dirs_exist_ok=True)
+
+        sql = f"UPDATE gDataRaw SET" +\
+              f" respfileevp=replace(respfileevp, '{local_folder}', '{dest_root}')," + \
+              f" respfile=replace(respfile, '{local_folder}', '{dest_root}')," +              f" respfileevp=replace(respfileevp, '{local_folder}', '{dest_root}'),"+ \
+              f" eyecalfile=replace(eyecalfile, '{local_folder}', '{dest_root}')," +              f" respfileevp=replace(respfileevp, '{local_folder}', '{dest_root}'),"+ \
+              f" resppath=replace(resppath, 'd:/Data', '{dest_root}')" +\
+              f" WHERE id={r['id']}"
+        c.sqlexec(sql)
+
+    return df_to_move
+
+
+
+
