@@ -567,7 +567,12 @@ class FgBgSet(WavSet):
         if wfg.shape[1] < wbg.shape[1]:
             wfg = np.concatenate((wfg, np.zeros_like(wfg)), axis=1)
         fg_snr = self.fg_snr[wav_set_idx]
-        fg_scale = 10**(fg_snr / 20)
+        if fg_snr<100:
+            fg_scale = 10**(fg_snr / 20)
+        else:
+            # special case of effectively infinite SNR, don't actually amplify fg
+            wbg[:] = 0
+            fg_scale = 1
         offsetbins = int(self.fg_delay[self.fg_index[wav_set_idx]] * self.FgSet.fs)
 
         # combine fg and bg waveforms
