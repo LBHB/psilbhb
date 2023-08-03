@@ -669,7 +669,23 @@ class FgBgSet(WavSet):
         else:
             log.info('Trial {trial_idx} outcome {outcome}: moving on')
 
-
+"""
+        sound_path=params['sound_path'],
+        target_set=params['target_set'],
+        non_target_set=params['non_target_set'],
+        catch_set=params['catch_set'],
+        switch_channels=params['switch_channels'], 
+        primary_channel=params['primary_channel'], 
+        duration=params['duration'],
+        repeat_count=params['repeat_count'],
+        repeat_isi=params['repeat_isi'], 
+        tar_to_cat_ratio=params['tar_to_cat_ratio'],
+        level=params['level'], 
+        fs=params['fs'], 
+        response_start=params['response_start'], 
+        response_end=params['response_end'], 
+        random_seed=params['random_seed'])
+"""
 class VowelSet(WavSet):
 
     def __init__(self, sound_path='/auto/data/sounds/vowels/v2/',
@@ -677,26 +693,28 @@ class VowelSet(WavSet):
                  non_target_set=['IH_106'],
                  catch_set=['AW_106+UH_106'],
                  switch_channels=False, primary_channel=0, repeat_count=1,
-                 isi=0.2, tar_to_cat_ratio=5,
-                 response_window=None, random_seed=0):
+                 repeat_isi=0.2, tar_to_cat_ratio=5,
+                 level=60, duration=0.24, fs=44000,
+                 response_start=0, response_end=1, random_seed=0):
+
+        # internal object to handle wavs, don't need to specify independently
         self.wavset = MCWavFileSet(
-            fs=44000, path=sound_path, duration=0.24, normalization='rms',
+            fs=fs, path=sound_path, duration=duration, normalization='rms',
             fit_range=slice(0, -1), test_range=None, test_reps=2,
-            channel_count=1, level=60)
+            channel_count=1, level=level)
         self.target_set = target_set
         self.non_target_set = non_target_set
         self.catch_set = catch_set
         self.switch_channels = switch_channels
         self.primary_channel = primary_channel
+
         self.repeat_count = repeat_count
-        self.isi = isi
+        self.repeat_isi = repeat_isi
         self.tar_to_cat_ratio = tar_to_cat_ratio
         self.random_seed = random_seed
+        self.response_window = [response_start, response_end]
+
         self.current_trial_idx = -1
-        if response_window is None:
-            self.response_window = [0, 1]
-        else:
-            self.response_window = response_window
         self.duration = 0
 
         # trial management
@@ -742,7 +760,7 @@ class VowelSet(WavSet):
             self.stim2idx = stim2idx
             self.stim_cat = all_cat
         self.duration = self.repeat_count * self.wavset.duration + \
-                        (self.repeat_count-1) * self.isi
+                        (self.repeat_count-1) * self.repeat_isi
         # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
         if trial_idx is None:
             trial_idx = self.current_trial_idx
@@ -777,7 +795,7 @@ class VowelSet(WavSet):
         w = np.concatenate([w1, w2], axis=1)
         
         if self.repeat_count>1:
-            isi_bins = int(self.wavset.fs * self.isi)
+            isi_bins = int(self.wavset.fs * self.repeat_isi)
             w_silence=np.zeros((isi_bins, w.shape[1]))
             w_all = [w] + [w_silence, w] * (self.repeat_count-1)
             w = np.concatenate(w_all, axis=0)

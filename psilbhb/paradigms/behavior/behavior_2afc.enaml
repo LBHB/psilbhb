@@ -209,7 +209,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         TimedTrigger:
             # This is a hardware-timed trigger that allows us to schedule a
             # trigger to occur at a very precise time (as opposed to Trigger,
-            # which is software-timed and accuraccy of timing is not
+            # which is software-timed and accuracy of timing is not
             # guaranteed).
             name = 'sync_trigger'
             target_name = 'hw_do::sync_trigger'
