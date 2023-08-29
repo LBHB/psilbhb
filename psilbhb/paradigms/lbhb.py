@@ -49,7 +49,7 @@ ParadigmDescription(
     'VOW', '(VOW) Vowel discrimination',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_2afc.BehaviorManifest'},
-        {'manifest': PATH + 'wav_set_manifest.VowelSetManifest'},
+        {'manifest': PATH + 'wav_set_manifest.VowelSetManifest', 'required': True},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_1',
                    'event_name': 'deliver_reward_1'}},

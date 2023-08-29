@@ -149,9 +149,12 @@ def test_vowels_old():
 
     #plt.show()
 
-sound_path = '/auto/data/sounds/vowels/v2'
+sound_path = '/auto/data/sounds/vowels/v3'
+sound_path = 'h:/sounds/vowels/v3'
 
-v = VowelSet(sound_path=sound_path, switch_channels=True,
+v = VowelSet(sound_path=sound_path, switch_channels=False,
+             target_set=[],
+             non_target_set=['OO_106', 'OO_151', 'OO_201','UH_106', 'UH_151', 'UH_201'],
              repeat_count=3)
 v.update(1)
 print(v.trial_wav_idx)
@@ -163,12 +166,14 @@ for trial_idx, outcome in enumerate(simulated_performance):
     d = v.trial_parameters(trial_idx)
     v.score_response(outcome, trial_idx=trial_idx)
 
-import sounddevice as sd
-import time
-fs=v.wavset.fs
-for wav_set_idx in [1,7,10, 15, 20]:
-    w=v.trial_waveform(wav_set_idx=wav_set_idx)
-    d=v.trial_parameters(wav_set_idx=wav_set_idx)
-    sd.play(w.T,fs)
-    print(d['trial_idx'], d['wav_set_idx'], d['s1_name'], d['s2_name'])
-    time.sleep(1)
+    print(d['s1_name']+' '+d['s2_name'])
+print('done')
+#import sounddevice as sd
+#import time
+#fs=v.wavset.fs
+#for wav_set_idx in [1,7,10, 15, 20]:
+#    w=v.trial_waveform(wav_set_idx=wav_set_idx)
+#    d=v.trial_parameters(wav_set_idx=wav_set_idx)
+#    sd.play(w.T,fs)
+#    print(d['trial_idx'], d['wav_set_idx'], d['s1_name'], d['s2_name'])
+#    time.sleep(1)

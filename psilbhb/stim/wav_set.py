@@ -260,9 +260,11 @@ class MCWavFileSet(WavFileSet):
             test_range=slice(0)
         if fit_range is None:
             fit_range=slice(0)
-            
+
+        #log.info("**************************************************")
+        #log.info(path)
         all_wav = list(sorted(Path(path).glob('*.wav')))
-        
+        #log.info(f"{list(all_wav)}")
         if type(fit_range) is slice:
             fit_range = list(range(len(all_wav))[fit_range])
         if type(test_range) is slice:
@@ -319,6 +321,9 @@ class MCWavFileSet(WavFileSet):
         self.fit_range = fit_range
         self.test_range = test_range
         self.level = level
+
+        #log.info(f"{filenames}")
+
         super().__init__(filenames, level=level, channel_count=channel_count, force_duration=force_duration, **kwargs)
 
 class WavSet:
@@ -691,7 +696,7 @@ class VowelSet(WavSet):
     def __init__(self, sound_path='/auto/data/sounds/vowels/v2/',
                  target_set=['EE_106'],
                  non_target_set=['IH_106'],
-                 catch_set=['AW_106+UH_106'],
+                 catch_set=[],
                  switch_channels=False, primary_channel=0, repeat_count=1,
                  repeat_isi=0.2, tar_to_cat_ratio=5,
                  level=60, duration=0.24, fs=44000,
@@ -700,7 +705,7 @@ class VowelSet(WavSet):
         # internal object to handle wavs, don't need to specify independently
         self.wavset = MCWavFileSet(
             fs=fs, path=sound_path, duration=duration, normalization='rms',
-            fit_range=slice(0, -1), test_range=None, test_reps=2,
+            fit_range=slice(0, None), test_range=None, test_reps=2,
             channel_count=1, level=level)
         self.target_set = target_set
         self.non_target_set = non_target_set

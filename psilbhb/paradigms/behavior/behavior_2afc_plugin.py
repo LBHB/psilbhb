@@ -233,7 +233,6 @@ class BehaviorPlugin(BaseBehaviorPlugin):
 
     def handle_waiting_for_hold(self, event, timestamp):
         if event.value[:2] == ('np', 'end'):
-
             self.invoke_actions('response_end', timestamp)
             self.trial_info['response_ts'] = timestamp
             self.trial_info['response_side'] = np.nan
@@ -241,9 +240,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         elif event == NAFCEvent.hold_duration_elapsed:
             log.info('Hold duration over')
             # If we are in training mode, deliver a reward preemptively
-            if self.context.get_value('training_mode'):
-                side = event.value[2]
-                self.invoke_actions(f'deliver_reward_{side}', timestamp)
+            if self.context.get_value('training_mode') and (self.side != -1):
+                self.invoke_actions(f'deliver_reward_{self.side}', timestamp)
             self.advance_state('response', timestamp)
             self.trial_info['response_start'] = timestamp
 

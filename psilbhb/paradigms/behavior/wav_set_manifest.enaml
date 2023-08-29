@@ -7,7 +7,7 @@ from psi.context.api import (
 
 from psi.core.enaml.api import ExperimentManifest
 
-from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet
+from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet, VowelSet
 
 # TODO make parallel for vowel set
 def configure_fgbg_stimuli(event):
@@ -454,5 +454,12 @@ enamldef VowelSetManifest(ExperimentManifest): manifest:
                 dtype = 'int'
                 scope = 'experiment'
 
+            Result:
+                name = 's1_name'
+                label = 'S1'
+
+            Result:
+                name = 's2_name'
+                label = 'S2'
             # Calibration?
 

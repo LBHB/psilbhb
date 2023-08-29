@@ -23,6 +23,7 @@ def readpsievents(logpath, runclass=None):
     logpath = logpath.replace("\\", os.path.sep)
     eventlogfile = os.path.join(logpath, 'event_log.csv')
     triallogfile = os.path.join(logpath, 'trial_log.csv')
+    print('triallogfile=', triallogfile)
     df = pd.read_csv(triallogfile)
     rawdata = {'trials': df.shape[0],
                'corrtrials': df.correct.sum(),
@@ -86,6 +87,25 @@ def readpsievents(logpath, runclass=None):
                     'repeat_trials': df['trial_is_repeat'].sum(),
                     'rt': (df.loc[correct_trials,'response_ts']-
                            df.loc[correct_trials,'response_start']).mean()
+                    }
+    elif runclass == 'VOW':
+        parmnames = ['sound_path', 'target_set', 'non_target_set', 'catch_set',
+                   'switch_channels', 'repeat_count', 'repeat_isi', 'tar_to_cat_ratio',
+                   'level', 'fs', 'response_end', 'random_seed', 'repeat_incorrect', 'snr',
+                   'iti_duration', 'to_duration', 'response_duration', 'target_delay',
+                   'np_duration', 'hold_duration', 'training_mode', 'manual_control',
+                   'keep_lights_on', 'water_dispense_duration']
+        row = df.iloc[-1]
+        dataparm = {k: row[k] for k in parmnames if k in row.index}
+
+        correct_trials = (df['score'] == 2)
+        dataperf = {'trials': df.shape[0],
+                    'correct': (df['score'] == 2).sum(),
+                    'invalid': (df['score'] == 0).sum(),
+                    'incorrect': (df['score'] == 1).sum(),
+                    'repeat_trials': df['trial_is_repeat'].sum(),
+                    'rt': (df.loc[correct_trials, 'response_ts'] -
+                           df.loc[correct_trials, 'response_start']).mean()
                     }
     else:
         raise ValueError(f"readpsievents: runclass {runclass} not supported")
@@ -659,19 +679,27 @@ class celldb():
         rawdata['parmbase']=rawdata['parmfile']
         rawdata['rawid']=rawdata['id']
         rawdata = rawdata.loc[0]
-        try:
-            d, dataparm, dataperf = readpsievents(
-                os.path.join(rawdata['resppath'],rawdata['parmbase']), rawdata['runclass'])
-        except:
-            resppath_alt=rawdata['resppath'].replace('d:','e:')
-            d, dataparm, dataperf = readpsievents(
-                os.path.join(resppath_alt, rawdata['parmbase']), rawdata['runclass'])
+        filename = os.path.join(rawdata['resppath'],rawdata['parmbase'])
+        if not os.path.exists(filename + '/trial_log.csv'):
+            filename = filename.replace('d:','e:')
+            filename = filename.replace('/auto/data/', 'h:/')
+        d, dataparm, dataperf = readpsievents(filename, rawdata['runclass'])
 
         self.sqlupdate('gDataRaw', rawdata['rawid'], d=d, idfield='id')
         self.save_data(rawdata['rawid'], dataparm, parmtype=0, keep_existing=False)
         self.save_data(rawdata['rawid'], dataperf, parmtype=1, keep_existing=False)
 
-
+    def fix_rawdata(self, sitemask="", user='david'):
+        if self.user is None:
+            self.user=user
+        sql = f"SELECT * FROM gDataRaw WHERE not(bad) AND isnull(trials) AND cellid like '{sitemask}%'"
+        rawdata = self.pd_query(sql)
+        rawids=[]
+        for i,r in rawdata.iterrows():
+            print(i,r['id'],r['resppath'])
+            self.refresh_rawdata(r['id'])
+            rawids.append(r['id'])
+        return rawids
 
 def __main__():
 
