@@ -222,10 +222,13 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             name = 'trial'
             label = 'Trial'
 
-            BoolParameter:
+            EnumParameter:
                 name = 'repeat_incorrect'
                 label = 'Repeat incorrect/invalid trials?'
-                default = True
+                compact_label = 'repeat_incorrect'
+                default = 'Yes'
+                choices = {'No': 0, 'Early only': 1,
+                           'Yes': 2}
             Parameter:
                 name = 'snr'
                 label = 'SNR (dB)'

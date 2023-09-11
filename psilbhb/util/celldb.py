@@ -105,7 +105,7 @@ def readpsievents(logpath, runclass=None):
                     'incorrect': (df['score'] == 1).sum(),
                     'repeat_trials': df['trial_is_repeat'].sum(),
                     'rt': (df.loc[correct_trials, 'response_ts'] -
-                           df.loc[correct_trials, 'response_start']).mean()
+                           df.loc[correct_trials, 'np_start']).mean()
                     }
     else:
         raise ValueError(f"readpsievents: runclass {runclass} not supported")
@@ -732,22 +732,26 @@ def __main__():
     print(d[['name','value']])
 
 
-def flush_training(prefix="LMD", local_folder="e:/data", dest_root='/auto/data/daq'):
+def flush_training(prefix="LMD", local_folder="e:/data", dest_root='/auto/data/daq',
+                   dest_root_win='h:/daq'):
     c = celldb()
     sql = f"SELECT * FROM gDataRaw WHERE not(bad) AND cellid like '{prefix}%' AND respfile LIKE '{local_folder}%'"
     print(sql)
     df_to_move = c.pd_query(sql)
-    for i,r in df_to_move.iterrows():
-        dataroot,f=os.path.split(r['respfile'])
-        dataroot,f=os.path.split(dataroot)
+    print(f"Found {len(df_to_move)} files to flush")
+    for i, r in df_to_move.iterrows():
+        dataroot, f = os.path.split(r['respfile'])
+        dataroot, f = os.path.split(dataroot)
         destpath = dataroot.replace(local_folder, dest_root)
-        print(f"{dataroot} --> {destpath}")
-        #shutil.copytree(dataroot, destpath, dirs_exist_ok=True)
+        destpath_win = dataroot.replace(local_folder, dest_root_win)
+        print(f"Copying files {dataroot} --> {destpath_win}")
+        shutil.copytree(dataroot, destpath_win, dirs_exist_ok=True)
 
+        print(f"Updating paths in celldb")
         sql = f"UPDATE gDataRaw SET" +\
               f" respfileevp=replace(respfileevp, '{local_folder}', '{dest_root}')," + \
-              f" respfile=replace(respfile, '{local_folder}', '{dest_root}')," +              f" respfileevp=replace(respfileevp, '{local_folder}', '{dest_root}'),"+ \
-              f" eyecalfile=replace(eyecalfile, '{local_folder}', '{dest_root}')," +              f" respfileevp=replace(respfileevp, '{local_folder}', '{dest_root}'),"+ \
+              f" respfile=replace(respfile, '{local_folder}', '{dest_root}')," +              \
+              f" eyecalfile=replace(eyecalfile, '{local_folder}', '{dest_root}')," +              \
               f" resppath=replace(resppath, 'd:/Data', '{dest_root}')" +\
               f" WHERE id={r['id']}"
         c.sqlexec(sql)

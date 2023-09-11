@@ -2,9 +2,9 @@
 import os
 import shutil
 
-from psilbhb.util.celldb import celldb
+from psilbhb.util.celldb import celldb, flush_training
 
-def flush_training(prefix="LMD", local_folder="e:/data", dest_root='/auto/data/daq',
+def flush_training_old(prefix="LMD", local_folder="e:/data", dest_root='/auto/data/daq',
                    dest_root_win='h:/daq'):
     """
     :param prefix:  default is 'LMD'
@@ -18,9 +18,9 @@ def flush_training(prefix="LMD", local_folder="e:/data", dest_root='/auto/data/d
     print(sql)
     df_to_move = c.pd_query(sql)
     print(f"Found {len(df_to_move)} files to flush")
-    for i,r in df_to_move.iterrows():
-        dataroot, f=os.path.split(r['respfile'])
-        dataroot, f=os.path.split(dataroot)
+    for i, r in df_to_move.iterrows():
+        dataroot, f = os.path.split(r['respfile'])
+        dataroot, f = os.path.split(dataroot)
         destpath = dataroot.replace(local_folder, dest_root)
         destpath_win = dataroot.replace(local_folder, dest_root_win)
         print(f"Copying files {dataroot} --> {destpath_win}")
@@ -29,8 +29,8 @@ def flush_training(prefix="LMD", local_folder="e:/data", dest_root='/auto/data/d
         print(f"Updating paths in celldb")
         sql = f"UPDATE gDataRaw SET" +\
               f" respfileevp=replace(respfileevp, '{local_folder}', '{dest_root}')," + \
-              f" respfile=replace(respfile, '{local_folder}', '{dest_root}')," +              f" respfileevp=replace(respfileevp, '{local_folder}', '{dest_root}'),"+ \
-              f" eyecalfile=replace(eyecalfile, '{local_folder}', '{dest_root}')," +              f" respfileevp=replace(respfileevp, '{local_folder}', '{dest_root}'),"+ \
+              f" respfile=replace(respfile, '{local_folder}', '{dest_root}')," +              \
+              f" eyecalfile=replace(eyecalfile, '{local_folder}', '{dest_root}')," +              \
               f" resppath=replace(resppath, 'd:/Data', '{dest_root}')" +\
               f" WHERE id={r['id']}"
         c.sqlexec(sql)
@@ -38,5 +38,8 @@ def flush_training(prefix="LMD", local_folder="e:/data", dest_root='/auto/data/d
     return df_to_move
 
 
-flush_training()
+flush_training("LMD")
+flush_training("SQD")
+flush_training("SDS")
+flush_training("SLJ")
 

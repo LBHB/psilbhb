@@ -385,6 +385,7 @@ class FgBgSet(WavSet):
                  fg_switch_channels=False, bg_switch_channels=False, 
                  catch_frequency=0, primary_channel=0,
                  fg_delay=1.0, fg_snr=0.0, response_window=None,
+                 migrate_fraction=0.0, migrate_start=0.5, migrate_stop=1.0,
                  random_seed=0):
         """
         FgBgSet polls FgSet and BgSet for .max_index, .waveform, .names, and .fs
@@ -424,6 +425,10 @@ class FgBgSet(WavSet):
         self._fg_delay = fg_delay
         self._fg_snr = fg_snr
         self.primary_channel = primary_channel
+        self.migrate_fraction = migrate_fraction
+        self.migrate_start = migrate_start
+        self.migrate_stop = migrate_stop
+
         if response_window is None:
             self.response_window = (0.0, 1.0)
         else:
@@ -523,6 +528,28 @@ class FgBgSet(WavSet):
 
         else:
             raise ValueError(f"FgBgSet combinations format {self.combinations} not supported")
+        if self.migrate_fraction>=1:
+            migrate_trial = np.ones_like(fgi)
+        elif (self.migrate_fraction > 0.4):
+            migrate_trial = np.concatenate((np.zeros_like(fgi), np.ones_like(fgi)))
+            bgi = np.concatenate((bgi, bgi))
+            fgi = np.concatenate((fgi, fgi))
+            bgc = np.concatenate((bgc, bgc))
+            fgc = np.concatenate((fgc, fgc))
+            fsnr = np.concatenate((fsnr, fsnr))
+            fgg = np.concatenate((fgg, fgg))
+            total_wav_set *= 2
+        elif (self.migrate_fraction > 0):
+            migrate_trial = np.concatenate((np.zeros_like(fgi), np.zeros_like(fgi), np.ones_like(fgi)))
+            bgi = np.concatenate((bgi, bgi, bgi))
+            fgi = np.concatenate((fgi, fgi, fgi))
+            bgc = np.concatenate((bgc, bgc, bgc))
+            fgc = np.concatenate((fgc, fgc, fgc))
+            fsnr = np.concatenate((fsnr, fsnr, fsnr))
+            fgg = np.concatenate((fgg, fgg, fgg))
+            total_wav_set *= 3
+        else:
+            migrate_trial = np.zeros_like(fgi)
 
         self.bg_index = bgi
         self.fg_index = fgi
@@ -530,6 +557,7 @@ class FgBgSet(WavSet):
         self.bg_channel = bgc
         self.fg_snr = fsnr
         self.fg_go = fgg
+        self.migrate_trial = migrate_trial
 
         if (type(self._fg_delay) is np.array) | (type(self._fg_delay) is list):
             self.fg_delay = np.array(self._fg_delay)
@@ -580,15 +608,29 @@ class FgBgSet(WavSet):
             fg_scale = 1
         offsetbins = int(self.fg_delay[self.fg_index[wav_set_idx]] * self.FgSet.fs)
 
+
+        if self.migrate_trial[wav_set_idx]:
+            log.info('this is a target migration trial')
+            start_bin = int(self.migrate_start*self.FgSet.fs)
+            stop_bin = int(self.migrate_stop*self.FgSet.fs)
+            end_mask = np.concatenate((np.zeros(start_bin),np.linspace(0,1,stop_bin-start_bin),
+                                       np.ones(wfg.shape[0]-stop_bin)))[:,np.newaxis]
+            start_mask = 1-end_mask
+            w1 = np.fliplr(wfg) * start_mask
+            w2 = wfg
+            #w2 = wfg * end_mask
+            wfg = w1 + w2
+
         # combine fg and bg waveforms
         w = wbg
         if wfg.shape[0]+offsetbins > wbg.shape[0]:
-            print(wfg.shape[0], offsetbins , wbg.shape[0])
+            print(wfg.shape[0], offsetbins, wbg.shape[0])
             w = np.concatenate((w, np.zeros((wfg.shape[0]+offsetbins-wbg.shape[0],
                                              wbg.shape[1]))), axis=0)
         w[offsetbins:(offsetbins+wfg.shape[0]), :] += wfg * fg_scale
         if w.shape[1] < 2:
             w = np.concatenate((w, np.zeros_like(w)), axis=1)
+
         return w.T
 
     def trial_parameters(self, trial_idx=None, wav_set_idx=None):
@@ -628,9 +670,11 @@ class FgBgSet(WavSet):
              'fg_duration': self.FgSet.duration,
              'bg_duration': self.BgSet.duration,
              'snr': self.fg_snr[wav_set_idx],
+             'this_snr': self.fg_snr[wav_set_idx],
              'fg_delay': self.fg_delay[fg_i],
              'fg_channel': self.fg_channel[wav_set_idx],
              'bg_channel': self.bg_channel[wav_set_idx],
+             'migrate_trial': self.migrate_trial[wav_set_idx],
              'response_condition': response_condition,
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
@@ -639,7 +683,7 @@ class FgBgSet(WavSet):
              }
         return d
 
-    def score_response(self, outcome, repeat_incorrect=True, trial_idx=None):
+    def score_response(self, outcome, repeat_incorrect=2, trial_idx=None):
         """
         current logic: if invalid or incorrect, trial should be repeated
         :param outcome: int
@@ -647,8 +691,8 @@ class FgBgSet(WavSet):
             0 invalid
             1 incorrect
             2 correct
-        :param repeat_incorrect: bool
-            If True, repeat incorrect and invalid trials.
+        :param repeat_incorrect: no/early/all
+            If all -- repeat all incorrect, if early, repeat only early withdraws
         :param trial_idx: int
             must be less than len(trial_wav_idx) to be valid. by default, updates score for 
             current_trial_idx and increments current_trial_idx by 1.
@@ -667,10 +711,21 @@ class FgBgSet(WavSet):
             n = trial_idx - len(self.trial_outcomes) + 1
             self.trial_outcomes = np.concatenate((self.trial_outcomes, np.zeros(n)-1))
         self.trial_outcomes[trial_idx] = int(outcome)
-        if repeat_incorrect and (outcome in [0, 1]):
-            log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
-            self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
-            self.trial_is_repeat = np.concatenate((self.trial_is_repeat, [1]))
+        if (repeat_incorrect==2 and (outcome in [0, 1])) or (repeat_incorrect==1 and (outcome in [0])):
+            #log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
+            #self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
+            #self.trial_is_repeat = np.concatenate((self.trial_is_repeat, [1]))
+            # log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
+            # self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
+            # self.trial_is_repeat = np.concatenate((self.trial_is_repeat, [1]))
+            log.info('Trial {trial_idx} outcome {outcome}: repeating immediately')
+            self.trial_wav_idx = np.concatenate((self.trial_wav_idx[:trial_idx],
+                                                 [self.trial_wav_idx[trial_idx]],
+                                                 self.trial_wav_idx[trial_idx:]))
+            self.trial_is_repeat = np.concatenate((self.trial_is_repeat[:(trial_idx + 1)],
+                                                   [1],
+                                                   self.trial_is_repeat[(trial_idx + 1):]))
+
         else:
             log.info('Trial {trial_idx} outcome {outcome}: moving on')
 
@@ -891,8 +946,15 @@ class VowelSet(WavSet):
             self.trial_outcomes = np.concatenate((self.trial_outcomes, np.zeros(n)-1))
         self.trial_outcomes[trial_idx] = int(outcome)
         if repeat_incorrect and (outcome in [0, 1]):
-            log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
-            self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
-            self.trial_is_repeat = np.concatenate((self.trial_is_repeat, [1]))
+            #log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
+            #self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
+            #self.trial_is_repeat = np.concatenate((self.trial_is_repeat, [1]))
+            log.info('Trial {trial_idx} outcome {outcome}: repeating immediately')
+            self.trial_wav_idx = np.concatenate((self.trial_wav_idx[:trial_idx],
+                                                 [self.trial_wav_idx[trial_idx]],
+                                                 self.trial_wav_idx[trial_idx:]))
+            self.trial_is_repeat = np.concatenate((self.trial_is_repeat[:(trial_idx+1)],
+                                                 [1],
+                                                 self.trial_is_repeat[(trial_idx+1):]))
         else:
             log.info('Trial {trial_idx} outcome {outcome}: moving on')

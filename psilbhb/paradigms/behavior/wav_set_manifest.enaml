@@ -36,7 +36,11 @@ def configure_fgbg_stimuli(event):
                               primary_channel=params['primary_channel'],
                               combinations=params['combinations'],
                               fg_snr=params['fg_snr'],
-                              fg_delay=params['fg_delay'])
+                              fg_delay=params['fg_delay'],
+                              migrate_fraction=params['migrate_fraction'],
+                              migrate_start=params['migrate_start'],
+                              migrate_stop=params['migrate_stop'],
+                              )
 
 enamldef FgBgSetManifest(ExperimentManifest): manifest:
 
@@ -125,11 +129,56 @@ enamldef FgBgSetManifest(ExperimentManifest): manifest:
                 scope = 'experiment'
 
             Parameter:
+                name = 'migrate_fraction'
+                label = 'migrate_fraction'
+                expression = '0.0'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'migrate_start'
+                label = 'migrate_start'
+                expression = '0.5'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'migrate_stop'
+                label = 'migrate_stop'
+                expression = '1.0'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
                 name = 'random_seed'
                 label = 'random_seed'
                 default = 0
                 dtype = 'int'
                 scope = 'experiment'
+
+            Result:
+                name = 'fg_channel'
+                label = 'FG chan'
+
+            Result:
+                name = 'bg_channel'
+                label = 'BG chan'
+
+            Result:
+                name = 'fg_name'
+                label = 'FG'
+
+            Result:
+                name = 'bg_name'
+                label = 'BG'
+
+            Result:
+                name = 'this_snr'
+                label = 'Trial SNR'
+
+            Result:
+                name = 'migrate_trial'
+                label = 'Moving Tar'
 
         ContextGroup:
             # Instance of MultichannelWaveformSet, defines
