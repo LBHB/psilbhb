@@ -470,12 +470,12 @@ class FgBgSet(WavSet):
             bg_channel = np.concatenate((np.zeros_like(fg_channel), np.ones_like(fg_channel)))
             fg_channel = np.tile(fg_channel, 2)
             fg_range = np.tile(fg_range, 2)
-            bg_range = np.tile(bg_range, 2)
+            #bg_range = np.tile(bg_range, 2)
         elif self.bg_switch_channels == 'combinatorial+diotic':
             bg_channel = np.concatenate((np.zeros_like(fg_channel), np.ones_like(fg_channel), -np.ones_like(fg_channel)))
             fg_channel = np.tile(fg_channel, 3)
             fg_range = np.tile(fg_range, 3)
-            bg_range = np.tile(bg_range, 3)
+            #bg_range = np.tile(bg_range, 3)
         else:
             raise ValueError(f"Unknown bg_switch_channels value: {self.bg_switch_channels}.")
 
@@ -496,6 +496,7 @@ class FgBgSet(WavSet):
 
         bg_len = len(bg_range)
         fg_len = len(fg_range)
+        print(fg_len, bg_len)
         bgi = np.array([], dtype=int)
         fgi = np.array([], dtype=int)
         fgc = np.array([], dtype=int)
@@ -528,28 +529,31 @@ class FgBgSet(WavSet):
 
         else:
             raise ValueError(f"FgBgSet combinations format {self.combinations} not supported")
+
+        migrate_keep = (fsnr>-30) & (bgc>=0)
+
         if self.migrate_fraction>=1:
             migrate_trial = np.ones_like(fgi)
         elif (self.migrate_fraction > 0.4):
-            migrate_trial = np.concatenate((np.zeros_like(fgi), np.ones_like(fgi)))
-            bgi = np.concatenate((bgi, bgi))
-            fgi = np.concatenate((fgi, fgi))
-            bgc = np.concatenate((bgc, bgc))
-            fgc = np.concatenate((fgc, fgc))
-            fsnr = np.concatenate((fsnr, fsnr))
-            fgg = np.concatenate((fgg, fgg))
-            total_wav_set *= 2
+            migrate_trial = np.concatenate((np.zeros_like(fgi), np.ones_like(fgi[migrate_keep])))
+            bgi = np.concatenate((bgi, bgi[migrate_keep]))
+            fgi = np.concatenate((fgi, fgi[migrate_keep]))
+            bgc = np.concatenate((bgc, bgc[migrate_keep]))
+            fgc = np.concatenate((fgc, fgc[migrate_keep]))
+            fsnr = np.concatenate((fsnr, fsnr[migrate_keep]))
+            fgg = np.concatenate((fgg, fgg[migrate_keep]))
         elif (self.migrate_fraction > 0):
-            migrate_trial = np.concatenate((np.zeros_like(fgi), np.zeros_like(fgi), np.ones_like(fgi)))
-            bgi = np.concatenate((bgi, bgi, bgi))
-            fgi = np.concatenate((fgi, fgi, fgi))
-            bgc = np.concatenate((bgc, bgc, bgc))
-            fgc = np.concatenate((fgc, fgc, fgc))
-            fsnr = np.concatenate((fsnr, fsnr, fsnr))
-            fgg = np.concatenate((fgg, fgg, fgg))
-            total_wav_set *= 3
+            migrate_trial = np.concatenate((np.zeros_like(fgi), np.zeros_like(fgi), np.ones_like(fgi[migrate_keep])))
+            bgi = np.concatenate((bgi, bgi, bgi[migrate_keep]))
+            fgi = np.concatenate((fgi, fgi, fgi[migrate_keep]))
+            bgc = np.concatenate((bgc, bgc, bgc[migrate_keep]))
+            fgc = np.concatenate((fgc, fgc, fgc[migrate_keep]))
+            fsnr = np.concatenate((fsnr, fsnr, fsnr[migrate_keep]))
+            fgg = np.concatenate((fgg, fgg, fgg[migrate_keep]))
         else:
             migrate_trial = np.zeros_like(fgi)
+
+        total_wav_set = len(fgg)
 
         self.bg_index = bgi
         self.fg_index = fgi
@@ -617,8 +621,8 @@ class FgBgSet(WavSet):
                                        np.ones(wfg.shape[0]-stop_bin)))[:,np.newaxis]
             start_mask = 1-end_mask
             w1 = np.fliplr(wfg) * start_mask
-            w2 = wfg
-            #w2 = wfg * end_mask
+            #w2 = wfg
+            w2 = wfg * end_mask
             wfg = w1 + w2
 
         # combine fg and bg waveforms

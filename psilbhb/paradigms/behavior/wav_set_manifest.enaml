@@ -40,6 +40,7 @@ def configure_fgbg_stimuli(event):
                               migrate_fraction=params['migrate_fraction'],
                               migrate_start=params['migrate_start'],
                               migrate_stop=params['migrate_stop'],
+                              random_seed=params['random_seed']
                               )
 
 enamldef FgBgSetManifest(ExperimentManifest): manifest:
