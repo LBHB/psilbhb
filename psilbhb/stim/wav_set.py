@@ -530,7 +530,20 @@ class FgBgSet(WavSet):
         else:
             raise ValueError(f"FgBgSet combinations format {self.combinations} not supported")
 
-        migrate_keep = (fsnr>-30) & (bgc>=0)
+        # remove redundant very high and very low SNR trials
+        fgimin = fgi.min()
+        bgimin = bgi.min()
+        bgcmax = bgc.max()
+        snr_keep = ((fsnr<=50) | ((bgi==bgimin) & (bgc==bgcmax))) & \
+                   ((fsnr>-100) | (fgi==fgimin))
+        bgi = bgi[snr_keep]
+        fgi = fgi[snr_keep]
+        bgc = bgc[snr_keep]
+        fgc = fgc[snr_keep]
+        fsnr = fsnr[snr_keep]
+        fgg = fgg[snr_keep]
+
+        migrate_keep = (fsnr>-30) & (bgc==bgcmax)
 
         if self.migrate_fraction>=1:
             migrate_trial = np.ones_like(fgi)
@@ -604,14 +617,15 @@ class FgBgSet(WavSet):
         if wfg.shape[1] < wbg.shape[1]:
             wfg = np.concatenate((wfg, np.zeros_like(wfg)), axis=1)
         fg_snr = self.fg_snr[wav_set_idx]
-        if fg_snr<100:
+        if fg_snr == -100:
+            fg_scale = 0
+        elif fg_snr < 50:
             fg_scale = 10**(fg_snr / 20)
         else:
             # special case of effectively infinite SNR, don't actually amplify fg
             wbg[:] = 0
-            fg_scale = 1
+            fg_scale = 10**((fg_snr-100) / 20)
         offsetbins = int(self.fg_delay[self.fg_index[wav_set_idx]] * self.FgSet.fs)
-
 
         if self.migrate_trial[wav_set_idx]:
             log.info('this is a target migration trial')
