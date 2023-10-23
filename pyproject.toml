@@ -5,9 +5,11 @@ requires-python = ">=3.7"
 license = {file = "LICENSE.txt"}
 authors = [
     {name = "Brad Buran", email="buran@ohsu.edu"},
+    {name = "Stephen David", email="davids@ohsu.edu"},
 ]
 maintainers = [
     {name = "Brad Buran", email="buran@ohsu.edu"},
+    {name = "Stephen David", email="davids@ohsu.edu"},
 ]
 dependencies = [
     "psiexperiment[ni,zarr-backend]",
@@ -21,6 +23,7 @@ dynamic = ["version"]
 
 [project.scripts]
 psi-celldb = "psilbhb.app.launcher:main_db"
+
 
 [build-system]
 requires = ["setuptools>=61.2", "wheel", "setuptools_scm[toml]>=3.4.3"]
