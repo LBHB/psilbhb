@@ -542,6 +542,7 @@ class FgBgSet(WavSet):
         fgc = fgc[snr_keep]
         fsnr = fsnr[snr_keep]
         fgg = fgg[snr_keep]
+        fgg[fsnr<=-100]=-1
 
         migrate_keep = (fsnr>-30) & (bgc==bgcmax)
 
@@ -666,7 +667,10 @@ class FgBgSet(WavSet):
         bg_i = self.bg_index[wav_set_idx]
 
         is_go_trial = self.fg_go[wav_set_idx]
-        if is_go_trial:
+        if is_go_trial==-1:
+            # -1 means either port
+            response_condition = -1
+        elif is_go_trial==1:
             # 1=spout 1, 2=spout 2
             response_condition = int(self.fg_channel[wav_set_idx]+1)
         else:

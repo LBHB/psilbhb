@@ -222,10 +222,12 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         # this method for training.
         o1 = self.get_output('output_1')
         o2 = self.get_output('output_2')
+        st = self.get_output('sync_trigger')
         with o1.engine.lock:
             ts = self.get_ts()
             o1.start_waveform(ts + 0.1, False)
             o2.start_waveform(ts + 0.1, True)
+            st.trigger(ts + 0.1, 0.5)
 
         self.invoke_actions('trial_start', ts)
         self.advance_state('hold', ts)
