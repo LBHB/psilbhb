@@ -18,11 +18,13 @@ log = logging.getLogger(__name__)
 
 import datetime as dt
 import threading
+from pathlib import Path
 
 from atom.api import Typed, Value
 from enaml.workbench.api import Extension, Plugin
 from enaml.workbench.core.api import Command
 
+from psi import get_config
 from psi.controller.api import ExperimentAction
 from psi.core.enaml.api import ExperimentManifest
 
@@ -33,6 +35,19 @@ OPENEPHYS_RUNNING_ERROR = '''Could not connect to OpenEphys. Is the program
 open? If you are not planning to record with OpenEphys, you need to deselect
 the OpenEphys plugin before starting the experiment.'''
 
+OPENEPHYS_CONFIG_ERROR = '''The config file needs configuration key, OPENEPHYS_URI, set to the OpenEphys hostname (or IP address) and port in the format {{IP ADDRESS}}:{{PORT}}. Valid examples include "localhost:37497", "tateril.ohsu.edu:37497" or "192.168.0.321:37497".''' +\
+   ''' Config file also needs OPENEPHYS_ROOT and OPENEPHYS_ROOT2, which are the path(s) on the HOST computer where data should be stored.'''+\
+   ''' OPENEPHYS_ROOT2 is used if two Neuropixels probes are being used (channel count > 384).'''
+
+try:
+    OPENEPHYS_URI = get_config('OPENEPHYS_URI')
+    OPENEPHYS_HOST, OPENEPHYS_PORT = OPENEPHYS_URI.split(':')
+    OPENEPHYS_ROOT = get_config('OPENEPHYS_ROOT')
+    OPENEPHYS_ROOT2 = get_config('OPENEPHYS_ROOT2')
+    DATA_ROOT = get_config('DATA_ROOT')
+except Exception:
+    raise KeyError(OPENEPHYS_CONFIG_ERROR)
+
 
 class OpenEphysPlugin(Plugin):
     '''
@@ -41,6 +56,9 @@ class OpenEphysPlugin(Plugin):
     '''
     client = Typed(OpenEphysClient, {})
     _thread = Value()
+
+    def _default_client(self):
+        return OpenEphysClient(OPENEPHYS_HOST, OPENEPHYS_PORT)
 
     def start(self):
         # The start method is automatically called when a plugin is first
@@ -66,6 +84,7 @@ class OpenEphysPlugin(Plugin):
         self.client.acquire()
 
     def set_recording_filename(self, filename):
+        # TODO: set record node for second NP probe to use OPENEPHYS_ROOT2
         self.client.set_recording_filename(filename)
 
     def send_message(self, message):
@@ -83,7 +102,10 @@ def start_recording(event):
     # Once we have the correct filename conventions in place, we can start
     # using this.
     dt_str = dt.datetime.now().strftime('%Y-%m-%d_%H_%M_%S')
-    plugin.set_recording_filename(data.base_path / 'raw' / dt_str)
+    #base_path = Path(str(data.base_path).replace(str(DATA_ROOT), str(OPENEPHYS_ROOT)))
+    base_path = Path(str(data.base_path).replace('e:','d:'))
+
+    plugin.set_recording_filename(base_path / 'raw' / dt_str)
     plugin.start_recording()
 
 
@@ -94,8 +116,8 @@ def stop_recording(event):
 
 def log_experiment_event(event):
     plugin = event.workbench.get_plugin('openephys')
-    data = event.parameters['data']
-    mesg = f'{data["timestamp"]:f} {data["event"]}'
+    #data = event.parameters['data']
+    mesg = f'{event.parameters["timestamp"]:f} {event.parameters["event"]}'
     plugin.send_message(mesg)
 
 
@@ -130,5 +152,8 @@ enamldef OpenEphysManifest(ExperimentManifest): manifest:
             event = 'experiment_end'
             command = manifest.id + '.stop_recording'
         ExperimentAction:
-            event = 'experiment_event'
+            event = 'trial_start'
+            command = manifest.id + '.log_experiment_event'
+        ExperimentAction:
+            event = 'trial_end'
             command = manifest.id + '.log_experiment_event'

@@ -5,9 +5,12 @@ from enaml.workbench.api import Extension
 
 from psi.core.enaml.api import ExperimentManifest
 from psi.context.api import ContextGroup, Expression, Parameter
+
 from psi.controller.api import ContinuousOutput, EpochOutput
 from psi.controller.output import ContinuousQueuedOutput, EpochOutput
 from psi.token.primitives import (Cos2Envelope, Silence, Tone, WavSequence)
+
+from psilbhb.stim._bignat import BigNaturalSequence
 
 
 enamldef ToneBurst(Cos2Envelope):
@@ -25,6 +28,18 @@ enamldef ToneInNaturalSoundsGoNogo(ExperimentManifest): manifest:
     id = 'tone_in_natural_sounds'
     required = True
 
+    #Extension:
+    #    id = manifest.id + '.context'
+    #    point = 'psi.context.items'
+
+    #    Parameter:
+    #        name = 'background_wav_sequence_level'
+    #        group_name = 'results'
+
+    #    Expression:
+    #        parameter = 'background_wav_sequence_level'
+    #        expression = 'background_1_wav_sequence_level'
+
     Extension:
         id = manifest.id + '.tokens'
         point = 'psi.token.tokens'
@@ -32,24 +47,30 @@ enamldef ToneInNaturalSoundsGoNogo(ExperimentManifest): manifest:
         ToneBurst: tone_burst:
             pass
 
-        WavSequence: wav_sequence:
+        BigNaturalSequence: wav_sequence:
             name = 'wav_sequence'
-            label = 'Wav sequence'
+            label = 'BigNat sequence'
 
     Extension:
         id = manifest.id + '.io'
         point = 'psi.controller.io'
 
         ContinuousQueuedOutput:
-            name = 'background'
-            label = 'Background'
+            name = 'background_1'
+            label = 'Background (speaker 2)'
             target_name = 'hw_ao::speaker_2'
+            token = wav_sequence
+
+        ContinuousQueuedOutput:
+            name = 'background'
+            label = 'Background (speaker 1)'
+            target_name = 'hw_ao::speaker_1'
             token = wav_sequence
 
         EpochOutput:
             name = 'target'
             label = 'Target'
-            target_name = 'hw_ao::speaker_2'
+            target_name = 'hw_ao::speaker_1'
             token = tone_burst
 
 

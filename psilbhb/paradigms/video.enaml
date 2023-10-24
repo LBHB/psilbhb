@@ -24,11 +24,15 @@ from psivideo.client import SyncVideoClient
 
 class VideoSink(Sink):
 
-    client = Typed(SyncVideoClient, {})
+    client = Typed(SyncVideoClient, ())
     base_path = Typed(Path)
     is_temp = Bool(False)
 
     def set_base_path(self, base_path, is_temp):
+        if not is_temp:
+            base_path = str(base_path).replace('d:', 'e:')
+            base_path = Path(base_path)
+            base_path.mkdir(parents=True, exist_ok=True)
         self.base_path = base_path
         self.is_temp = is_temp
 

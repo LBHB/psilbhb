@@ -4,6 +4,7 @@ import enum
 from functools import partial
 
 from atom.api import Bool, Int, Typed, Value
+from enaml.core.api import Conditional
 from enaml.application import deferred_call
 from enaml.widgets.api import Action, Label, VGroup
 from enaml.workbench.api import Extension
@@ -141,12 +142,16 @@ enamldef BaseRewardDispenser(ExperimentManifest): manifest:
 
     attr duration
     attr output_name
+    attr label
+
+    #: Name of event to deliver reward for
+    attr event_name = 'deliver_reward'
 
     Extension:
         id = manifest.id + '.actions'
         point = 'psi.controller.actions'
         ExperimentAction:
-            event = 'deliver_reward'
+            event = event_name
             command = f'{manifest.output_name}.fire'
             kwargs = {'duration': manifest.duration}
 
@@ -155,7 +160,7 @@ enamldef BaseRewardDispenser(ExperimentManifest): manifest:
         point = 'psi.experiment.status'
 
         StatusItem:
-            label = 'Total dispensed'
+            label = f'Total dispensed ({manifest.label})'
             Label:
                 text << str(workbench \
                             .get_plugin('psi.controller') \
@@ -167,7 +172,7 @@ enamldef BaseRewardDispenser(ExperimentManifest): manifest:
         point = 'psi.experiment.toolbar'
         rank = 2000
         Action:
-            text = 'Dispense reward'
+            text = f'Dispense ({manifest.label})'
             triggered ::
                 controller = workbench.get_plugin('psi.controller')
                 controller.invoke_actions('deliver_reward')
@@ -177,24 +182,30 @@ enamldef BaseRewardDispenser(ExperimentManifest): manifest:
 
 enamldef WaterBolusDispenser(BaseRewardDispenser): manifest:
 
-    id = 'water_bolus_dispenser'
-    name = 'Water bolus dispenser'
+    id = f'{output_name}_bolus_dispenser'
+    label = f'{output_name.replace("_", " ").capitalize()}'
     required = True
 
+    # Name of output connected to solenoid for water dispenser
+    attr output_name = 'water_dispense'
+    attr add_params = True
+
     duration = C.lookup('water_dispense_duration')
-    output_name = 'water_dispense'
 
     Extension:
         id = manifest.id + '.parameters'
         point = 'psi.context.items'
 
-        Parameter:
-            name = 'water_dispense_duration'
-            label = 'Water dispense trigger duration (s)'
-            compact_label = 'D'
-            default = 1
-            scope = 'arbitrary'
-            group_name = 'trial'
+        Conditional:
+            condition << add_params
+
+            Parameter:
+                name = 'water_dispense_duration'
+                label = 'Water dispense trigger duration (s)'
+                compact_label = 'D'
+                default = 1
+                scope = 'arbitrary'
+                group_name = 'trial'
 
 
 enamldef PelletDispenser(BaseRewardDispenser): manifest:
@@ -235,6 +246,11 @@ class BaseBehaviorPlugin(ControllerPlugin):
     #: Current state of the trial (see BaseGoNogoTrialState for some possible
     #: states).
     trial_state = Typed(TrialState)
+
+    def get_event_info(self):
+        return {
+            'trial': self.trial
+        }
 
     def can_modify(self):
         return True
@@ -332,3 +348,50 @@ class BaseBehaviorPlugin(ControllerPlugin):
 
     def stop_event_timer(self):
         deferred_call(self.stop_timer, 'event')
+
+
+from psi.data.plots import FFTContainer, ViewBox, FFTChannelPlot
+
+
+enamldef SignalFFTViewManifest(ExperimentManifest): manifest:
+
+    id = 'signal_fft_view'
+    name = 'signal_fft_view'
+    title = 'Signal view (PSD)'
+
+    alias fft_time_span: fft_plot.time_span
+    alias fft_freq_lb: fft_container.freq_lb
+    alias fft_freq_ub: fft_container.freq_ub
+    alias source_name: fft_plot.source_name
+    alias y_label: fft_vb.y_label
+    alias apply_calibration: fft_plot.apply_calibration
+    alias waveform_averages: fft_plot.waveform_averages
+
+    Extension:
+        id = manifest.id  + '.plots'
+        point = 'psi.data.plots'
+
+        FFTContainer: fft_container:
+            name << manifest.name + '_container'
+            label << manifest.title
+            freq_lb = 5
+            freq_ub = 50000
+
+            ViewBox: fft_vb:
+                name << manifest.name + '_vb'
+                y_min = -10
+                y_max = 100
+                y_mode = 'mouse'
+                save_limits = True
+
+                FFTChannelPlot: fft_plot:
+                    name << manifest.name + '_plot'
+                    source_name = 'microphone'
+                    pen_color = 'k'
+                    time_span = 0.25
+
+                #FFTChannelPlot: fft_plot:
+                #    name << manifest.name + '_cal_plot'
+                #    source_name = 'cal_microphone'
+                #    pen_color = 'blue'
+                #    time_span = 0.25
