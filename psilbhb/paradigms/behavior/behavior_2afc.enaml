@@ -186,7 +186,8 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             continuous_inputs = [
                 'np_contact_analog',
                 'spout_contact_1_analog',
-                'spout_contact_2_analog'
+                'spout_contact_2_analog',
+                'microphone'
             ]
         EventLog:
             show_widget = True
