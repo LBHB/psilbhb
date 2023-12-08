@@ -150,8 +150,10 @@ def test_vowels_old():
     #plt.show()
 
 def test_vowels():
-    sound_path = '/auto/data/sounds/vowels/v3'
-    sound_path = 'h:/sounds/vowels/v3'
+    if os.path.exists('h:/sounds'):
+        sound_path = 'h:/sounds/vowels/v3'
+    else:
+        sound_path = '/auto/data/sounds/vowels/v3'
 
     v = VowelSet(sound_path=sound_path, switch_channels=False,
                  target_set=[],
@@ -247,4 +249,4 @@ def test_vowels2():
     ax[1].set_title('channel 2')
     plt.tight_layout()
 
-test_fgbg()
+test_vowels()

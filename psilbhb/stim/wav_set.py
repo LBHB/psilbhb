@@ -980,3 +980,8 @@ class VowelSet(WavSet):
                                                  self.trial_is_repeat[(trial_idx+1):]))
         else:
             log.info('Trial {trial_idx} outcome {outcome}: moving on')
+
+
+class CategorySet(VowelSet):
+
+    pass
