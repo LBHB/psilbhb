@@ -11,17 +11,12 @@ import numpy as np
 from psilbhb.stim.wav_set import WavSet
 from .behavior_mixins import (BaseBehaviorPlugin, TrialState)
 
-### Sketch of function for initializing WavSet based on enaml context(s)
-
-
-
-
 ################################################################################
 # Supporting
 ################################################################################
 class NAFCTrialScore(enum.Enum):
     '''
-    Defines the different types of scores for each trial in a go-nogo
+    Defines the different types of scores for each trial in a behavioral
     experiment
     '''
     invalid = 0
@@ -32,12 +27,15 @@ class NAFCTrialScore(enum.Enum):
 class NAFCResponse(enum.Enum):
 
     no_response = 'no_response'
-    spout_1 = 'spout_1'
-    spout_2 = 'spout_2'
-    early_1 = 'early_1'
-    early_2 = 'early_2'
-    early_0 = 'early_0'
     early_np = 'early_np'
+    np = 'np'
+
+    # Add 
+    _ignore_ = 'NAFCResponse i'
+    NAFCResponse = vars()
+    for i in range(2):
+        NAFCResponse[f'spout_{i+1}'] = f'spout_{i+1}'
+        NAFCResponse[f'early_{i+1}'] = f'early_{i+1}'
 
 
 class NAFCTrialState(TrialState):
@@ -70,25 +68,24 @@ class NAFCEvent(enum.Enum):
     response_end = ('response', 'end')
     response_duration_elapsed = ('response', 'elapsed')
 
-    # The third value in the tuple is the spout the animal is responding to.
-    # The fourth value indicates whether it was manually triggered by the user
-    # via the GUI (True) or by the animal (False).
-    response_1_start = ('response', 'start', 1, False)
-    response_1_end = ('response', 'end', 1, False)
-    response_2_start = ('response', 'start', 2, False)
-    response_2_end = ('response', 'end', 2, False)
-    digital_response_1_start = ('response', 'start', 1, True)
-    digital_response_1_end = ('response', 'end', 1, True)
-    digital_response_2_start = ('response', 'start', 2, True)
-    digital_response_2_end = ('response', 'end', 2, True)
+    _ignore_ = 'NAFCEvent i'
+    NAFCEvent = vars()
+    for i in range(2):
+        # The third value in the tuple is the spout the animal is responding to.
+        # The fourth value indicates whether it was manually triggered by the user
+        # via the GUI (True) or by the animal (False).
+        NAFCEvent[f'response_{i+1}_start'] = ('response', 'start', i+1, False)
+        NAFCEvent[f'response_{i+1}_end'] = ('response', 'end', i+1, False)
+        NAFCEvent[f'digital_response_{i+1}_start'] = ('response', 'start', i+1, True)
+        NAFCEvent[f'digital_response_{i+1}_end'] = ('response', 'end', i+1, True)
 
-    #NP only
-    np_start = ('np', 'start', False)
-    np_end = ('np', 'end', False)
+    # Same rules apply as above, but for the nose-poke port.
+    np_start = ('np', 'start', False, 0, False)
+    np_end = ('np', 'end', False, 0, False)
+    digital_np_start = ('np', 'start', 0, True)
+    digital_np_end = ('np', 'end', 0, True)
+
     np_duration_elapsed = ('np', 'elapsed')
-    digital_np_start = ('np', 'start', True)
-    digital_np_end = ('np', 'end', True)
-
     to_start = ('to', 'start')
     to_end = ('to', 'end')
     to_duration_elapsed = ('to', 'elapsed')
@@ -110,13 +107,15 @@ class BehaviorPlugin(BaseBehaviorPlugin):
     Eventually this should become generic enough that it can be used with
     aversive experiments as well (it may already be sufficiently generic).
     '''
-    # Used by the trial sequence selector to randomly select between go/nogo.
+    #: Used by the trial sequence selector to randomly select between go/nogo.
     rng = Typed(np.random.RandomState)
 
+    #: True if the user is controlling when the trials begin (e.g., in
+    #: training).
     manual_control = d_(Bool(), writable=False)
 
-    # True if we're running in random behavior mode for debugging purposes,
-    # False otherwise.
+    #: True if we're running in random behavior mode for debugging purposes,
+    #: False otherwise.
     random_behavior_mode = Bool(False)
 
     next_trial_state = Str()
@@ -124,6 +123,13 @@ class BehaviorPlugin(BaseBehaviorPlugin):
     wavset = Typed(WavSet)
 
     side = Int(-1)
+
+    #: Number of response options (e.g., 1 for go-nogo and 2 for 2AFC). Code is
+    #: written such that we can eventually add additional choices.
+    N_response = Int(1)
+
+    #: Mapping of the rising/falling edges detected on digital channels to an event.
+    event_map = Dict()
 
     def request_trial(self):
         log.info('Requesting trial')
@@ -135,14 +141,15 @@ class BehaviorPlugin(BaseBehaviorPlugin):
     def _default_trial_state(self):
         return NAFCTrialState.waiting_for_resume
 
-    event_map = {
-        ('rising', 'spout_contact_1'): NAFCEvent.response_1_start,
-        ('falling', 'spout_contact_1'): NAFCEvent.response_1_end,
-        ('rising', 'spout_contact_2'): NAFCEvent.response_2_start,
-        ('falling', 'spout_contact_2'): NAFCEvent.response_2_end,
-        ('rising', 'np_contact'): NAFCEvent.np_start,
-        ('falling', 'np_contact'): NAFCEvent.np_end,
-    }
+    def _default_event_map(self):
+        event_map = {
+            ('rising', 'np_contact'): NAFCEvent.np_start,
+            ('falling', 'np_contact'): NAFCEvent.np_end,
+        }
+        for i in range(self.N_response):
+            event_map['rising', f'spout_contact_{i+1}'] = getattr(NAFCEvent, f'response_{i+1}_start')
+            event_map['falling', f'spout_contact_{i+1}'] = getattr(NAFCEvent, f'response_{i+1}_end')
+        return event_map
 
     def can_modify(self):
         return self.trial_state in (
@@ -186,6 +193,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         self.trial_info.update(wavset_info)
         self.side = self.trial_info['response_condition']
 
+        # Now trigger any callbacks that are listening for the trial_ready
+        # event.
         self.invoke_actions('trial_ready')
         if auto_start:
             self.start_trial()
@@ -218,8 +227,9 @@ class BehaviorPlugin(BaseBehaviorPlugin):
 
     def start_trial(self):
         log.info('Starting next trial')
-        # This is broken into a separate method to allow the toolbar to call
-        # this method for training.
+        # This is broken into a separate method from
+        # handle_waiting_for_np_duration to allow us to trigger this method
+        # from a toolbar button for training purposes.
         o1 = self.get_output('output_1')
         o2 = self.get_output('output_2')
         st = self.get_output('sync_trigger')
@@ -230,6 +240,11 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             st.trigger(ts + 0.1, 0.5)
 
         self.invoke_actions('trial_start', ts)
+        # Notify the state machine that we are now in the hold phase of trial.
+        # This means that the next time any event occurs (e.g., such as one
+        # detected on the digital lines), it will call
+        # `handle_waiting_for_hold` with the event and timestamp the event
+        # occurred at.
         self.advance_state('hold', ts)
         self.trial_info['trial_start'] = ts
 
@@ -242,15 +257,32 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         elif event == NAFCEvent.hold_duration_elapsed:
             log.info('Hold duration over')
             # If we are in training mode, deliver a reward preemptively
-            if self.context.get_value('training_mode') and (self.side != -1):
+            if self.context.get_value('training_mode') and (self.side > 0):
                 self.invoke_actions(f'deliver_reward_{self.side}', timestamp)
             self.advance_state('response', timestamp)
             self.trial_info['response_start'] = timestamp
 
     def handle_waiting_for_response(self, event, timestamp):
-        log.error(event)
-        # Event is a tuple of 'response', 'start', side, True/False where False indicates animal initiated event and True indicates human initiated event via button
-        if event.value[:2] == ('response', 'start'):
+        # Event is a tuple of 'response', 'start', side, True/False where False
+        # indicates animal initiated event and True indicates human initiated
+        # event via button. See the definbition of the NAFCEvent enum.
+
+        if event.value[:2] == ('np', 'start') and self.N_response == 1:
+            # This is a special-case section for scoring go-nogo, which is
+            # defined when the number of response inputs are 1. A repoke into
+            # the nose port or no response will be scored as a "no" response
+            # (i.e., the subject did not hear the target). A response at the
+            # single response input will be socred as a "yes" response.
+            self.trial_info['response_ts'] = timestamp
+            self.trial_info['response_side'] = 0
+            if self.side == 0:
+                score = NAFCTrialScore.correct
+            else:
+                score = NAFCTrialScore.incorrect
+                response = NAFCResponse.np
+                self.end_trial(response, score)
+
+        elif event.value[:2] == ('response', 'start'):
             side = event.value[2]
             self.invoke_actions('response_end', timestamp)
             self.trial_info['response_ts'] = timestamp
@@ -259,7 +291,6 @@ class BehaviorPlugin(BaseBehaviorPlugin):
                 score = NAFCTrialScore.correct
                 if not self.context.get_value('training_mode'):
                     self.invoke_actions(f'deliver_reward_{side}', timestamp)
-
             elif self.trial_info['response_side'] == self.side:
                 score = NAFCTrialScore.correct
                 # If we are in training mode, the reward has already been
@@ -305,14 +336,17 @@ class BehaviorPlugin(BaseBehaviorPlugin):
                 o2.stop_waveform(ts + 0.1, True)
             self.invoke_actions('to_start', ts)
             self.advance_state('to', ts)
-        elif score == NAFCTrialScore.correct:
-            # Animal will still be on the spout. Need to wait for animal to
-            # withdraw.
+        elif (score == NAFCTrialScore.correct) and (response != NAFCResponse.np):
+            # If the correct response is not a nose-poke, then this means that
+            # the animal will still be on the spout. Need to wait for animal to
+            # withdraw before continuing with the trial.
             self.start_wait_for_reward_end(ts, 'iti')
         else:
             self.advance_state('iti', ts)
 
-        self.wavset.score_response(score.value, self.context.get_value('repeat_incorrect'), self.trial)
+        self.wavset.score_response(score.value,
+                                   self.context.get_value('repeat_incorrect'),
+                                   self.trial)
 
         # Apply pending changes that way any parameters (such as repeat_FA or
         # go_probability) are reflected in determining the next trial type.

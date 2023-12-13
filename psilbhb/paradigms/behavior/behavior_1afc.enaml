@@ -1,6 +1,7 @@
 import logging
 log = logging.getLogger(__name__)
 
+from enaml.core.api import Looper
 from enaml.widgets.api import Action, Label, ToolBar
 from enaml.workbench.api import Extension
 from enaml.workbench.core.api import Command
@@ -21,7 +22,7 @@ from psi.data.plots import (
 )
 from psi.data.sinks.api import BinaryStore
 
-from .behavior_2afc_plugin import BehaviorPlugin, NAFCEvent
+from .behavior_1afc_plugin import BehaviorPlugin, NAFCEvent
 
 
 def get_status(trial, trial_state, experiment_state, side):
@@ -54,7 +55,12 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
     Defines the core settings that any behavior experiment may require. Does
     not include timeout/reward settings as those are provided by plugins.
     '''
-    factory = BehaviorPlugin
+    # Number of response inputs (i.e., lick spouts or food hoppers).
+    attr N_response = 1
+
+    # Number of speaker outputs
+    attr N_output = 2
+    factory = lambda: BehaviorPlugin(N_response=N_response)
 
     Extension:
         id = manifest.id + '.status'
@@ -110,10 +116,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             name = 'iti_duration_elapsed'
         ExperimentEvent:
             name = 'to_duration_elapsed'
-        ExperimentEvent:
-            name = 'deliver_reward_1'
-        ExperimentEvent:
-            name = 'deliver_reward_2'
+
         ExperimentEvent:
             name = 'trial_ready'
 
@@ -131,15 +134,18 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             command = 'sync_trigger.trigger'
             kwargs = {'duration': 0.5}
 
-        ExperimentAction:
-            event = 'spout_contact_1_digital_acquired'
-            command = 'psi.controller.process_et'
-            kwargs = {'name': 'spout_contact_1'}
+        Looper:
+            # Set up the actions and events for each lick spout that the animal
+            # will provide a response at.
+            iterable = range(N_response)
 
-        ExperimentAction:
-            event = 'spout_contact_2_digital_acquired'
-            command = 'psi.controller.process_et'
-            kwargs = {'name': 'spout_contact_2'}
+            ExperimentAction:
+                event = f'spout_contact_{loop_item+1}_digital_acquired'
+                command = 'psi.controller.process_et'
+                kwargs = {'name': f'spout_contact_{loop_item+1}'}
+
+            ExperimentEvent:
+                name = f'deliver_reward_{loop_item+1}'
 
         ExperimentAction:
             event = 'np_contact_digital_acquired'
@@ -182,13 +188,12 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         id = manifest.id + '.data'
         point = 'psi.data.sinks'
         BinaryStore:
+            # Make sure we save all the spout contact data
             name = 'initiated_data'
             continuous_inputs = [
                 'np_contact_analog',
-                'spout_contact_1_analog',
-                'spout_contact_2_analog',
                 'microphone'
-            ]
+            ] + [f'spout_contact_{i+1}_analog' for i in range(N_response)]
         EventLog:
             show_widget = True
         TrialLog:
@@ -198,17 +203,14 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         id = 'io'
         point = 'psi.controller.io'
 
-        EpochOutput:
-            name = 'output_1'
-            label = 'Output 1'
-            target_name = 'hw_ao::speaker_1'
-            configurable = False
+        Looper:
+            iterable = range(N_output)
 
-        EpochOutput:
-            name = 'output_2'
-            label = 'Output 2'
-            target_name = 'hw_ao::speaker_2'
-            configurable = False
+            EpochOutput:
+                name = f'output_{loop_item+1}'
+                label = f'Output {loop_item+1}'
+                target_name = f'hw_ao::speaker_{loop_item+1}'
+                configurable = False
 
         ContinuousInput:
             name = 'microphone'
@@ -217,9 +219,6 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         ContinuousInput:
             name = 'speaker_1_monitor'
             source_name = 'hw_ai::speaker_1_monitor'
-        #ContinuousInput:
-        #    name = 'speaker_2_monitor'
-        #    source_name = 'hw_ai::speaker_2_monitor'
 
         TimedTrigger:
             # This is a hardware-timed trigger that allows us to schedule a
@@ -353,24 +352,18 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                     else:
                         controller.handle_event(NAFCEvent.digital_np_end)
                 enabled << controller.experiment_state not in ('initialized', 'stopped')
-            Action:
-                text = 'Simulate spout 1'
-                checkable = True
-                toggled ::
-                    if checked:
-                        controller.handle_event(NAFCEvent.digital_response_1_start)
-                    else:
-                        controller.handle_event(NAFCEvent.digital_response_1_end)
-                enabled << controller.experiment_state not in ('initialized', 'stopped')
-            Action:
-                text = 'Simulate spout 2'
-                checkable = True
-                toggled ::
-                    if checked:
-                        controller.handle_event(NAFCEvent.digital_response_2_start)
-                    else:
-                        controller.handle_event(NAFCEvent.digital_response_2_end)
-                enabled << controller.experiment_state not in ('initialized', 'stopped')
+            Looper:
+                iterable = range(N_response)
+                Action:
+                    text = f'Simulate spout {loop_item+1}'
+                    checkable = True
+                    toggled ::
+                        if checked:
+                            event = getattr(NAFCEvent, f'digital_response_{loop_item+1}_start')
+                        else:
+                            event = getattr(NAFCEvent, f'digital_response_{loop_item+1}_end')
+                        controller.handle_event(event)
+                    enabled << controller.experiment_state not in ('initialized', 'stopped')
             Action:
                 separator = True
             Action:
@@ -416,23 +409,19 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                     source_name = 'speaker_1_monitor'
                     pen_color = 'blue'
 
-                #ChannelPlot:
-                #    source_name = 'speaker_2_monitor'
-                #    pen_color = 'red'
-
-                #ChannelPlot:
-                #    source_name = 'sync_monitor'
-                #    pen_color = 'red'
-
             ViewBox:
                 name = 'IR_sensors'
                 y_min = 0
                 y_max = 5
 
-                ChannelPlot:
-                    decimate_mode = 'none'
-                    source_name = 'spout_contact_1'
-                    pen_color = 'blue'
+                Looper: looper:
+                    attr colors = ['blue', 'red', 'yellow', 'orange']
+                    iterable = range(N_response)
+
+                    ChannelPlot:
+                        decimate_mode = 'none'
+                        source_name = f'spout_contact_{loop_item+1}'
+                        pen_color = looper.colors[loop_item]
 
                 ChannelPlot:
                     decimate_mode = 'none'
