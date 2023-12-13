@@ -12,7 +12,8 @@ maintainers = [
     {name = "Stephen David", email="davids@ohsu.edu"},
 ]
 dependencies = [
-    "psiexperiment[ni,zarr-backend]",
+	"enaml[qt6-pyside]",
+    "psiexperiment[ni,zarr]",
     "psiopenephys",
     "psivideo",
     "pymysql",
