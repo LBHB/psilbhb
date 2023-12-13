@@ -3,7 +3,7 @@ log = logging.getLogger(__name__)
 
 import enum
 
-from atom.api import Bool, Int, Str, Typed
+from atom.api import Bool, Dict, Int, Str, Typed
 from enaml.application import timed_call
 from enaml.core.api import d_
 import numpy as np
@@ -266,8 +266,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         # Event is a tuple of 'response', 'start', side, True/False where False
         # indicates animal initiated event and True indicates human initiated
         # event via button. See the definbition of the NAFCEvent enum.
-
-        if event.value[:2] == ('np', 'start') and self.N_response == 1:
+        log.info(f'Waiting for response. Received {event} at {timestamp}')
+        if (self.N_response == 1) and (event.value[:2] == ('np', 'start')):
             # This is a special-case section for scoring go-nogo, which is
             # defined when the number of response inputs are 1. A repoke into
             # the nose port or no response will be scored as a "no" response
@@ -275,13 +275,15 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             # single response input will be socred as a "yes" response.
             self.trial_info['response_ts'] = timestamp
             self.trial_info['response_side'] = 0
-            if self.side == 0:
-                score = NAFCTrialScore.correct
-            else:
-                score = NAFCTrialScore.incorrect
-                response = NAFCResponse.np
-                self.end_trial(response, score)
-
+            score = NAFCTrialScore.correct if self.side == 0 else NAFCTrialScore.incorrect
+            response = NAFCResponse.np
+            self.end_trial(response, score)
+        elif (self.N_response == 1) and (event.value[:2] == ('response', 'elapsed')):
+            self.trial_info['response_ts'] = np.nan
+            self.trial_info['response_side'] = np.nan
+            score = NAFCTrialScore.correct if self.side == 0 else NAFCTrialScore.incorrect
+            response = NAFCResponse.no_response
+            self.end_trial(response, score)
         elif event.value[:2] == ('response', 'start'):
             side = event.value[2]
             self.invoke_actions('response_end', timestamp)
@@ -310,6 +312,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
     def end_trial(self, response, score):
         self.stop_event_timer()
         ts = self.get_ts()
+        log.info(f'Ending trial with {response} scored as {score}')
 
         response_time = self.trial_info['response_ts']-self.trial_info['trial_start']
         self.trial_info.update({
@@ -324,7 +327,9 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         if score == NAFCTrialScore.incorrect:
             # Call timeout actions and the wait for animal to withdraw from spout
             self.invoke_actions('to_start', ts)
-            self.start_wait_for_reward_end(ts, 'to')
+            self.advance_state('to', ts)
+            if response not in (NAFCResponse.np, NAFCResponse.no_response):
+                self.start_wait_for_reward_end(ts, 'to')
         elif score == NAFCTrialScore.invalid:
             # Early withdraw from nose-poke
             # want to stop sound and start TO
@@ -354,6 +359,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             self._apply_changes(False)
 
     def advance_state(self, state, timestamp):
+        log.info(f'Advancing to {state}')
         self.trial_state = getattr(NAFCTrialState, f'waiting_for_{state}')
         self.invoke_actions(f'{state}_start', timestamp)
         elapsed_event = getattr(NAFCEvent, f'{state}_duration_elapsed')
