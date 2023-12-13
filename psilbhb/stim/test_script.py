@@ -1,8 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import matplotlib
+matplotlib.use("Qt5Agg")
+from random import sample
 
-from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet, VowelSet
+from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet, VowelSet, CategorySet
 
 def test_fgbg():
     if os.path.exists('h:/sounds'):
@@ -227,7 +230,7 @@ def test_vowels2():
     print(f"trials remaining this rep: {len(fb.trial_wav_idx) - len(fb.trial_outcomes)}")
 
     # plot waveforms from an example trial
-    trial_idx = 3
+    trial_idx = 5
     w = fb.trial_waveform(trial_idx)
     wb = fb.BgSet.waveform(fb.bg_index[trial_idx]).T
     wf = fb.FgSet.waveform(fb.fg_index[trial_idx]).T
@@ -249,4 +252,59 @@ def test_vowels2():
     ax[1].set_title('channel 2')
     plt.tight_layout()
 
-test_vowels()
+def test_categories_using_VowelSet():
+    if os.path.exists('h:/sounds'):
+        sound_path = 'h:/sounds/vocalizations/v3_vocoding'
+    else:
+        sound_path = '/auto/data/sounds/vocalizations/v3_vocoding'
+
+    all_ferret_files = [file for file in os.listdir(sound_path) if file.endswith(".wav") and file.startswith("fer")]
+    all_speech_files = [file for file in os.listdir(sound_path) if file.endswith(".wav") and file.startswith("spe")]
+    all_catch_files = [file for file in os.listdir(sound_path) if file.endswith(".wav") and file.startswith("ENV")]
+
+    num_reg_files = 3
+    num_catch_files_per_env = 3
+
+    ferret_slice = slice(0 , num_reg_files)
+    speech_slice = ferret_slice
+
+    sliced_ferret_files = all_ferret_files[ferret_slice]
+    sliced_speech_files = all_speech_files[speech_slice]
+
+    regular_stims = [x[:-4] + '+' + y for x in sliced_ferret_files for y in sliced_speech_files] + \
+                    [x[:-4] + '+' + y for x in sliced_speech_files for y in sliced_ferret_files]
+
+    # initialize catch_slice based on ferret vocals - we don't want the same ferret vocal and vocoded vocal played together
+    catch_slice = [fi for fi in range(len(all_ferret_files)) if fi not in range(ferret_slice.start, ferret_slice.stop)]
+    catch_slice = sample(catch_slice, num_catch_files_per_env)
+    valid_catch_files = [all_ferret_files[idx] for idx in catch_slice]
+    env_bands = [2, 8, 32]
+    catch_stims = ['ENV' + str(nband) + '_' + file for nband in env_bands for file in valid_catch_files ]
+    catch_stims = [x[:-4] + '+' + y for x in sliced_ferret_files for y in catch_stims] + \
+                    [x[:-4] + '+' + y for x in catch_stims for y in sliced_ferret_files]
+
+    v_vowel = VowelSet(sound_path=sound_path, switch_channels=False, duration=0.24,
+                    target_set=regular_stims, non_target_set=[], catch_set=catch_stims, repeat_count=3)
+
+    v_vowel.update(1)
+    print(v_vowel.trial_wav_idx)
+    # print all stim being played
+    # [print(v_vowel.wavset.names[v_vowel.stim1idx[idx]]) for idx in v_vowel.trial_wav_idx]
+
+    # simulated_performance = [0, 0, 3, 3, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 1, 1, 2]
+    simulated_performance = [2 for _ in range(200)]
+
+    for trial_idx, outcome in enumerate(simulated_performance):
+        w = v_vowel.trial_waveform(trial_idx)
+        d = v_vowel.trial_parameters(trial_idx)
+        v_vowel.score_response(outcome, trial_idx=trial_idx)
+        print('vow: < ' + d['s1_name'] + ' & ' + d['s2_name'] + ' >')
+
+    print('done')
+
+
+
+# test_vowels()
+# test_vowels2()
+test_categories_using_VowelSet()
+
