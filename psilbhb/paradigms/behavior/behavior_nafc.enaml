@@ -22,7 +22,7 @@ from psi.data.plots import (
 )
 from psi.data.sinks.api import BinaryStore
 
-from .behavior_1afc_plugin import BehaviorPlugin, NAFCEvent
+from .behavior_nafc_plugin import BehaviorPlugin, NAFCEvent
 
 
 def get_status(trial, trial_state, experiment_state, side):

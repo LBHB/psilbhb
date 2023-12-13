@@ -61,9 +61,9 @@ ParadigmDescription(
 
 
 ParadigmDescription(
-    'VOWN', '(VOWN) Go/nogo Vowel discrimination',
+    'VOW', '(VOWN) Go/nogo Vowel discrimination',
     'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'behavior_1afc.BehaviorManifest'},
+        {'manifest': PATH + 'behavior_nafc.BehaviorManifest'},
         {'manifest': PATH + 'wav_set_manifest.VowelSetManifest', 'required': True},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_1',
