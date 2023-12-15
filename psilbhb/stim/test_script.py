@@ -152,6 +152,7 @@ def test_vowels_old():
 
     #plt.show()
 
+
 def test_vowels():
     if os.path.exists('h:/sounds'):
         sound_path = 'h:/sounds/vowels/v3'
@@ -183,6 +184,7 @@ def test_vowels():
     #    sd.play(w.T,fs)
     #    print(d['trial_idx'], d['wav_set_idx'], d['s1_name'], d['s2_name'])
     #    time.sleep(1)
+
 
 def test_vowels2():
     if os.path.exists('h:/sounds'):
@@ -252,6 +254,7 @@ def test_vowels2():
     ax[1].set_title('channel 2')
     plt.tight_layout()
 
+
 def test_categories_using_VowelSet():
     if os.path.exists('h:/sounds'):
         sound_path = 'h:/sounds/vocalizations/v3_vocoding'
@@ -303,8 +306,80 @@ def test_categories_using_VowelSet():
     print('done')
 
 
+def test_categories():
+    if os.path.exists('h:/sounds'):
+        soundpath_fg = 'h:/sounds/vocalizations/v1'
+        soundpath_bg = 'h:/sounds/backgrounds/v1'
+        soundpath_catch_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/chimeric_voc'
+    else:
+        soundpath_fg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/v3_vocoding'
+        soundpath_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/speech_stims'
+        soundpath_catch_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/chimeric_voc'
 
+    fg_set = MCWavFileSet(
+        fs=44000, path=soundpath_fg, duration=3, normalization='rms',
+        fit_range=slice(0, 2), test_range=None, test_reps=2,
+        channel_count=1, level=60)
+    bg_set = MCWavFileSet(
+        fs=44000, path=soundpath_bg, duration=3, normalization='rms',
+        fit_range=[0, 1, 4], test_range=None, test_reps=2,
+        channel_count=1, level=0)
+    catch_bg_set = MCWavFileSet(
+        fs=44000, path=soundpath_catch_bg, duration=4, normalization='rms',
+        fit_range=[0, 1, 4], test_range=None, test_reps=2,
+        channel_count=1, level=0)
+
+    print(fg_set.names)
+    w = fg_set.waveform(0)
+    print(w.shape)
+
+    fg_snr = [0, ]
+
+    fb = CategorySet(FgSet=fg_set, BgSet=bg_set, CatchBGSet=catch_bg_set,
+                     fg_switch_channels=True, bg_switch_channels='opposite',
+                     combinations='all', fg_snr=fg_snr)
+    fb.update()  # not necessary but illustrative of back-end processing
+
+    simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+
+    for trial_idx, outcome in enumerate(simulated_performance):
+        w = fb.trial_waveform(trial_idx)
+        d = fb.trial_parameters(trial_idx)
+        fb.score_response(outcome, trial_idx=trial_idx)
+        print(d['trial_idx'], d['wav_set_idx'], d['fg_name'], d['fg_channel'], d['bg_name'], d['bg_channel'],
+              d['response_condition'], d['current_full_rep'], d['trial_is_repeat'])
+
+    print(f"wav_per_rep: {fb.wav_per_rep}")
+    print(f"current full rep: {fb.current_full_rep}")
+    print(f"scored trials: {len(fb.trial_outcomes)}")
+    print(f"error trials: {sum((fb.trial_outcomes>-1) & (fb.trial_outcomes<2))}")
+    print(f"trials remaining this rep: {len(fb.trial_wav_idx)-len(fb.trial_outcomes)}")
+
+    # plot waveforms from an example trial
+    trial_idx = 0
+    w = fb.trial_waveform(trial_idx)
+    wb = fb.BgSet.waveform(fb.bg_index[trial_idx])
+    wf = fb.FgSet.waveform(fb.fg_index[trial_idx])
+
+    #for i in range(20):
+    #    d = fb.trial_parameters(i)
+    #    print(d['response_condition'])
+
+    f, ax = plt.subplots(2,1, sharex='col', sharey='col')
+    t=np.arange(w.shape[0])/fb.FgSet.fs
+    ax[0].plot(t,w[:,0])
+    ax[0].plot(t,wb[:,0])
+    ax[0].set_title('channel 1')
+    if w.shape[1]>1:
+        ax[1].plot(t,w[:,1],label='f+b')
+    if wb.shape[1]>1:
+        ax[1].plot(t,wb[:,1],label='b')
+    ax[1].legend()
+    ax[1].set_title('channel 2')
+    plt.tight_layout()
+
+# test_fgbg()
 # test_vowels()
 # test_vowels2()
-test_categories_using_VowelSet()
-
+# test_categories_using_VowelSet()
+test_categories()
