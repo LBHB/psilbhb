@@ -4,8 +4,16 @@ import os
 import matplotlib
 matplotlib.use("Qt5Agg")
 from random import sample
+from collections import Counter
 
-from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet, VowelSet, CategorySet
+from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet, VowelSet, CategorySet, cat_MCWavFileSets
+
+def print_attr(fg_set):
+    for dict_var in vars(fg_set):
+        print(f"{dict_var}: {getattr(fg_set, dict_var)}")
+
+
+
 
 def test_fgbg():
     if os.path.exists('h:/sounds'):
@@ -323,11 +331,11 @@ def test_categories():
     bg_set = MCWavFileSet(
         fs=44000, path=soundpath_bg, duration=3, normalization='rms',
         fit_range=[0, 1, 4], test_range=None, test_reps=2,
-        channel_count=1, level=0)
+        channel_count=1, level=60)
     catch_bg_set = MCWavFileSet(
-        fs=44000, path=soundpath_catch_bg, duration=4, normalization='rms',
+        fs=44000, path=soundpath_catch_bg, duration=3, normalization='rms',
         fit_range=[0, 1, 4], test_range=None, test_reps=2,
-        channel_count=1, level=0)
+        channel_count=1, level=60)
 
     print(fg_set.names)
     w = fg_set.waveform(0)
@@ -335,12 +343,19 @@ def test_categories():
 
     fg_snr = [0, ]
 
-    fb = CategorySet(FgSet=fg_set, BgSet=bg_set, CatchBGSet=catch_bg_set,
+    # cat_bg_set = cat_MCWavFileSets(bg_set, catch_bg_set, frac_set1=.8)
+    # fb = FgBgSet(FgSet=fg_set, BgSet=cat_bg_set, fg_switch_channels=True, bg_switch_channels='opposite',
+    #                  combinations='all', fg_snr=fg_snr)
+    fb = CategorySet(FgSet=fg_set, BgSet=bg_set, CatchBGSet=catch_bg_set, CatchBG_frac=.8,
                      fg_switch_channels=True, bg_switch_channels='opposite',
                      combinations='all', fg_snr=fg_snr)
     fb.update()  # not necessary but illustrative of back-end processing
 
     simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    # simulated_performance = [2 for _ in range(200)]
+
+    played_fg = [ [] for _ in simulated_performance]
+    played_bg = [ [] for _ in simulated_performance]
 
     for trial_idx, outcome in enumerate(simulated_performance):
         w = fb.trial_waveform(trial_idx)
@@ -348,6 +363,17 @@ def test_categories():
         fb.score_response(outcome, trial_idx=trial_idx)
         print(d['trial_idx'], d['wav_set_idx'], d['fg_name'], d['fg_channel'], d['bg_name'], d['bg_channel'],
               d['response_condition'], d['current_full_rep'], d['trial_is_repeat'])
+        played_fg[trial_idx] = d['fg_name']
+        played_bg[trial_idx] = d['bg_name']
+
+    print('FG')
+    print(Counter(played_fg).keys())  # equals to list(set(words))
+    print(Counter(played_fg).values())  # counts the elements' frequency
+
+    print('BG')
+    print(Counter(played_bg).keys())  # equals to list(set(words))
+    print(Counter(played_bg).values())  # counts the elements' frequency
+    print('----------------------------------------------------------------------------------------------------')
 
     print(f"wav_per_rep: {fb.wav_per_rep}")
     print(f"current full rep: {fb.current_full_rep}")
@@ -357,7 +383,7 @@ def test_categories():
 
     # plot waveforms from an example trial
     trial_idx = 0
-    w = fb.trial_waveform(trial_idx)
+    w = fb.trial_waveform(trial_idx).T
     wb = fb.BgSet.waveform(fb.bg_index[trial_idx])
     wf = fb.FgSet.waveform(fb.fg_index[trial_idx])
 
@@ -368,18 +394,20 @@ def test_categories():
     f, ax = plt.subplots(2,1, sharex='col', sharey='col')
     t=np.arange(w.shape[0])/fb.FgSet.fs
     ax[0].plot(t,w[:,0])
-    ax[0].plot(t,wb[:,0])
+    # ax[0].plot(t,wb[:,0])
     ax[0].set_title('channel 1')
     if w.shape[1]>1:
-        ax[1].plot(t,w[:,1],label='f+b')
+        ax[1].plot(t,w[:,1], label='f+b')
     if wb.shape[1]>1:
-        ax[1].plot(t,wb[:,1],label='b')
+        ax[1].plot(t,wb[:,1], label='b')
     ax[1].legend()
     ax[1].set_title('channel 2')
     plt.tight_layout()
+
 
 # test_fgbg()
 # test_vowels()
 # test_vowels2()
 # test_categories_using_VowelSet()
+print('wth')
 test_categories()
