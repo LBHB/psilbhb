@@ -8,12 +8,62 @@ from scipy.io import wavfile
 
 from psiaudio import queue
 from psiaudio import util
+from fractions import Fraction
+from copy import deepcopy
 
 from psiaudio.stim import Waveform, FixedWaveform, ToneFactory, \
     WavFileFactory, WavSequenceFactory, wavs_from_path
 
 import logging
 log = logging.getLogger(__name__)
+
+
+def cat_MCWavFileSets(set1, set2, frac_set1=.9):
+    """
+        * Stand-alone function to concatenate two MCWavFileSets.
+            - Probably make it a method for MCWavFileSets(instead of a function like this?)
+            - Can create a more general function that takes in multiple (>=2) sets
+        * Creating this function to combine BGCatchTrials with backgrounds (or FGCatchTrials with foregrounds)
+            for 2-AFC FG-vs-BG discrimination.
+        Inputs:
+            :param set1: first merge_MCWavFileSets
+            :param set2: second merge_MCWavFileSets
+            :param frac_set1: what should be the fraction of set1 after combining the two sets
+
+        Output:
+            :param Concatenated MCWavFileSet
+
+        Comments/Notes:
+            Most fields (attributes) are being used either directly (e.g., fs, level)
+                or indirectly inside methods (e.g., names, waveform). So go through all fields and apply some criteria
+                to either check of compatibility or concatenate values.
+    """
+
+    # Attributes to check for compatibility (i.e., identical values)
+    compatibility_fields = ['channel_offset', 'duration', 'level', 'normalization', 'norm_fixed_scale', 'force_duration',
+                            'random_seed', 'fs', 'calibration', 'channel_count']
+    # for dict_var in compatibility_fields:
+    #     print(f"{dict_var}: {getattr(set1, dict_var)} vs {getattr(set2, dict_var)}")
+    out_assert = np.array([getattr(set1, _atb)==getattr(set2, _atb) for _atb in compatibility_fields])
+    assert all(out_assert), ("The following attributes do not match between the two sets ({})"
+                             .format([compatibility_fields[idx] for idx,tf_bool in enumerate(out_assert) if not tf_bool]))
+
+    cat_set = deepcopy(set1)
+    concat_fields = ['fit_names', 'test_names', 'fit_range', 'test_range']
+    for _cat_fld in concat_fields:
+        setattr(cat_set, _cat_fld, getattr(cat_set, _cat_fld) + getattr(set2, _cat_fld))
+
+    # concat filenames based on ratio (for now).
+    nfiles_set1 = len(set1.filenames) # l1
+    nfiles_set2 = len(set2.filenames) # l2
+    num_over_den = Fraction(frac_set1*nfiles_set2/(1-frac_set1)/nfiles_set1).limit_denominator(20) # n/d
+    # call the fraction = f, then we want n*l1 / (n*l1 + d*l2) = f, where we need n copies of set1 and d copies of set2
+
+    nrep_set1 = num_over_den.numerator
+    nrep_set2 = num_over_den.denominator
+    cat_set.filenames = set1.filenames * nrep_set1 + set2.filenames * nrep_set2
+    return cat_set
+# End of cat_MCWavFileSets
 
 
 def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_scale=1,
@@ -987,7 +1037,7 @@ class VowelSet(WavSet):
             log.info('Trial {trial_idx} outcome {outcome}: moving on')
 
 #
-class CategorySet(VowelSet):
+class CategorySet(FgBgSet):
     """
     CategorySet class: modified from the FgBgSet class
     Target+background class – generic self-initiated trial
@@ -1038,12 +1088,18 @@ class CategorySet(VowelSet):
     Phonemes
         No bg
         Target one or two phonemes, go/no-go
+
+    Miscellaneous comments:
+        Foreground = Target.
+        Background = Non-target.
+
     """
 
-    def __init__(self, FgSet=None, BgSet=None, CatchBGSet=None, combinations='simple',
+    def __init__(self, FgSet=None, BgSet=None, CatchFGSet=None, CatchBGSet=None,
+                 CatchFG_frac=.8, CatchBG_frac=.8, combinations='all',
                  fg_switch_channels=False, bg_switch_channels=False,
                  catch_frequency=0, primary_channel=0,
-                 fg_delay=1.0, fg_snr=0.0, response_window=None,
+                 fg_delay=0.0, fg_snr=0.0, response_window=None,
                  migrate_fraction=0.0, migrate_start=0.5, migrate_stop=1.0,
                  random_seed=0):
         """
@@ -1070,20 +1126,28 @@ class CategorySet(VowelSet):
             If array, length should bg >= FgSet.max_index
         :param random_seed: int
         """
-        if FgSet is None:
-            self.FgSet = WaveformSet()
-        else:
-            self.FgSet = FgSet
 
-        if BgSet is None:
-            self.BgSet = WaveformSet()
+        if CatchFGSet is None:
+            if FgSet is None:
+                self.FgSet = WaveformSet()
+            else:
+                self.FgSet = FgSet
         else:
-            self.BgSet = BgSet
+            if FgSet is None:
+                raise ValueError(f"Must specify FgSet if CatchFGSet is specified")
+            else:
+                self.FgSet = cat_MCWavFileSets(FgSet, CatchFGSet, frac_set1=CatchFG_frac)
 
         if CatchBGSet is None:
-            self.CatchBGSet = WaveformSet()
+            if BgSet is None:
+                self.BgSet = WaveformSet()
+            else:
+                self.BgSet = BgSet
         else:
-            self.CatchBGSet = CatchBGSet
+            if BgSet is None:
+                raise ValueError(f"Must specify BgSet if CatchBGSet is specified")
+            else:
+                self.BgSet = cat_MCWavFileSets(BgSet, CatchBGSet, frac_set1=CatchBG_frac)
 
         self.combinations = combinations
         self.fg_switch_channels = fg_switch_channels
@@ -1218,6 +1282,8 @@ class CategorySet(VowelSet):
         fgg = fgg[snr_keep]
         fgg[fsnr <= -100] = -1
 
+
+        #region Migrate code
         migrate_keep = (fsnr > -30) & (bgc == bgcmax)
 
         if self.migrate_fraction >= 1:
@@ -1240,6 +1306,7 @@ class CategorySet(VowelSet):
             fgg = np.concatenate((fgg, fgg, fgg[migrate_keep]))
         else:
             migrate_trial = np.zeros_like(fgi)
+        # endregion
 
         total_wav_set = len(fgg)
 
@@ -1446,3 +1513,5 @@ class CategorySet(VowelSet):
         response_end=params['response_end'], 
         random_seed=params['random_seed'])
 """
+
+
