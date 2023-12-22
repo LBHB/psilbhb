@@ -316,9 +316,9 @@ def test_categories_using_VowelSet():
 
 def test_categories():
     if os.path.exists('h:/sounds'):
-        soundpath_fg = 'h:/sounds/vocalizations/v1'
-        soundpath_bg = 'h:/sounds/backgrounds/v1'
-        soundpath_catch_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/chimeric_voc'
+        soundpath_fg = 'h:/sounds/Categories/v3_vocoding'
+        soundpath_bg = 'h:/sounds/Categories/speech_stims'
+        soundpath_catch_bg = 'h:/sounds/Categories/chimeric_voc'
     else:
         soundpath_fg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/v3_vocoding'
         soundpath_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/speech_stims'
@@ -332,9 +332,10 @@ def test_categories():
         fs=44000, path=soundpath_bg, duration=3, normalization='rms',
         fit_range=[0, 1, 4], test_range=None, test_reps=2,
         channel_count=1, level=60)
-    catch_bg_set = MCWavFileSet(
+    catch_id_range = [0,1,4]
+    catch_bg_set = MCWavFileSet(filelabels='C',
         fs=44000, path=soundpath_catch_bg, duration=3, normalization='rms',
-        fit_range=[0, 1, 4], test_range=None, test_reps=2,
+        fit_range=catch_id_range, test_range=None, test_reps=2,
         channel_count=1, level=60)
 
     print(fg_set.names)

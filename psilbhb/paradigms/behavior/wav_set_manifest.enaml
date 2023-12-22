@@ -7,7 +7,7 @@ from psi.context.api import (
 
 from psi.core.enaml.api import ExperimentManifest
 
-from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet, VowelSet
+from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet, VowelSet, CategorySet
 
 # TODO make parallel for vowel set
 def configure_fgbg_stimuli(event):
@@ -511,5 +511,454 @@ enamldef VowelSetManifest(ExperimentManifest): manifest:
             Result:
                 name = 's2_name'
                 label = 'S2'
+            # Calibration?
+
+
+def configure_category_stimuli(event):
+    context = event.workbench.get_plugin('psi.context')
+    controller = event.workbench.get_plugin('psi.controller')
+    output = controller.get_output('output_1')
+    params = context.get_values()
+
+    ff = MCWavFileSet(
+        fs=output.fs, path=params['fg_path'], duration=params['fg_duration'],
+        normalization=params['fg_normalization'], level=params['fg_level'],
+        fit_range=params['fg_fit_range'], test_range=params['fg_test_range'],
+        fit_reps=params['fg_fit_reps'], test_reps=params['fg_test_reps'],
+        channel_count=params['fg_channel_count'])
+    bb = MCWavFileSet(
+        fs=output.fs, path=params['bg_path'], duration=params['bg_duration'],
+        normalization=params['bg_normalization'], level=params['bg_level'],
+        fit_range=params['bg_fit_range'], test_range=params['bg_test_range'],
+        fit_reps=params['bg_fit_reps'], test_reps=params['bg_test_reps'],
+        channel_count=params['bg_channel_count'])
+    # TODO : support for FG catch
+    ffc=None
+    #ffc = MCWavFileSet(
+    #    fs=output.fs, path=params['fg_path'], duration=params['fg_duration'],
+    #    normalization=params['fg_normalization'], level=params['fg_level'],
+    #    fit_range=params['fg_fit_range'], test_range=params['fg_test_range'],
+    #    fit_reps=params['fg_fit_reps'], test_reps=params['fg_test_reps'],
+    #    channel_count=params['fg_channel_count'])
+    bbc = MCWavFileSet(
+        fs=output.fs, path=params['bgc_path'], duration=params['bgc_duration'],
+        normalization=params['bgc_normalization'], level=params['bgc_level'],
+        fit_range=params['bgc_fit_range'], test_range=params['bgc_test_range'],
+        fit_reps=params['bgc_fit_reps'], test_reps=params['bgc_test_reps'],
+        channel_count=params['bgc_channel_count'],filelabels='C')
+
+    controller.wavset = CategorySet(FgSet=ff, BgSet=bb,
+                                CatchFGSet=ffc, CatchBGSet=bbc,
+                                fg_switch_channels=params['fg_switch_channels'],
+                                bg_switch_channels=params['bg_switch_channels'],
+                                primary_channel=params['primary_channel'],
+                                combinations=params['combinations'],
+                                fg_snr=params['fg_snr'],
+                                fg_delay=params['fg_delay'],
+                                migrate_fraction=params['migrate_fraction'],
+                                migrate_start=params['migrate_start'],
+                                migrate_stop=params['migrate_stop'],
+                                random_seed=params['random_seed'],
+                                CatchFG_frac=params['CatchFG_frac'],
+                                CatchBG_frac=params['CatchBG_frac'],
+                              )
+
+enamldef CategorySetManifest(ExperimentManifest): manifest:
+
+    id = 'categoryset'
+
+    Extension:
+        id = manifest.id + '.behavior_commands'
+        point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'configure_stimuli'
+            handler = configure_category_stimuli
+
+    Extension:
+        id = manifest.id + '.items'
+        point = 'psi.context.items'
+
+        ContextGroup:
+            # FgBgSet generates a waveform for each trial
+            # has two children: FgSet and BgSet, both of
+            # which are instances of MultichannelWaveformSet
+            # and are defined below
+            name = 'CategorySet'
+
+            EnumParameter:
+                name = 'combinations'
+                label = 'how to combine fg and bg waveforms'
+                compact_label = 'combinations'
+                default = 'simple'
+                choices = {'simple': "'simple'", 'all': "'all'"}
+                scope = 'experiment'
+
+            EnumParameter:
+                name = 'fg_switch_channels'
+                label = 'fg_switch_channels'
+                compact_label = 'fg_switch_channels'
+                default = 'No'
+                choices = {'No': "False", 'Yes': "True"}
+                scope = 'experiment'
+
+            EnumParameter:
+                name = 'bg_switch_channels'
+                label = 'bg_switch_channels'
+                compact_label = 'bg_switch_channels'
+                default = 'No'
+                choices = {'No': "False", 'same': "'same'",
+                           'opposite': "'opposite'",
+                           'combinatorial': "'combinatorial'",
+                           'combinatorial+diotic': "'combinatorial+diotic'",
+                           }
+                scope = 'experiment'
+
+            EnumParameter:
+                name = 'primary_channel'
+                label = 'primary_channel'
+                compact_label = 'primary_channel'
+                default = '0'
+                choices = {'0': 0, '1': 1}
+                scope = 'experiment'
+
+            Parameter:
+                name = 'fg_go_index'
+                label = 'fg_go_index'
+                expression = 'None'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'fg_delay'
+                label = 'fg_delay'
+                expression = '1.0'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'fg_snr'
+                label = 'fg_snr'
+                expression = '0.0'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'CatchFG_frac'
+                label = 'CatchFG_frac'
+                expression = '0.0'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'CatchBG_frac'
+                label = 'CatchBG_frac'
+                expression = '0.5'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'response_window'
+                label = 'response_window'
+                expression = '(0.0, 1.0)'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'migrate_fraction'
+                label = 'migrate_fraction'
+                expression = '0.0'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'migrate_start'
+                label = 'migrate_start'
+                expression = '0.5'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'migrate_stop'
+                label = 'migrate_stop'
+                expression = '1.0'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'random_seed'
+                label = 'random_seed'
+                default = 0
+                dtype = 'int'
+                scope = 'experiment'
+
+            Result:
+                name = 'fg_channel'
+                label = 'FG chan'
+
+            Result:
+                name = 'bg_channel'
+                label = 'BG chan'
+
+            Result:
+                name = 'fg_name'
+                label = 'FG'
+
+            Result:
+                name = 'bg_name'
+                label = 'BG'
+
+            Result:
+                name = 'this_snr'
+                label = 'Trial SNR'
+
+            Result:
+                name = 'migrate_trial'
+                label = 'Moving Tar'
+
+        ContextGroup:
+            # Instance of MultichannelWaveformSet, defines
+            # foreground (target) stimuli
+            name = 'Foreground wave file set'
+            label = 'FgSet'
+
+            Parameter:
+                name = 'fg_path'
+                label = 'folder'
+                dtype = 'S'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'fg_level'
+                label = 'level (dB peSPL)'
+                dtype = 'double'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'fg_duration'
+                label = 'duration (s)'
+                default = -1
+                dtype = 'double'
+                scope = 'experiment'
+
+            EnumParameter:
+                name = 'fg_normalization'
+                label = 'normalization'
+                compact_label = 'norm'
+                default = 'max'
+                choices = {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}
+                scope = 'experiment'
+
+            Parameter:
+                name = 'fg_norm_fixed_scale'
+                label = 'fixed norm value'
+                default = 1
+                dtype = 'double'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'fg_fit_range'
+                label = 'Fit Index Range'
+                expression = 'slice(None)'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'fg_fit_reps'
+                label = 'Fit Reps'
+                default = 1
+                dtype = 'double'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'fg_test_range'
+                label = 'Test Index Range'
+                expression = 'slice(0)'
+                dtype = 'object'
+
+            Parameter:
+                name = 'fg_test_reps'
+                label = 'Test Reps'
+                default = 1
+                dtype = 'double'
+
+            Parameter:
+                name = 'fg_channel_count'
+                label = 'number of channels'
+                default = 1
+                dtype = 'int'
+
+            EnumParameter:
+                name = 'fg_binaural_combinations'
+                label = 'how to combine wavs for binaural condition'
+                compact_label = 'bin_comb'
+                default = 'single_offset'
+                choices = {'single_offset': "'single_offset'", 'all': "'all'"}
+
+            Parameter:
+                name = 'fg_channel_offset'
+                label = 'index offset between binaural stim'
+                default = 1
+                dtype = 'int'
+
+            # Calibration?
+
+        ContextGroup:
+            # Instance of MultichannelWaveformSet, defines
+            # background stimuli in FgBgSet
+            name = 'Background wave file set'
+            label = 'BgSet'
+
+            Parameter:
+                name = 'bg_path'
+                label = 'folder'
+                dtype = 'S'
+
+            Parameter:
+                name = 'bg_level'
+                label = 'level (dB peSPL)'
+                dtype = 'double'
+
+            Parameter:
+                name = 'bg_duration'
+                label = 'duration (s)'
+                default = -1
+                dtype = 'double'
+
+            EnumParameter:
+                name = 'bg_normalization'
+                label = 'normalization'
+                compact_label = 'norm'
+                default = 'max'
+                choices = {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}
+
+            Parameter:
+                name = 'bg_norm_fixed_scale'
+                label = 'fixed norm value'
+                default = 1
+                dtype = 'double'
+
+            Parameter:
+                name = 'bg_fit_range'
+                label = 'Fit Index Range'
+                expression = 'slice(None)'
+                dtype = 'object'
+
+            Parameter:
+                name = 'bg_fit_reps'
+                label = 'Fit Reps'
+                default = 1
+                dtype = 'double'
+
+            Parameter:
+                name = 'bg_test_range'
+                label = 'Test Index Range'
+                expression = 'slice(0)'
+                dtype = 'object'
+
+            Parameter:
+                name = 'bg_test_reps'
+                label = 'Test Reps'
+                default = 1
+                dtype = 'double'
+
+            Parameter:
+                name = 'bg_channel_count'
+                label = 'number of channels'
+                default = 1
+                dtype = 'int'
+
+            EnumParameter:
+                name = 'bg_binaural_combinations'
+                label = 'how to combine wavs for binaural condition'
+                compact_label = 'bin_comb'
+                default = 'single_offset'
+                choices = {'single_offset': "'single_offset'", 'all': "'all'"}
+
+            Parameter:
+                name = 'bg_channel_offset'
+                label = 'index offset between binaural stim'
+                default = 1
+                dtype = 'int'
+
+            # Calibration?
+
+        ContextGroup:
+            # Instance of MultichannelWaveformSet, defines
+            # catch background stimuli in CategorySet
+            name = 'Catch background wave file set'
+            label = 'CatchBGSet'
+
+            Parameter:
+                name = 'bgc_path'
+                label = 'folder'
+                dtype = 'S'
+
+            Parameter:
+                name = 'bgc_level'
+                label = 'level (dB peSPL)'
+                dtype = 'double'
+
+            Parameter:
+                name = 'bgc_duration'
+                label = 'duration (s)'
+                default = -1
+                dtype = 'double'
+
+            EnumParameter:
+                name = 'bgc_normalization'
+                label = 'normalization'
+                compact_label = 'norm'
+                default = 'max'
+                choices = {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}
+
+            Parameter:
+                name = 'bgc_norm_fixed_scale'
+                label = 'fixed norm value'
+                default = 1
+                dtype = 'double'
+
+            Parameter:
+                name = 'bgc_fit_range'
+                label = 'Fit Index Range'
+                expression = 'slice(None)'
+                dtype = 'object'
+
+            Parameter:
+                name = 'bgc_fit_reps'
+                label = 'Fit Reps'
+                default = 1
+                dtype = 'double'
+
+            Parameter:
+                name = 'bgc_test_range'
+                label = 'Test Index Range'
+                expression = 'slice(0)'
+                dtype = 'object'
+
+            Parameter:
+                name = 'bgc_test_reps'
+                label = 'Test Reps'
+                default = 1
+                dtype = 'double'
+
+            Parameter:
+                name = 'bgc_channel_count'
+                label = 'number of channels'
+                default = 1
+                dtype = 'int'
+
+            EnumParameter:
+                name = 'bgc_binaural_combinations'
+                label = 'how to combine wavs for binaural condition'
+                compact_label = 'bin_comb'
+                default = 'single_offset'
+                choices = {'single_offset': "'single_offset'", 'all': "'all'"}
+
+            Parameter:
+                name = 'bgc_channel_offset'
+                label = 'index offset between binaural stim'
+                default = 1
+                dtype = 'int'
+
             # Calibration?
 
