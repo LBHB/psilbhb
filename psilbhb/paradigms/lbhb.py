@@ -61,7 +61,7 @@ ParadigmDescription(
 
 
 ParadigmDescription(
-    'VOW', '(VOWN) Go/nogo Vowel discrimination',
+    'VGN', '(VGN) Go/nogo Vowel discrimination',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_nafc.BehaviorManifest'},
         {'manifest': PATH + 'wav_set_manifest.VowelSetManifest', 'required': True},

@@ -917,9 +917,9 @@ class VowelSet(WavSet):
         if stim_cat == 'T':
             response_condition = 1
         elif stim_cat == 'N':
-            response_condition = 2
+            response_condition = 0
         elif stim_cat == 'C':
-            response_condition = -1
+            response_condition = 0
 
         response_window = self.response_window
 
