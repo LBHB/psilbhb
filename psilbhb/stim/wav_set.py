@@ -777,7 +777,7 @@ class VowelSet(WavSet):
                  switch_channels=False, primary_channel=0, repeat_count=1,
                  repeat_isi=0.2, tar_to_cat_ratio=5,
                  level=60, duration=0.24, fs=44000,
-                 response_start=0, response_end=1, random_seed=0):
+                 response_start=0, response_end=1, random_seed=0, n_response=2):
 
         # internal object to handle wavs, don't need to specify independently
         self.wavset = MCWavFileSet(
@@ -796,6 +796,8 @@ class VowelSet(WavSet):
         self.random_seed = random_seed
         self.response_window = [response_start, response_end]
 
+        self.n_response = n_response
+        log.info('N_response %r', self.n_response)
         self.current_trial_idx = -1
         self.duration = 0
 
@@ -914,12 +916,21 @@ class VowelSet(WavSet):
             s2_name = ''
 
         stim_cat = self.stim_cat[wav_set_idx]
-        if stim_cat == 'T':
-            response_condition = 1
-        elif stim_cat == 'N':
-            response_condition = 0
-        elif stim_cat == 'C':
-            response_condition = 0
+
+        if self.n_response == 2:
+            if stim_cat == 'T':
+                response_condition = 1
+            elif stim_cat == 'N':
+                response_condition = 2
+            elif stim_cat == 'C':
+                response_condition = -1
+        elif self.n_response == 1:
+            if stim_cat == 'T':
+                response_condition = 1
+            elif stim_cat == 'N':
+                response_condition = 0
+            elif stim_cat == 'C':
+                response_condition = 0
 
         response_window = self.response_window
 
