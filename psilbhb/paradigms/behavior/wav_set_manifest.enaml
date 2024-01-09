@@ -355,6 +355,7 @@ def configure_vowelset_stimuli(event):
     context = event.workbench.get_plugin('psi.context')
     controller = event.workbench.get_plugin('psi.controller')
     output = controller.get_output('output_1')
+    n_response = getattr(controller, 'N_response', 2)
     params = context.get_values()
 
     controller.wavset = VowelSet(
@@ -372,7 +373,9 @@ def configure_vowelset_stimuli(event):
         fs=params['fs'],
         response_start=params['response_start'],
         response_end=params['response_end'],
-        random_seed=params['random_seed'])
+        random_seed=params['random_seed'],
+        n_response=n_response
+    )
 
 #
 # TODO This is a stub. Make this work with VowelSet instead of FgBgSet
