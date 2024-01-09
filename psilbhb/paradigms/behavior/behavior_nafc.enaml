@@ -55,7 +55,8 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
     Defines the core settings that any behavior experiment may require. Does
     not include timeout/reward settings as those are provided by plugins.
     '''
-    # Number of response inputs (i.e., lick spouts or food hoppers).
+    # Number of response inputs (i.e., lick spouts or food hoppers). 1 =
+    # go/nogo. 2+ = NAFC.
     attr N_response = 1
 
     # Number of speaker outputs
@@ -381,11 +382,10 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 text = 'Random poke generator'
                 checkable = True
                 triggered ::
-                    plugin = workbench.get_plugin(manifest.id)
                     if checked:
-                        plugin.start_random_behavior()
+                        controller.start_random_behavior()
                     else:
-                        plugin.stop_random_behavior()
+                        controller.stop_random_behavior()
 
     Extension:
         id = 'plots'
@@ -422,11 +422,6 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                         decimate_mode = 'none'
                         source_name = f'spout_contact_{loop_item+1}'
                         pen_color = looper.colors[loop_item]
-
-                ChannelPlot:
-                    decimate_mode = 'none'
-                    source_name = 'spout_contact_2'
-                    pen_color = 'red'
 
                 ChannelPlot:
                     decimate_mode = 'none'

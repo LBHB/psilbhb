@@ -31,7 +31,8 @@ ParadigmDescription(
 ParadigmDescription(
     'NFB', '(NFB) Two AFC foreground detection in natural background',
     'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'behavior_2afc.BehaviorManifest'},
+        {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
+         'attrs': {'N_response': 2}},
         {'manifest': PATH + 'wav_set_manifest.FgBgSetManifest', 'required': True},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_1',
@@ -47,7 +48,8 @@ ParadigmDescription(
 ParadigmDescription(
     'VOW', '(VOW) Vowel discrimination',
     'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'behavior_2afc.BehaviorManifest'},
+        {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
+         'attrs': {'N_response': 2}},
         {'manifest': PATH + 'wav_set_manifest.VowelSetManifest', 'required': True},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_1',
@@ -64,8 +66,7 @@ ParadigmDescription(
     'VGN', '(VGN) Go/nogo Vowel discrimination',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
-         'attrs': {'N_response': 1}
-         },
+         'attrs': {'N_response': 1}},
         {'manifest': PATH + 'wav_set_manifest.VowelSetManifest', 'required': True},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_1',
@@ -87,7 +88,8 @@ ParadigmDescription(
 ParadigmDescription(
     'CAT', '(CAT) Natural category discrimination',
     'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'behavior_2afc.BehaviorManifest'},
+        {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
+         'attrs': {'N_response': 2}},
         {'manifest': PATH + 'wav_set_manifest.CategorySetManifest', 'required': True},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_1',
