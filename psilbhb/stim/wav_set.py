@@ -8,12 +8,68 @@ from scipy.io import wavfile
 
 from psiaudio import queue
 from psiaudio import util
+from fractions import Fraction
+from copy import deepcopy
 
 from psiaudio.stim import Waveform, FixedWaveform, ToneFactory, \
     WavFileFactory, WavSequenceFactory, wavs_from_path
 
 import logging
 log = logging.getLogger(__name__)
+
+
+def cat_MCWavFileSets(set1, set2, frac_set1=.9):
+    """
+        * Stand-alone function to concatenate two MCWavFileSets.
+            - Probably make it a method for MCWavFileSets(instead of a function like this?)
+            - Can create a more general function that takes in multiple (>=2) sets
+        * Creating this function to combine BGCatchTrials with backgrounds (or FGCatchTrials with foregrounds)
+            for 2-AFC FG-vs-BG discrimination.
+        Inputs:
+            :param set1: first merge_MCWavFileSets
+            :param set2: second merge_MCWavFileSets
+            :param frac_set1: what should be the fraction of set1 after combining the two sets
+
+        Output:
+            :param Concatenated MCWavFileSet
+
+        Comments/Notes:
+            Most fields (attributes) are being used either directly (e.g., fs, level)
+                or indirectly inside methods (e.g., names, waveform). So go through all fields and apply some criteria
+                to either check of compatibility or concatenate values.
+    """
+
+    # Attributes to check for compatibility (i.e., identical values)
+    compatibility_fields = ['channel_offset', 'duration', 'level', 'normalization', 'norm_fixed_scale', 'force_duration',
+                            'random_seed', 'fs', 'calibration', 'channel_count']
+    # for dict_var in compatibility_fields:
+    #     print(f"{dict_var}: {getattr(set1, dict_var)} vs {getattr(set2, dict_var)}")
+    out_assert = np.array([getattr(set1, _atb)==getattr(set2, _atb) for _atb in compatibility_fields])
+    assert all(out_assert), ("The following attributes do not match between the two sets ({})"
+                             .format([compatibility_fields[idx] for idx,tf_bool in enumerate(out_assert) if not tf_bool]))
+
+    cat_set = deepcopy(set1)
+    concat_fields = ['fit_names', 'test_names', 'fit_range', 'test_range']
+    for _cat_fld in concat_fields:
+        setattr(cat_set, _cat_fld, getattr(cat_set, _cat_fld) + getattr(set2, _cat_fld))
+
+    # # concat filenames based on ratio (for now).
+    # nfiles_set1 = len(set1.filenames) # l1
+    # nfiles_set2 = len(set2.filenames) # l2
+    # num_over_den = Fraction(frac_set1*nfiles_set2/(1-frac_set1)/nfiles_set1).limit_denominator(20) # n/d
+    # # call the fraction = f, then we want n*l1 / (n*l1 + d*l2) = f, where we need n copies of set1 and d copies of set2
+    #
+    # nrep_set1 = num_over_den.numerator
+    # nrep_set2 = num_over_den.denominator
+    # cat_set.filenames = set1.filenames * nrep_set1 + set2.filenames * nrep_set2
+    # cat_set.filelabels = set1.filelabels * nrep_set1 + set2.filelabels * nrep_set2
+
+    cat_set.filenames = set1.filenames + set2.filenames
+    cat_set.filelabels = set1.filelabels + set2.filelabels
+
+    # log.info(f"Entered cat fun: {nrep_set1}|{nrep_set2}")
+    return cat_set
+# End of cat_MCWavFileSets
 
 
 def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_scale=1,
@@ -130,11 +186,14 @@ class WaveformSet():
 
 class WavFileSet(WaveformSet):
 
-    def __init__(self, filenames, normalization='pe', level=65,
+    def __init__(self, filenames, filelabels='', normalization='pe', level=65,
                  norm_fixed_scale=1, force_duration=None, random_seed=0, **kwargs):
         """
         :param filenames: list filenames (single channel) or list of lists
            (each file in inner list fed to a different channel)
+        :param filelabels: list string labeling user-defined category for each filename
+           (if you want to distinguish between target and catch, eg)
+           if None, defaults to a list of empty strings
         :param normalization: {'pe', 'rms', 'fixed'}
             Method for rescaling waveform. If `'pe'`, rescales to peak-equivalent
             so the max value of the waveform matches the target level. If `'rms'`,
@@ -157,6 +216,11 @@ class WavFileSet(WaveformSet):
         :param kwargs: passthrough parameters to WaveformSet
         """
         self.filenames = filenames
+        if type(filelabels) is str:
+            self.filelabels = [filelabels] * len(filenames)
+        else:
+            self.filelabels = filelabels
+
         self.normalization = normalization
         self.norm_fixed_scale = norm_fixed_scale
         self.force_duration = force_duration
@@ -455,11 +519,14 @@ class FgBgSet(WavSet):
 
         bg_range = np.arange(self.BgSet.max_index, dtype=int)
         fg_range = np.arange(self.FgSet.max_index, dtype=int)
+
+        #region set fg an bg
         if self.fg_switch_channels:
             fg_channel = np.concatenate((np.zeros_like(fg_range), np.ones_like(fg_range)))
             fg_range = np.tile(fg_range, 2)
         else:
             fg_channel = np.zeros_like(fg_range) + self.primary_channel
+
         if self.bg_switch_channels == False:
             bg_channel = np.zeros_like(fg_range)
         elif self.bg_switch_channels == 'same':
@@ -541,8 +608,19 @@ class FgBgSet(WavSet):
         bgc = bgc[snr_keep]
         fgc = fgc[snr_keep]
         fsnr = fsnr[snr_keep]
+
+        # fgg provides information about whether this is a
+        # go (>0)/no-go (0)/go-anywhere (-1) trial
         fgg = fgg[snr_keep]
         fgg[fsnr<=-100]=-1
+
+        # check if any stims are labeled catch:
+        for i, b in enumerate(bgi):
+            if self.BgSet.filelabels[b] == 'C':
+                fgg[i]=-1
+        for i, f in enumerate(fgi):
+            if self.FgSet.filelabels[f] == 'C':
+                fgg[i]=-1
 
         migrate_keep = (fsnr>-30) & (bgc==bgcmax)
 
@@ -569,6 +647,7 @@ class FgBgSet(WavSet):
 
         total_wav_set = len(fgg)
 
+        # Important
         self.bg_index = bgi
         self.fg_index = fgi
         self.fg_channel = fgc
@@ -576,6 +655,7 @@ class FgBgSet(WavSet):
         self.fg_snr = fsnr
         self.fg_go = fgg
         self.migrate_trial = migrate_trial
+        # ------- Important
 
         if (type(self._fg_delay) is np.array) | (type(self._fg_delay) is list):
             self.fg_delay = np.array(self._fg_delay)
@@ -991,3 +1071,176 @@ class VowelSet(WavSet):
                                                  self.trial_is_repeat[(trial_idx+1):]))
         else:
             log.info('Trial {trial_idx} outcome {outcome}: moving on')
+
+#
+class CategorySet(FgBgSet):
+    """
+    CategorySet class: modified from the FgBgSet class
+    Target+background class – generic self-initiated trial
+        Allows yoked target and background ids
+        maybe? Unclear how these should be controlled.
+
+    Methods:
+        get_background(idx) – continuous bg, temporally uncoupled from fg
+        get_target(idx) –
+        can contain background as well,
+        waveform plus target location (or indicate no-go)
+        trial duration – if variable?
+        get_all_properties_as_dict  - for saving to log
+
+    Properties available to psi:
+        runclass
+        Target_count, background_count  - range of idx
+        Channel count – how many speakers (2?)
+        Current_target_location (for behavior assessment)
+        Trial duration
+        parameters available to user—depends on stimuli
+        information for aligning to backgrounds? Is this useful/necessary?
+
+    Trial structure
+
+    1. ITI.
+        Maintain background queue if – if there is one
+        Pick new bgs as needed
+        Get foreground info, target location
+
+    2. Nose poke -> start trial
+        Play foreground sound from speaker 1 and/or 2, play for Y seconds (Y<X?)
+        Response = lick spout 1 or 2
+        Timeout after Y seconds
+
+    3. Loop to 1
+
+
+    Natural streams – 2AFC
+        Backgrounds have natural bg statistics
+        Targets have natural fg statistics.
+
+    Tone in noise – 2AFC
+        No bg
+        Target – one or two noises with varying relationship, tone embedded in one or the other.
+        Or go/no-go?
+
+    Phonemes
+        No bg
+        Target one or two phonemes, go/no-go
+
+    Miscellaneous comments:
+        Foreground = Target.
+        Background = Non-target.
+
+    """
+
+    def __init__(self, FgSet=None, BgSet=None, CatchFGSet=None, CatchBGSet=None,
+                 CatchFG_frac=.8, CatchBG_frac=.8, combinations='all',
+                 fg_switch_channels=False, bg_switch_channels=False,
+                 catch_frequency=0, primary_channel=0,
+                 fg_delay=0.0, fg_snr=0.0, response_window=None,
+                 migrate_fraction=0.0, migrate_start=0.5, migrate_stop=1.0,
+                 random_seed=0):
+        """
+        FgBgSet polls FgSet and BgSet for .max_index, .waveform, .names, and .fs
+        :param FgSet: {WaveformSet, MultichannelWaveformSet, None}
+        :param BgSet: {WaveformSet, MultichannelWaveformSet, None}
+        :param CatchBGSet: {WaveformSet, MultichannelWaveformSet, None}
+        :param combinations: str
+            simple: random pairing
+            all: exhaustive, every possible combination of bg and fg
+        :param fg_switch_channels: bool
+        :param bg_switch_channels: {bool, str}
+            channel of bg relative to fg
+            False: just play straight as BgSet provides them (for Bg managing binaural)
+            same: same as fg
+            combinatorial: same + opposite
+            opposite: opposite to fg only
+        :param catch_frequency: float
+            TODO: add fraction catch_frequency of trials with no target on top of
+            regular trial set
+        :param fg_delay: float
+        :param response_window: {tuple, np.array, None}
+            None converts to (0,1) = 0 to 1 sec after fg starts playing
+            If array, length should bg >= FgSet.max_index
+        :param random_seed: int
+        """
+        if CatchFGSet is None:
+            if FgSet is None:
+                self.FgSet = WaveformSet()
+            else:
+                self.FgSet = FgSet
+        else:
+            if FgSet is None:
+                raise ValueError(f"Must specify FgSet if CatchFGSet is specified")
+            else:
+                self.FgSet = cat_MCWavFileSets(FgSet, CatchFGSet, frac_set1=CatchFG_frac)
+
+        if CatchBGSet is None:
+            if BgSet is None:
+                self.BgSet = WaveformSet()
+            else:
+                self.BgSet = BgSet
+        else:
+            if BgSet is None:
+                raise ValueError(f"Must specify BgSet if CatchBGSet is specified")
+            else:
+                self.BgSet = cat_MCWavFileSets(BgSet, CatchBGSet, frac_set1=CatchBG_frac)
+
+        self.combinations = combinations
+        self.fg_switch_channels = fg_switch_channels
+        self.bg_switch_channels = bg_switch_channels
+        self.catch_frequency = catch_frequency
+        self._fg_delay = fg_delay
+        self._fg_snr = fg_snr
+        self.primary_channel = primary_channel
+
+        #region migrate code
+        self.migrate_fraction = migrate_fraction
+        self.migrate_start = migrate_start
+        self.migrate_stop = migrate_stop
+        #endregion
+
+        if response_window is None:
+            self.response_window = (0.0, 1.0)
+        else:
+            self.response_window = response_window
+
+        self.random_seed = random_seed
+        self.current_trial_idx = -1
+
+        # trial management
+        self.trial_wav_idx = np.array([], dtype=int)
+        self.trial_outcomes = np.array([], dtype=int)
+        self.trial_is_repeat = np.array([], dtype=int)
+        self.current_full_rep = 0
+
+        self.update()
+
+    @property
+    def wav_per_rep(self):
+        return np.min([len(self.bg_index), len(self.fg_index)])
+
+    # inherit from FgBgSet
+    #def update(self, trial_idx=None):
+    #def trial_waveform(self, trial_idx=None, wav_set_idx=None):
+    #def trial_parameters(self, trial_idx=None, wav_set_idx=None):
+    #def score_response(self, outcome, repeat_incorrect=2, trial_idx=None):
+
+
+"""
+        sound_path=params['sound_path'],
+        target_set=params['target_set'],
+        non_target_set=params['non_target_set'],
+        catch_set=params['catch_set'],
+        switch_channels=params['switch_channels'], 
+        primary_channel=params['primary_channel'], 
+        duration=params['duration'],
+        repeat_count=params['repeat_count'],
+        repeat_isi=params['repeat_isi'], 
+        tar_to_cat_ratio=params['tar_to_cat_ratio'],
+        level=params['level'], 
+        fs=params['fs'], 
+        response_start=params['response_start'], 
+        response_end=params['response_end'], 
+        random_seed=params['random_seed'])
+"""
+
+
