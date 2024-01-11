@@ -200,6 +200,13 @@ class BehaviorPlugin(BaseBehaviorPlugin):
 
         # All parameters in this dictionary get logged to the trial log.
         wavset_info = self.wavset.trial_parameters(self.trial)
+
+        for i in range(self.N_response):
+            if 'dispense_{i+1}_duration' in wavset_info:
+                self.context.set_value(f'water_dispense_{i+1}_duration', wavset_info[f'dispense_{i+1}_duration'])
+            elif 'dispense_duration' in wavset_info:
+                self.context.set_value(f'water_dispense_{i+1}_duration', wavset_info[f'dispense_duration'])
+                
         self.trial_info.update(wavset_info)
         self.side = self.trial_info['response_condition']
 
