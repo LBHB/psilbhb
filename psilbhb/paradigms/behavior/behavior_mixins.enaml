@@ -153,7 +153,7 @@ enamldef BaseRewardDispenser(ExperimentManifest): manifest:
         ExperimentAction:
             event = event_name
             command = f'{manifest.output_name}.fire'
-            kwargs = {'duration': manifest.duration}
+            kwargs = {'duration': C.lookup(manifest.parameter_name)}
 
     Extension:
         id = manifest.id + '.status_item'
@@ -188,24 +188,19 @@ enamldef WaterBolusDispenser(BaseRewardDispenser): manifest:
 
     # Name of output connected to solenoid for water dispenser
     attr output_name = 'water_dispense'
-    attr add_params = True
-
-    duration = C.lookup('water_dispense_duration')
+    attr parameter_name = f'{manifest.output_name}_duration'
 
     Extension:
         id = manifest.id + '.parameters'
         point = 'psi.context.items'
 
-        Conditional:
-            condition << add_params
-
-            Parameter:
-                name = 'water_dispense_duration'
-                label = 'Water dispense trigger duration (s)'
-                compact_label = 'D'
-                default = 1
-                scope = 'arbitrary'
-                group_name = 'trial'
+        Parameter:
+            name = manifest.parameter_name
+            label = f'{manifest.label} trigger duration (s)'
+            compact_label = 'D'
+            default = 1
+            scope = 'arbitrary'
+            group_name = 'trial'
 
 
 enamldef PelletDispenser(BaseRewardDispenser): manifest:

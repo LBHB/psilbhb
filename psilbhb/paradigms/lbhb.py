@@ -39,8 +39,7 @@ ParadigmDescription(
                    'event_name': 'deliver_reward_1'}},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_2',
-                   'event_name': 'deliver_reward_2',
-                   'add_params': False}},
+                   'event_name': 'deliver_reward_2'}},
     ],
 )
 
@@ -56,8 +55,7 @@ ParadigmDescription(
                    'event_name': 'deliver_reward_1'}},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_2',
-                   'event_name': 'deliver_reward_2',
-                   'add_params': False}},
+                   'event_name': 'deliver_reward_2'}},
     ],
 )
 
@@ -96,8 +94,7 @@ ParadigmDescription(
                    'event_name': 'deliver_reward_1'}},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_2',
-                   'event_name': 'deliver_reward_2',
-                   'add_params': False}},
+                   'event_name': 'deliver_reward_2'}},
     ],
 )
 
