@@ -3,7 +3,7 @@ import numpy as np
 import os
 import matplotlib
 matplotlib.use("Qt5Agg")
-from random import sample
+from random import sample,choices
 from collections import Counter
 
 from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet, VowelSet, CategorySet, cat_MCWavFileSets
@@ -405,9 +405,78 @@ def test_categories():
     plt.tight_layout()
 
 
+def get_stim_list(catch_ferret_id=3, n_env_bands=[2, 8, 32]):
+    be_verbose = 1
+    if os.path.exists('h:/sounds'):
+        soundpath_fg = 'h:/sounds/vocalizations/v1'
+        soundpath_bg = 'h:/sounds/backgrounds/v1'
+        soundpath_catch_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/chimeric_voc'
+    else:
+        soundpath_fg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/v3_vocoding'
+        soundpath_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/speech_stims'
+        soundpath_catch_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/chimeric_voc'
+
+    all_ferret_files = [file for file in os.listdir(soundpath_fg) if file.endswith(".wav") and file.startswith("fer")]
+    all_speech_files = [file for file in os.listdir(soundpath_bg) if file.endswith(".wav") and file.startswith("spe")]
+    all_catch_files = [file for file in os.listdir(soundpath_catch_bg) if file.endswith(".wav") and file.startswith("ENV")]
+
+    taboo_ferret_files = ['ferretb3001R.wav', 'ferretb4004R.wav']
+
+    all_ferret_files = [x for x in all_ferret_files if x not in taboo_ferret_files]
+    all_catch_files = [x for x in all_catch_files if x.split('_')[-1] not in taboo_ferret_files]
+
+
+    #region get all catch trial files: fgs and env bgs
+    catch_bgs = [x for x in all_catch_files if
+                 any([x.startswith("ENV{}_ferretb{}".format(nb,catch_ferret_id)) for nb in n_env_bands]) ]
+    catch_fgs = list(set([x.split('_')[-1] for x in catch_bgs]))
+    catch_fgs.sort()
+
+    catch_pair_fg_inds = np.arange(4)
+    catch_pair_bg_inds = np.array([1, 0, 3, 2])
+
+    catch_fg_inds = np.concatenate([np.tile(x, len(n_env_bands)) for x in catch_pair_fg_inds])
+    catch_bg_inds = np.array([catch_pair_bg_inds[x] for x in catch_fg_inds])
+    catch_env_nbands = np.tile(n_env_bands, len(catch_pair_fg_inds))
+    num_catch_trials = len(catch_fg_inds)
+
+    catch_fg_names = [catch_fgs[idx] for idx in catch_fg_inds]
+    catch_bg_names = ["ENV{}_{}".format(nb,catch_fgs[bg_idx]) for bg_idx,nb in zip(catch_bg_inds,catch_env_nbands)]
+
+    if be_verbose:
+        print("~~~~~~~~~Catch~~~~~~~~~")
+        [print(catch_fg_names[i] + ' vs ' + catch_bg_names[i]) for i in range(num_catch_trials)]
+        print("~~~~~~~~~end Catch~~~~~~~~~")
+    #endregion
+
+    #region get all regular (non-catch) trial stimuli: fgs and speech
+    num_regular_trials= 7*num_catch_trials
+
+    taboo_ferret_ids = [1, 2, 7, catch_ferret_id]
+    reg_fg_names = choices([x for x in all_ferret_files if
+                 not any([x.startswith("ferretb{}".format(tabid)) for tabid in taboo_ferret_ids])], k=num_regular_trials)
+    reg_bg_names = choices(all_speech_files, k=num_regular_trials)
+    if be_verbose:
+        print("~~~~~~~~~Regular~~~~~~~~~")
+        [print(reg_fg_names[i] + ' vs ' + reg_bg_names[i]) for i in range(num_regular_trials)]
+        print("~~~~~~~~~end Regular~~~~~~~~~")
+    #endregion
+
+    session_fg_files = reg_fg_names + catch_fg_names
+    session_bg_files = reg_bg_names + catch_bg_names
+    session_num_trials = num_regular_trials + num_catch_trials
+    if be_verbose:
+        print("~~~~~~~~~ Session ~~~~~~~~~")
+        [print(f"{i+1}/{len(session_fg_files)}: {session_fg_files[i]} vs {session_bg_files[i]}") for i in range(session_num_trials)]
+        print("~~~~~~~~~end Session~~~~~~~~~")
+
+
 # test_fgbg()
 # test_vowels()
 # test_vowels2()
 # test_categories_using_VowelSet()
-print('wth')
-test_categories()
+# print('wth')
+# test_categories()
+
+# get_stim_list(catch_ferret_id=4, n_env_bands=[2, 8, 32])
+get_stim_list(catch_ferret_id=5, n_env_bands=[1, 4, 16])
