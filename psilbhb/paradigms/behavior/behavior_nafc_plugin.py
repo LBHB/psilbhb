@@ -131,6 +131,16 @@ class BehaviorPlugin(BaseBehaviorPlugin):
     #: Mapping of the rising/falling edges detected on digital channels to an event.
     event_map = Dict()
 
+    #: True if nose-poke is active
+    np_active = Bool(False)
+
+    def handle_event(self, event, timestamp=None):
+        if event in (NAFCEvent.np_start, NAFCEvent.digital_np_start):
+            self.np_active = True
+        elif event in (NAFCEvent.np_end, NAFCEvent.digital_np_end):
+            self.np_active = False
+        super().handle_event(event, timestamp)
+
     def request_trial(self):
         log.info('Requesting trial')
         self.prepare_trial(auto_start=True)
@@ -195,8 +205,14 @@ class BehaviorPlugin(BaseBehaviorPlugin):
 
         # Now trigger any callbacks that are listening for the trial_ready
         # event.
+        log.info('Detected nose poke state is %r', self.np_active)
         self.invoke_actions('trial_ready')
         if auto_start:
+            self.start_trial()
+        elif self.np_active:
+            # If animal is already poking and ITI is over, go ahead and start
+            # trial.
+            self.trial_info['np_start'] = self.get_ts()
             self.start_trial()
         else:
             self.trial_state = NAFCTrialState.waiting_for_np_start
