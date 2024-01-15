@@ -465,10 +465,10 @@ def get_stim_list(catch_ferret_id=3, n_env_bands=[2, 8, 32]):
     session_fg_files = reg_fg_names + catch_fg_names
     session_bg_files = reg_bg_names + catch_bg_names
     session_num_trials = num_regular_trials + num_catch_trials
-    if be_verbose:
-        print("~~~~~~~~~ Session ~~~~~~~~~")
-        [print(f"{i+1}/{len(session_fg_files)}: {session_fg_files[i]} vs {session_bg_files[i]}") for i in range(session_num_trials)]
-        print("~~~~~~~~~end Session~~~~~~~~~")
+    # if be_verbose:
+    #     print("~~~~~~~~~ Session ~~~~~~~~~")
+    #     [print(f"{i+1}/{len(session_fg_files)}: {session_fg_files[i]} vs {session_bg_files[i]}") for i in range(session_num_trials)]
+    #     print("~~~~~~~~~end Session~~~~~~~~~")
 
 
 # test_fgbg()
@@ -478,5 +478,5 @@ def get_stim_list(catch_ferret_id=3, n_env_bands=[2, 8, 32]):
 # print('wth')
 # test_categories()
 
-# get_stim_list(catch_ferret_id=4, n_env_bands=[2, 8, 32])
-get_stim_list(catch_ferret_id=5, n_env_bands=[1, 4, 16])
+get_stim_list(catch_ferret_id=4, n_env_bands=[2, 8, 32])
+# get_stim_list(catch_ferret_id=5, n_env_bands=[1, 4, 16])
