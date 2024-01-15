@@ -292,6 +292,12 @@ class BehaviorPlugin(BaseBehaviorPlugin):
 
         if score == NAFCTrialScore.incorrect:
             # Call timeout actions and the wait for animal to withdraw from spout
+            # o1 = self.get_output('output_1')
+            # o2 = self.get_output('output_2')
+            # with o1.engine.lock:
+            #     ts = self.get_ts()
+            #     o1.stop_waveform(ts + 0.1, False)
+            #     o2.stop_waveform(ts + 0.1, True)
             self.invoke_actions('to_start', ts)
             self.start_wait_for_reward_end(ts, 'to')
         elif score == NAFCTrialScore.invalid:

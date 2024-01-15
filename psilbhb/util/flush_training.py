@@ -22,9 +22,12 @@ def flush_training_old(prefix="LMD", local_folder="e:/data", dest_root='/auto/da
         dataroot, f = os.path.split(r['respfile'])
         dataroot, f = os.path.split(dataroot)
         destpath = dataroot.replace(local_folder, dest_root)
-        destpath_win = dataroot.replace(local_folder, dest_root_win)
-        print(f"Copying files {dataroot} --> {destpath_win}")
-        shutil.copytree(dataroot, destpath_win, dirs_exist_ok=True)
+        try:
+            destpath_win = dataroot.replace(local_folder, dest_root_win)
+            print(f"Copying files {dataroot} --> {destpath_win}")
+            shutil.copytree(dataroot, destpath_win, dirs_exist_ok=True)
+        except:
+            print(f'Could not copy file: {dataroot} --> {destpath_win}')
 
         print(f"Updating paths in celldb")
         sql = f"UPDATE gDataRaw SET" +\

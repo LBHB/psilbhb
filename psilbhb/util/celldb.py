@@ -60,7 +60,7 @@ def readpsievents(logpath, runclass=None):
             dataperf = {k: list(df_perf[k]) for k in perfname}
         else:
             dataperf = {}
-    elif runclass=='NFB':
+    elif runclass in ['NFB', 'CAT']:
         parmnames = ['fg_duration',
          'bg_duration', 'fg_snr', 'fg_delay', 'fg_channel', 'bg_channel',
          'response_condition', 'response_window', 'current_full_rep',
@@ -76,6 +76,9 @@ def readpsievents(logpath, runclass=None):
          'response_duration', 'target_delay', 'np_duration', 'hold_duration',
          'training_mode', 'manual_control', 'keep_lights_on',
          'water_dispense_duration']
+        if runclass == 'CAT':
+            parmnames.extend(['bgc_path', 'bgc_level', 'bgc_normalization',
+            'bgc_norm_fixed_scale', 'bgc_fit_range', 'bgc_fit_reps', 'bgc_test_range', 'bgc_test_reps'])
         row = df.iloc[-1]
         dataparm = {k: row[k] for k in parmnames if k in row.index}
 
