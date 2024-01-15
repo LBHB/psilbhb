@@ -1126,7 +1126,7 @@ class CategorySet(FgBgSet):
                  catch_frequency=0, primary_channel=0,
                  fg_delay=0.0, fg_snr=0.0, response_window=None,
                  migrate_fraction=0.0, migrate_start=0.5, migrate_stop=1.0,
-                 random_seed=0):
+                 random_seed=0, catch_ferret_id=4, n_env_bands=[2, 8, 32]):
         """
         FgBgSet polls FgSet and BgSet for .max_index, .waveform, .names, and .fs
         :param FgSet: {WaveformSet, MultichannelWaveformSet, None}
@@ -1208,7 +1208,167 @@ class CategorySet(FgBgSet):
         return np.min([len(self.bg_index), len(self.fg_index)])
 
     # inherit from FgBgSet
-    #def update(self, trial_idx=None):
+    def update(self, trial_idx=None):
+        """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.
+        manage trials separately to allow for repeats, etc."""
+        _rng = np.random.RandomState(self.random_seed)
+
+        bg_range = np.arange(self.BgSet.max_index, dtype=int)
+        fg_range = np.arange(self.FgSet.max_index, dtype=int)
+
+        # region set fg an bg
+        if self.fg_switch_channels:
+            fg_channel = np.concatenate((np.zeros_like(fg_range), np.ones_like(fg_range)))
+            fg_range = np.tile(fg_range, 2)
+        else:
+            fg_channel = np.zeros_like(fg_range) + self.primary_channel
+
+        if self.bg_switch_channels == False:
+            bg_channel = np.zeros_like(fg_range)
+        elif self.bg_switch_channels == 'same':
+            bg_channel = fg_channel.copy()
+        elif self.bg_switch_channels == 'opposite':
+            bg_channel = 1 - fg_channel
+        elif self.bg_switch_channels == 'combinatorial':
+            bg_channel = np.concatenate((np.zeros_like(fg_channel), np.ones_like(fg_channel)))
+            fg_channel = np.tile(fg_channel, 2)
+            fg_range = np.tile(fg_range, 2)
+            # bg_range = np.tile(bg_range, 2)
+        elif self.bg_switch_channels == 'combinatorial+diotic':
+            bg_channel = np.concatenate(
+                (np.zeros_like(fg_channel), np.ones_like(fg_channel), -np.ones_like(fg_channel)))
+            fg_channel = np.tile(fg_channel, 3)
+            fg_range = np.tile(fg_range, 3)
+            # bg_range = np.tile(bg_range, 3)
+        else:
+            raise ValueError(f"Unknown bg_switch_channels value: {self.bg_switch_channels}.")
+
+        if (type(self._fg_snr) is np.array) | (type(self._fg_snr) is list):
+            # multiple SNRs requested, tile
+            fg_snr = np.concatenate(
+                [np.zeros(len(fg_range)) + snr for snr in self._fg_snr]
+            )
+            bg_channel = np.tile(bg_channel, len(self._fg_snr))
+            fg_channel = np.tile(fg_channel, len(self._fg_snr))
+            fg_range = np.tile(fg_range, len(self._fg_snr))
+            # bg_range = np.tile(bg_range, len(self._fg_snr))
+        else:
+            fg_snr = np.zeros(len(fg_range)) + self._fg_snr
+
+        if self.catch_frequency > 0:
+            raise ValueError(f"Support for catch_frequency>0 not yet implemented")
+
+        bg_len = len(bg_range)
+        fg_len = len(fg_range)
+        print(fg_len, bg_len)
+        bgi = np.array([], dtype=int)
+        fgi = np.array([], dtype=int)
+        fgc = np.array([], dtype=int)
+        bgc = np.array([], dtype=int)
+        fgg = np.array([], dtype=int)
+        fsnr = np.array([], dtype=int)
+        if self.combinations == 'simple':
+            total_wav_set = np.max([bg_len, fg_len])
+            # print(f'Updating FgBgSet {total_wav_set} trials...')
+            while (bg_len > 0) & (len(bgi) < total_wav_set):
+                # bgi = np.concatenate((bgi, _rng.permutation(bg_range)))
+                bgi = np.concatenate((bgi, bg_range))
+            while (fg_len > 0) & (len(fgi) < total_wav_set):
+                # ii = _rng.permutation(np.arange(len(fg_range)))
+                ii = np.arange(len(fg_range))
+                fgi = np.concatenate((fgi, fg_range))
+                fgc = np.concatenate((fgc, fg_channel[ii]))
+                bgc = np.concatenate((bgc, bg_channel[ii]))
+                fgg = np.concatenate((fgg, np.ones(len(fg_range))))
+        elif self.combinations == 'all':
+            total_wav_set = bg_len * fg_len
+            for i, bg in enumerate(bg_range):
+                bgi = np.concatenate((bgi, np.ones(len(fg_range), dtype=int) * bg))
+                ii = np.arange(len(fg_range), dtype=int)
+                fgi = np.concatenate((fgi, fg_range))
+                fgc = np.concatenate((fgc, fg_channel[ii]))
+                bgc = np.concatenate((bgc, bg_channel[ii]))
+                fsnr = np.concatenate((fsnr, fg_snr[ii]))
+                fgg = np.concatenate((fgg, np.ones(len(fg_range))))
+
+        else:
+            raise ValueError(f"FgBgSet combinations format {self.combinations} not supported")
+
+        # remove redundant very high and very low SNR trials
+        fgimin = fgi.min()
+        bgimin = bgi.min()
+        bgcmax = bgc.max()
+        snr_keep = ((fsnr <= 50) | ((bgi == bgimin) & (bgc == bgcmax))) & \
+                   ((fsnr > -100) | (fgi == fgimin))
+        bgi = bgi[snr_keep]
+        fgi = fgi[snr_keep]
+        bgc = bgc[snr_keep]
+        fgc = fgc[snr_keep]
+        fsnr = fsnr[snr_keep]
+
+        # fgg provides information about whether this is a
+        # go (>0)/no-go (0)/go-anywhere (-1) trial
+        fgg = fgg[snr_keep]
+        fgg[fsnr <= -100] = -1
+
+        # check if any stims are labeled catch:
+        for i, b in enumerate(bgi):
+            if self.BgSet.filelabels[b] == 'C':
+                fgg[i] = -1
+        for i, f in enumerate(fgi):
+            if self.FgSet.filelabels[f] == 'C':
+                fgg[i] = -1
+
+        migrate_keep = (fsnr > -30) & (bgc == bgcmax)
+
+        if self.migrate_fraction >= 1:
+            migrate_trial = np.ones_like(fgi)
+        elif (self.migrate_fraction > 0.4):
+            migrate_trial = np.concatenate((np.zeros_like(fgi), np.ones_like(fgi[migrate_keep])))
+            bgi = np.concatenate((bgi, bgi[migrate_keep]))
+            fgi = np.concatenate((fgi, fgi[migrate_keep]))
+            bgc = np.concatenate((bgc, bgc[migrate_keep]))
+            fgc = np.concatenate((fgc, fgc[migrate_keep]))
+            fsnr = np.concatenate((fsnr, fsnr[migrate_keep]))
+            fgg = np.concatenate((fgg, fgg[migrate_keep]))
+        elif (self.migrate_fraction > 0):
+            migrate_trial = np.concatenate((np.zeros_like(fgi), np.zeros_like(fgi), np.ones_like(fgi[migrate_keep])))
+            bgi = np.concatenate((bgi, bgi, bgi[migrate_keep]))
+            fgi = np.concatenate((fgi, fgi, fgi[migrate_keep]))
+            bgc = np.concatenate((bgc, bgc, bgc[migrate_keep]))
+            fgc = np.concatenate((fgc, fgc, fgc[migrate_keep]))
+            fsnr = np.concatenate((fsnr, fsnr, fsnr[migrate_keep]))
+            fgg = np.concatenate((fgg, fgg, fgg[migrate_keep]))
+        else:
+            migrate_trial = np.zeros_like(fgi)
+
+        total_wav_set = len(fgg)
+
+        # Important
+        self.bg_index = bgi
+        self.fg_index = fgi
+        self.fg_channel = fgc
+        self.bg_channel = bgc
+        self.fg_snr = fsnr
+        self.fg_go = fgg
+        self.migrate_trial = migrate_trial
+        # ------- Important
+
+        if (type(self._fg_delay) is np.array) | (type(self._fg_delay) is list):
+            self.fg_delay = np.array(self._fg_delay)
+        else:
+            self.fg_delay = np.zeros(self.FgSet.max_index) + self._fg_delay
+
+        # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
+        if trial_idx is None:
+            trial_idx = self.current_trial_idx
+        if trial_idx >= len(self.trial_wav_idx):
+            new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
+            self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))
+            log.info(f'Added {len(new_trial_wav)}/{len(self.trial_wav_idx)} trials to trial_wav_idx')
+            self.current_full_rep += 1
+            self.trial_is_repeat = np.concatenate((self.trial_is_repeat, np.zeros_like(new_trial_wav)))
+
     #def trial_waveform(self, trial_idx=None, wav_set_idx=None):
     #def trial_parameters(self, trial_idx=None, wav_set_idx=None):
     #def score_response(self, outcome, repeat_incorrect=2, trial_idx=None):

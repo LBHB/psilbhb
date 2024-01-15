@@ -564,6 +564,8 @@ def configure_category_stimuli(event):
                                 random_seed=params['random_seed'],
                                 CatchFG_frac=params['CatchFG_frac'],
                                 CatchBG_frac=params['CatchBG_frac'],
+                                catch_ferret_id=params['catch_ferret_id'],
+                                n_env_bands=params['n_env_bands'],
                               )
 
 enamldef CategorySetManifest(ExperimentManifest): manifest:
@@ -656,6 +658,20 @@ enamldef CategorySetManifest(ExperimentManifest): manifest:
                 name = 'CatchBG_frac'
                 label = 'CatchBG_frac'
                 expression = '0.5'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'catch_ferret_id'
+                label = 'catch_ferret_id'
+                expression = '3'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'n_env_bands'
+                label = 'n_env_bands'
+                expression = '[2, 8, 32]'
                 dtype = 'object'
                 scope = 'experiment'
 
