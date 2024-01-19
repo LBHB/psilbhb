@@ -676,6 +676,13 @@ enamldef CategorySetManifest(ExperimentManifest): manifest:
                 scope = 'experiment'
 
             Parameter:
+                name = 'reg2catch_ratio'
+                label = 'reg2catch_ratio'
+                expression = '6'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
                 name = 'response_window'
                 label = 'response_window'
                 expression = '(0.0, 1.0)'
