@@ -66,7 +66,8 @@ def get_stim_list(FgSet, BgSet, catch_ferret_id=3, n_env_bands=[2, 8, 32], reg2c
     #region get all regular (non-catch) trial stimuli: fgs and speech
     num_regular_trials= reg2catch_ratio*num_catch_trials
 
-    taboo_ferret_ids = [1, 2, 7, catch_ferret_id]
+    # taboo_ferret_ids = [1, 2, 7, catch_ferret_id]
+    taboo_ferret_ids = [1, 2, 7]
     reg_fg_names = choices([soundpath_fg + '/' + x for x in all_ferret_files
                             if not any([x.startswith("ferretb{}".format(tabid)) for tabid in taboo_ferret_ids])],
                            k=num_regular_trials)
