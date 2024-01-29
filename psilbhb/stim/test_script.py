@@ -13,8 +13,6 @@ def print_attr(fg_set):
         print(f"{dict_var}: {getattr(fg_set, dict_var)}")
 
 
-
-
 def test_fgbg():
     if os.path.exists('h:/sounds'):
         soundpath_fg = 'h:/sounds/vocalizations/v1'
