@@ -10,6 +10,8 @@ from psiaudio import queue
 from psiaudio import util
 from fractions import Fraction
 from copy import deepcopy
+from random import choices
+import os
 
 from psiaudio.stim import Waveform, FixedWaveform, ToneFactory, \
     WavFileFactory, WavSequenceFactory, wavs_from_path
@@ -17,8 +19,86 @@ from psiaudio.stim import Waveform, FixedWaveform, ToneFactory, \
 import logging
 log = logging.getLogger(__name__)
 
+def get_stim_list(FgSet, BgSet, catch_ferret_id=3, n_env_bands=[2, 8, 32], reg2catch_ratio=7):
+    be_verbose = 1
+    if os.path.exists('h:/sounds'):
+        soundpath_fg = 'h:/sounds/Categories/v3_vocoding'
+        soundpath_bg = 'h:/sounds/Categories/speech_stims'
+        soundpath_catch_bg = 'h:/sounds/Categories/chimeric_voc'
+    else:
+        soundpath_fg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/v3_vocoding'
+        soundpath_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/speech_stims'
+        soundpath_catch_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/chimeric_voc'
 
-def cat_MCWavFileSets(set1, set2, frac_set1=.9):
+    all_ferret_files = [file for file in os.listdir(soundpath_fg) if file.endswith(".wav") and file.startswith("fer")]
+    all_speech_files = [file for file in os.listdir(soundpath_bg) if file.endswith(".wav") and file.startswith("spe")]
+    all_catch_files = [file for file in os.listdir(soundpath_catch_bg) if file.endswith(".wav") and file.startswith("ENV")]
+
+    taboo_ferret_files = ['ferretb3001R.wav', 'ferretb4004R.wav']
+
+    all_ferret_files = [x for x in all_ferret_files if x not in taboo_ferret_files]
+    all_catch_files = [x for x in all_catch_files if x.split('_')[-1] not in taboo_ferret_files]
+
+
+    #region get all catch trial files: fgs and env bgs
+    catch_bgs = [x for x in all_catch_files if
+                 any([x.startswith("ENV{}_ferretb{}".format(nb,catch_ferret_id)) for nb in n_env_bands]) ]
+    catch_fgs = list(set([x.split('_')[-1] for x in catch_bgs]))
+    catch_fgs.sort()
+
+    catch_pair_fg_inds = np.arange(4)
+    catch_pair_bg_inds = np.array([1, 0, 3, 2])
+
+    catch_fg_inds = np.concatenate([np.tile(x, len(n_env_bands)) for x in catch_pair_fg_inds])
+    catch_bg_inds = np.array([catch_pair_bg_inds[x] for x in catch_fg_inds])
+    catch_env_nbands = np.tile(n_env_bands, len(catch_pair_fg_inds))
+    num_catch_trials = len(catch_fg_inds)
+
+    catch_fg_names = [soundpath_fg + '/' + catch_fgs[idx] for idx in catch_fg_inds]
+    catch_bg_names = [soundpath_catch_bg + '/' + 'ENV{}_{}'.format(nb,catch_fgs[bg_idx]) for bg_idx,nb in zip(catch_bg_inds,catch_env_nbands)]
+
+    if be_verbose:
+        print("~~~~~~~~~Catch~~~~~~~~~")
+        [print(catch_fg_names[i] + ' vs ' + catch_bg_names[i]) for i in range(num_catch_trials)]
+        print("~~~~~~~~~end Catch~~~~~~~~~")
+    #endregion
+
+    #region get all regular (non-catch) trial stimuli: fgs and speech
+    num_regular_trials= reg2catch_ratio*num_catch_trials
+
+    # taboo_ferret_ids = [1, 2, 7, catch_ferret_id]
+    taboo_ferret_ids = [1, 2, 7]
+    reg_fg_names = choices([soundpath_fg + '/' + x for x in all_ferret_files
+                            if not any([x.startswith("ferretb{}".format(tabid)) for tabid in taboo_ferret_ids])],
+                           k=num_regular_trials)
+    reg_bg_names = [soundpath_bg + '/' + x for x in choices(all_speech_files, k=num_regular_trials)]
+    if be_verbose:
+        print("~~~~~~~~~Regular~~~~~~~~~")
+        [print(reg_fg_names[i] + ' vs ' + reg_bg_names[i]) for i in range(num_regular_trials)]
+        print("~~~~~~~~~end Regular~~~~~~~~~")
+    #endregion
+
+    session_fg_files = reg_fg_names + catch_fg_names
+    session_bg_files = reg_bg_names + catch_bg_names
+
+    # get indices
+    wav_set_fg = [str(x[0]).replace('\\', '/') for x in FgSet.filenames]
+    wav_set_bg = [str(x[0]).replace('\\', '/') for x in BgSet.filenames]
+
+    fgi = np.array([wav_set_fg.index(x) for x in session_fg_files])
+    bgi = np.array([wav_set_bg.index(x) for x in session_bg_files])
+    fgg = np.concatenate((np.ones(num_regular_trials), -1*np.ones(num_catch_trials)))
+
+    if be_verbose:
+        session_num_trials = num_regular_trials + num_catch_trials
+        print("~~~~~~~~~ Session ~~~~~~~~~")
+        [print(f"{i+1}/{len(session_fg_files)}: fgg={fgg[i]} {session_fg_files[i]} vs {session_bg_files[i]}")
+         for i in range(session_num_trials)]
+        print("~~~~~~~~~end Session~~~~~~~~~")
+
+    return fgi, bgi, fgg
+
+def cat_MCWavFileSets(set1, set2):
     """
         * Stand-alone function to concatenate two MCWavFileSets.
             - Probably make it a method for MCWavFileSets(instead of a function like this?)
@@ -28,7 +108,6 @@ def cat_MCWavFileSets(set1, set2, frac_set1=.9):
         Inputs:
             :param set1: first merge_MCWavFileSets
             :param set2: second merge_MCWavFileSets
-            :param frac_set1: what should be the fraction of set1 after combining the two sets
 
         Output:
             :param Concatenated MCWavFileSet
@@ -52,17 +131,6 @@ def cat_MCWavFileSets(set1, set2, frac_set1=.9):
     concat_fields = ['fit_names', 'test_names', 'fit_range', 'test_range']
     for _cat_fld in concat_fields:
         setattr(cat_set, _cat_fld, getattr(cat_set, _cat_fld) + getattr(set2, _cat_fld))
-
-    # # concat filenames based on ratio (for now).
-    # nfiles_set1 = len(set1.filenames) # l1
-    # nfiles_set2 = len(set2.filenames) # l2
-    # num_over_den = Fraction(frac_set1*nfiles_set2/(1-frac_set1)/nfiles_set1).limit_denominator(20) # n/d
-    # # call the fraction = f, then we want n*l1 / (n*l1 + d*l2) = f, where we need n copies of set1 and d copies of set2
-    #
-    # nrep_set1 = num_over_den.numerator
-    # nrep_set2 = num_over_den.denominator
-    # cat_set.filenames = set1.filenames * nrep_set1 + set2.filenames * nrep_set2
-    # cat_set.filelabels = set1.filelabels * nrep_set1 + set2.filelabels * nrep_set2
 
     cat_set.filenames = set1.filenames + set2.filenames
     cat_set.filelabels = set1.filelabels + set2.filelabels
@@ -316,6 +384,8 @@ class MCWavFileSet(WavFileSet):
         Parameters
         ----------
         '''
+        all_wav = list(sorted(Path(path).glob('*.wav')))
+
         if duration > 0:
             force_duration = duration
         else:
@@ -324,10 +394,11 @@ class MCWavFileSet(WavFileSet):
             test_range=slice(0)
         if fit_range is None:
             fit_range=slice(0)
+        elif fit_range is -1:
+            fit_range = slice(len(all_wav))
 
         #log.info("**************************************************")
         #log.info(path)
-        all_wav = list(sorted(Path(path).glob('*.wav')))
         #log.info(f"{list(all_wav)}")
         if type(fit_range) is slice:
             fit_range = list(range(len(all_wav))[fit_range])
@@ -1120,21 +1191,19 @@ class CategorySet(FgBgSet):
 
     """
 
-    def __init__(self, FgSet=None, BgSet=None, CatchFGSet=None, CatchBGSet=None,
-                 CatchFG_frac=.8, CatchBG_frac=.8, combinations='all',
-                 fg_switch_channels=False, bg_switch_channels=False,
-                 catch_frequency=0, primary_channel=0,
-                 fg_delay=0.0, fg_snr=0.0, response_window=None,
-                 migrate_fraction=0.0, migrate_start=0.5, migrate_stop=1.0,
-                 random_seed=0, catch_ferret_id=4, n_env_bands=[2, 8, 32]):
+    def __init__(self, FgSet=None, BgSet=None, CatchFgSet=None, CatchBgSet=None, combinations='custom',
+                 fg_switch_channels=True, bg_switch_channels=False, primary_channel=0, fg_delay=0.0,
+                 fg_snr=0.0, response_window=None, random_seed=0, catch_ferret_id=4,
+                 n_env_bands=[2, 8, 32], reg2catch_ratio=6):
         """
         FgBgSet polls FgSet and BgSet for .max_index, .waveform, .names, and .fs
         :param FgSet: {WaveformSet, MultichannelWaveformSet, None}
         :param BgSet: {WaveformSet, MultichannelWaveformSet, None}
-        :param CatchBGSet: {WaveformSet, MultichannelWaveformSet, None}
+        :param CatchBgSet: {WaveformSet, MultichannelWaveformSet, None}
         :param combinations: str
             simple: random pairing
             all: exhaustive, every possible combination of bg and fg
+            custom: for user-defined case
         :param fg_switch_channels: bool
         :param bg_switch_channels: {bool, str}
             channel of bg relative to fg
@@ -1151,41 +1220,47 @@ class CategorySet(FgBgSet):
             If array, length should bg >= FgSet.max_index
         :param random_seed: int
         """
-        if CatchFGSet is None:
+        if CatchFgSet is None:
             if FgSet is None:
                 self.FgSet = WaveformSet()
             else:
                 self.FgSet = FgSet
         else:
             if FgSet is None:
-                raise ValueError(f"Must specify FgSet if CatchFGSet is specified")
+                raise ValueError(f"Must specify FgSet if CatchFgSet is specified")
             else:
-                self.FgSet = cat_MCWavFileSets(FgSet, CatchFGSet, frac_set1=CatchFG_frac)
+                self.FgSet = cat_MCWavFileSets(FgSet, CatchFgSet)
 
-        if CatchBGSet is None:
+        if CatchBgSet is None:
             if BgSet is None:
                 self.BgSet = WaveformSet()
             else:
                 self.BgSet = BgSet
         else:
             if BgSet is None:
-                raise ValueError(f"Must specify BgSet if CatchBGSet is specified")
+                raise ValueError(f"Must specify BgSet if CatchBgSet is specified")
             else:
-                self.BgSet = cat_MCWavFileSets(BgSet, CatchBGSet, frac_set1=CatchBG_frac)
+                self.BgSet = cat_MCWavFileSets(BgSet, CatchBgSet)
 
         self.combinations = combinations
         self.fg_switch_channels = fg_switch_channels
         self.bg_switch_channels = bg_switch_channels
-        self.catch_frequency = catch_frequency
+        # self.catch_frequency = catch_frequency
         self._fg_delay = fg_delay
         self._fg_snr = fg_snr
         self.primary_channel = primary_channel
 
-        #region migrate code
-        self.migrate_fraction = migrate_fraction
-        self.migrate_start = migrate_start
-        self.migrate_stop = migrate_stop
-        #endregion
+        self.catch_ferret_id = catch_ferret_id
+        self.n_env_bands = n_env_bands
+        self.reg2catch_ratio = reg2catch_ratio
+
+        # #region migrate code
+        # self.migrate_fraction = migrate_fraction
+        # self.migrate_start = migrate_start
+        # self.migrate_stop = migrate_stop
+        # #endregion
+
+        assert combinations == 'custom', 'Only set up for user-defined combinations'
 
         if response_window is None:
             self.response_window = (0.0, 1.0)
@@ -1213,134 +1288,32 @@ class CategorySet(FgBgSet):
         manage trials separately to allow for repeats, etc."""
         _rng = np.random.RandomState(self.random_seed)
 
-        bg_range = np.arange(self.BgSet.max_index, dtype=int)
-        fg_range = np.arange(self.FgSet.max_index, dtype=int)
+
+        fgi, bgi, fgg = get_stim_list(self.FgSet, self.BgSet, self.catch_ferret_id, self.n_env_bands, self.reg2catch_ratio)
+        num_uniq_trial = len(fgi)
 
         # region set fg an bg
         if self.fg_switch_channels:
-            fg_channel = np.concatenate((np.zeros_like(fg_range), np.ones_like(fg_range)))
-            fg_range = np.tile(fg_range, 2)
+            fgc = np.concatenate((np.zeros_like(fgi), np.ones_like(fgi)))
+            fgi, bgi, fgg = np.tile(fgi, 2), np.tile(bgi, 2), np.tile(fgg, 2)
+            num_uniq_trial *= 2
         else:
-            fg_channel = np.zeros_like(fg_range) + self.primary_channel
+            fg_channel = np.zeros_like(fgi) + self.primary_channel
 
         if self.bg_switch_channels == False:
-            bg_channel = np.zeros_like(fg_range)
+            bgc = np.zeros_like(fgi)
         elif self.bg_switch_channels == 'same':
-            bg_channel = fg_channel.copy()
+            bgc = fgc.copy()
         elif self.bg_switch_channels == 'opposite':
-            bg_channel = 1 - fg_channel
-        elif self.bg_switch_channels == 'combinatorial':
-            bg_channel = np.concatenate((np.zeros_like(fg_channel), np.ones_like(fg_channel)))
-            fg_channel = np.tile(fg_channel, 2)
-            fg_range = np.tile(fg_range, 2)
-            # bg_range = np.tile(bg_range, 2)
-        elif self.bg_switch_channels == 'combinatorial+diotic':
-            bg_channel = np.concatenate(
-                (np.zeros_like(fg_channel), np.ones_like(fg_channel), -np.ones_like(fg_channel)))
-            fg_channel = np.tile(fg_channel, 3)
-            fg_range = np.tile(fg_range, 3)
-            # bg_range = np.tile(bg_range, 3)
+            bgc = 1 - fgc
         else:
             raise ValueError(f"Unknown bg_switch_channels value: {self.bg_switch_channels}.")
 
-        if (type(self._fg_snr) is np.array) | (type(self._fg_snr) is list):
-            # multiple SNRs requested, tile
-            fg_snr = np.concatenate(
-                [np.zeros(len(fg_range)) + snr for snr in self._fg_snr]
-            )
-            bg_channel = np.tile(bg_channel, len(self._fg_snr))
-            fg_channel = np.tile(fg_channel, len(self._fg_snr))
-            fg_range = np.tile(fg_range, len(self._fg_snr))
-            # bg_range = np.tile(bg_range, len(self._fg_snr))
-        else:
-            fg_snr = np.zeros(len(fg_range)) + self._fg_snr
+        print(f"{self._fg_snr}: type = {type(self._fg_snr)}")
 
-        if self.catch_frequency > 0:
-            raise ValueError(f"Support for catch_frequency>0 not yet implemented")
-
-        bg_len = len(bg_range)
-        fg_len = len(fg_range)
-        print(fg_len, bg_len)
-        bgi = np.array([], dtype=int)
-        fgi = np.array([], dtype=int)
-        fgc = np.array([], dtype=int)
-        bgc = np.array([], dtype=int)
-        fgg = np.array([], dtype=int)
-        fsnr = np.array([], dtype=int)
-        if self.combinations == 'simple':
-            total_wav_set = np.max([bg_len, fg_len])
-            # print(f'Updating FgBgSet {total_wav_set} trials...')
-            while (bg_len > 0) & (len(bgi) < total_wav_set):
-                # bgi = np.concatenate((bgi, _rng.permutation(bg_range)))
-                bgi = np.concatenate((bgi, bg_range))
-            while (fg_len > 0) & (len(fgi) < total_wav_set):
-                # ii = _rng.permutation(np.arange(len(fg_range)))
-                ii = np.arange(len(fg_range))
-                fgi = np.concatenate((fgi, fg_range))
-                fgc = np.concatenate((fgc, fg_channel[ii]))
-                bgc = np.concatenate((bgc, bg_channel[ii]))
-                fgg = np.concatenate((fgg, np.ones(len(fg_range))))
-        elif self.combinations == 'all':
-            total_wav_set = bg_len * fg_len
-            for i, bg in enumerate(bg_range):
-                bgi = np.concatenate((bgi, np.ones(len(fg_range), dtype=int) * bg))
-                ii = np.arange(len(fg_range), dtype=int)
-                fgi = np.concatenate((fgi, fg_range))
-                fgc = np.concatenate((fgc, fg_channel[ii]))
-                bgc = np.concatenate((bgc, bg_channel[ii]))
-                fsnr = np.concatenate((fsnr, fg_snr[ii]))
-                fgg = np.concatenate((fgg, np.ones(len(fg_range))))
-
-        else:
-            raise ValueError(f"FgBgSet combinations format {self.combinations} not supported")
-
-        # remove redundant very high and very low SNR trials
-        fgimin = fgi.min()
-        bgimin = bgi.min()
-        bgcmax = bgc.max()
-        snr_keep = ((fsnr <= 50) | ((bgi == bgimin) & (bgc == bgcmax))) & \
-                   ((fsnr > -100) | (fgi == fgimin))
-        bgi = bgi[snr_keep]
-        fgi = fgi[snr_keep]
-        bgc = bgc[snr_keep]
-        fgc = fgc[snr_keep]
-        fsnr = fsnr[snr_keep]
-
-        # fgg provides information about whether this is a
-        # go (>0)/no-go (0)/go-anywhere (-1) trial
-        fgg = fgg[snr_keep]
-        fgg[fsnr <= -100] = -1
-
-        # check if any stims are labeled catch:
-        for i, b in enumerate(bgi):
-            if self.BgSet.filelabels[b] == 'C':
-                fgg[i] = -1
-        for i, f in enumerate(fgi):
-            if self.FgSet.filelabels[f] == 'C':
-                fgg[i] = -1
-
-        migrate_keep = (fsnr > -30) & (bgc == bgcmax)
-
-        if self.migrate_fraction >= 1:
-            migrate_trial = np.ones_like(fgi)
-        elif (self.migrate_fraction > 0.4):
-            migrate_trial = np.concatenate((np.zeros_like(fgi), np.ones_like(fgi[migrate_keep])))
-            bgi = np.concatenate((bgi, bgi[migrate_keep]))
-            fgi = np.concatenate((fgi, fgi[migrate_keep]))
-            bgc = np.concatenate((bgc, bgc[migrate_keep]))
-            fgc = np.concatenate((fgc, fgc[migrate_keep]))
-            fsnr = np.concatenate((fsnr, fsnr[migrate_keep]))
-            fgg = np.concatenate((fgg, fgg[migrate_keep]))
-        elif (self.migrate_fraction > 0):
-            migrate_trial = np.concatenate((np.zeros_like(fgi), np.zeros_like(fgi), np.ones_like(fgi[migrate_keep])))
-            bgi = np.concatenate((bgi, bgi, bgi[migrate_keep]))
-            fgi = np.concatenate((fgi, fgi, fgi[migrate_keep]))
-            bgc = np.concatenate((bgc, bgc, bgc[migrate_keep]))
-            fgc = np.concatenate((fgc, fgc, fgc[migrate_keep]))
-            fsnr = np.concatenate((fsnr, fsnr, fsnr[migrate_keep]))
-            fgg = np.concatenate((fgg, fgg, fgg[migrate_keep]))
-        else:
-            migrate_trial = np.zeros_like(fgi)
+        assert len(self._fg_snr)==1, "Only a single SNR is supported"
+        fsnr = np.zeros_like(fgi) + self._fg_snr
+        migrate_trial = np.zeros_like(fgi)
 
         total_wav_set = len(fgg)
 

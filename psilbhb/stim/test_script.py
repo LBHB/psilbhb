@@ -5,7 +5,8 @@ import matplotlib
 matplotlib.use("Qt5Agg")
 from random import sample,choices
 from collections import Counter
-
+import os
+import numpy as np
 from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet, VowelSet, CategorySet, cat_MCWavFileSets
 
 def print_attr(fg_set):
@@ -403,72 +404,88 @@ def test_categories():
     ax[1].set_title('channel 2')
     plt.tight_layout()
 
-
-def get_stim_list(catch_ferret_id=3, n_env_bands=[2, 8, 32]):
-    be_verbose = 1
+def test_simple_category():
+    
     if os.path.exists('h:/sounds'):
-        soundpath_fg = 'h:/sounds/vocalizations/v1'
-        soundpath_bg = 'h:/sounds/backgrounds/v1'
-        soundpath_catch_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/chimeric_voc'
+        soundpath_fg = 'h:/sounds/Categories/v3_vocoding'
+        soundpath_bg = 'h:/sounds/Categories/speech_stims'
+        soundpath_catch_bg = 'h:/sounds/Categories/chimeric_voc'
     else:
         soundpath_fg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/v3_vocoding'
         soundpath_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/speech_stims'
         soundpath_catch_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/chimeric_voc'
 
-    all_ferret_files = [file for file in os.listdir(soundpath_fg) if file.endswith(".wav") and file.startswith("fer")]
-    all_speech_files = [file for file in os.listdir(soundpath_bg) if file.endswith(".wav") and file.startswith("spe")]
-    all_catch_files = [file for file in os.listdir(soundpath_catch_bg) if file.endswith(".wav") and file.startswith("ENV")]
+    FgSet = MCWavFileSet(fs=44000, path=soundpath_fg, duration=3, normalization='rms',
+                          fit_range=-1, channel_count=1, level=60)
+    BgSet = MCWavFileSet(fs=44000, path=soundpath_bg, duration=3, normalization='rms',
+                          fit_range=-1, channel_count=1, level=60)
+    CatchBgSet = MCWavFileSet(fs=44000, path=soundpath_catch_bg, duration=3, normalization='rms',
+                          fit_range=-1, channel_count=1, level=60)
 
-    taboo_ferret_files = ['ferretb3001R.wav', 'ferretb4004R.wav']
+    print(FgSet.names)
+    w = FgSet.waveform(0)
+    print(w.shape)
 
-    all_ferret_files = [x for x in all_ferret_files if x not in taboo_ferret_files]
-    all_catch_files = [x for x in all_catch_files if x.split('_')[-1] not in taboo_ferret_files]
+    # catch_ferret_id = 3
+    # n_env_bands = [2, 8, 32]
+    # reg2catch_ratio= 6 # 6 for 85% regular trials, 7 for 87.5% regular trials: rest catch trials
+
+    fg_snr = [0., ]
+
+    fb = CategorySet(FgSet=FgSet, BgSet=BgSet, CatchBgSet=CatchBgSet, fg_switch_channels=True,
+                     bg_switch_channels='opposite', combinations='custom',
+                     fg_snr=fg_snr, catch_ferret_id=3, n_env_bands=[2, 8, 32], reg2catch_ratio=6)
+    fb.update()  # not necessary but illustrative of back-end processing
 
 
-    #region get all catch trial files: fgs and env bgs
-    catch_bgs = [x for x in all_catch_files if
-                 any([x.startswith("ENV{}_ferretb{}".format(nb,catch_ferret_id)) for nb in n_env_bands]) ]
-    catch_fgs = list(set([x.split('_')[-1] for x in catch_bgs]))
-    catch_fgs.sort()
+    simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    # simulated_performance = [2 for _ in range(200)]
 
-    catch_pair_fg_inds = np.arange(4)
-    catch_pair_bg_inds = np.array([1, 0, 3, 2])
+    played_fg = [ [] for _ in simulated_performance]
+    played_bg = [ [] for _ in simulated_performance]
 
-    catch_fg_inds = np.concatenate([np.tile(x, len(n_env_bands)) for x in catch_pair_fg_inds])
-    catch_bg_inds = np.array([catch_pair_bg_inds[x] for x in catch_fg_inds])
-    catch_env_nbands = np.tile(n_env_bands, len(catch_pair_fg_inds))
-    num_catch_trials = len(catch_fg_inds)
+    for trial_idx, outcome in enumerate(simulated_performance):
+        w = fb.trial_waveform(trial_idx)
+        d = fb.trial_parameters(trial_idx)
+        fb.score_response(outcome, trial_idx=trial_idx)
+        print(d['trial_idx'], d['wav_set_idx'], d['fg_name'], d['fg_channel'], d['bg_name'], d['bg_channel'],
+              d['response_condition'], d['current_full_rep'], d['trial_is_repeat'])
+        played_fg[trial_idx] = d['fg_name']
+        played_bg[trial_idx] = d['bg_name']
 
-    catch_fg_names = [catch_fgs[idx] for idx in catch_fg_inds]
-    catch_bg_names = ["ENV{}_{}".format(nb,catch_fgs[bg_idx]) for bg_idx,nb in zip(catch_bg_inds,catch_env_nbands)]
+    print('FG')
+    print(Counter(played_fg).keys())  # equals to list(set(words))
+    print(Counter(played_fg).values())  # counts the elements' frequency
 
-    if be_verbose:
-        print("~~~~~~~~~Catch~~~~~~~~~")
-        [print(catch_fg_names[i] + ' vs ' + catch_bg_names[i]) for i in range(num_catch_trials)]
-        print("~~~~~~~~~end Catch~~~~~~~~~")
-    #endregion
+    print('BG')
+    print(Counter(played_bg).keys())  # equals to list(set(words))
+    print(Counter(played_bg).values())  # counts the elements' frequency
+    print('----------------------------------------------------------------------------------------------------')
 
-    #region get all regular (non-catch) trial stimuli: fgs and speech
-    num_regular_trials= 7*num_catch_trials
+    print(f"wav_per_rep: {fb.wav_per_rep}")
+    print(f"current full rep: {fb.current_full_rep}")
+    print(f"scored trials: {len(fb.trial_outcomes)}")
+    print(f"error trials: {sum((fb.trial_outcomes>-1) & (fb.trial_outcomes<2))}")
+    print(f"trials remaining this rep: {len(fb.trial_wav_idx)-len(fb.trial_outcomes)}")
 
-    taboo_ferret_ids = [1, 2, 7, catch_ferret_id]
-    reg_fg_names = choices([x for x in all_ferret_files if
-                 not any([x.startswith("ferretb{}".format(tabid)) for tabid in taboo_ferret_ids])], k=num_regular_trials)
-    reg_bg_names = choices(all_speech_files, k=num_regular_trials)
-    if be_verbose:
-        print("~~~~~~~~~Regular~~~~~~~~~")
-        [print(reg_fg_names[i] + ' vs ' + reg_bg_names[i]) for i in range(num_regular_trials)]
-        print("~~~~~~~~~end Regular~~~~~~~~~")
-    #endregion
+    # plot waveforms from an example trial
+    trial_idx = 0
+    w = fb.trial_waveform(trial_idx).T
+    wb = fb.BgSet.waveform(fb.bg_index[trial_idx])
 
-    session_fg_files = reg_fg_names + catch_fg_names
-    session_bg_files = reg_bg_names + catch_bg_names
-    session_num_trials = num_regular_trials + num_catch_trials
-    # if be_verbose:
-    #     print("~~~~~~~~~ Session ~~~~~~~~~")
-    #     [print(f"{i+1}/{len(session_fg_files)}: {session_fg_files[i]} vs {session_bg_files[i]}") for i in range(session_num_trials)]
-    #     print("~~~~~~~~~end Session~~~~~~~~~")
-
+    f, ax = plt.subplots(2,1, sharex='col', sharey='col')
+    t=np.arange(w.shape[0])/fb.FgSet.fs
+    ax[0].plot(t,w[:,0])
+    # ax[0].plot(t,wb[:,0])
+    ax[0].set_title('channel 1')
+    if w.shape[1]>1:
+        ax[1].plot(t,w[:,1], label='f')
+    if wb.shape[1]>1:
+        ax[1].plot(t,wb[:,1], label='b')
+    ax[1].legend()
+    ax[1].set_title('channel 2')
+    plt.tight_layout()
+    plt.show()
 
 # test_fgbg()
 # test_vowels()
@@ -476,6 +493,4 @@ def get_stim_list(catch_ferret_id=3, n_env_bands=[2, 8, 32]):
 # test_categories_using_VowelSet()
 # print('wth')
 # test_categories()
-
-get_stim_list(catch_ferret_id=4, n_env_bands=[2, 8, 32])
-# get_stim_list(catch_ferret_id=5, n_env_bands=[1, 4, 16])
+test_simple_category()
