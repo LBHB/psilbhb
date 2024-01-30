@@ -410,16 +410,20 @@ def test_simple_category():
         soundpath_fg = 'h:/sounds/Categories/v3_vocoding'
         soundpath_bg = 'h:/sounds/Categories/speech_stims'
         soundpath_catch_bg = 'h:/sounds/Categories/chimeric_voc'
+        soundpath_OAnoise = 'h:/sounds/Categories/noise_vocPSDmatched'
     else:
         soundpath_fg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/v3_vocoding'
         soundpath_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/speech_stims'
         soundpath_catch_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/chimeric_voc'
+        soundpath_OAnoise = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/noise_vocPSDmatched'
 
     FgSet = MCWavFileSet(fs=44000, path=soundpath_fg, duration=3, normalization='rms',
                           fit_range=-1, channel_count=1, level=60)
     BgSet = MCWavFileSet(fs=44000, path=soundpath_bg, duration=3, normalization='rms',
                           fit_range=-1, channel_count=1, level=60)
     CatchBgSet = MCWavFileSet(fs=44000, path=soundpath_catch_bg, duration=3, normalization='rms',
+                          fit_range=-1, channel_count=1, level=60)
+    OAnoiseSet = MCWavFileSet(fs=44000, path=soundpath_OAnoise, duration=3, normalization='rms',
                           fit_range=-1, channel_count=1, level=60)
 
     print(FgSet.names)
@@ -432,30 +436,42 @@ def test_simple_category():
 
     fg_snr = [0., ]
 
-    fb = CategorySet(FgSet=FgSet, BgSet=BgSet, CatchBgSet=CatchBgSet, fg_switch_channels=True,
+    # fb = CategorySet(FgSet=FgSet, BgSet=BgSet, CatchBgSet=CatchBgSet, OAnoiseSet=OAnoiseSet, fg_switch_channels=True,
+    #                  bg_switch_channels='opposite', combinations='custom',
+    #                  fg_snr=fg_snr, catch_ferret_id=3, n_env_bands=[2, 8, 32], reg2catch_ratio=6, unique_overall_SNR= [np.inf])
+
+    fb = CategorySet(FgSet=FgSet, BgSet=BgSet, CatchBgSet=CatchBgSet, OAnoiseSet=OAnoiseSet, fg_switch_channels=True,
                      bg_switch_channels='opposite', combinations='custom',
-                     fg_snr=fg_snr, catch_ferret_id=3, n_env_bands=[2, 8, 32], reg2catch_ratio=6)
+                     fg_snr=fg_snr, catch_ferret_id=3, n_env_bands=[2, 8, 32], reg2catch_ratio=6, unique_overall_SNR= [-10, 0, 10])
+
     fb.update()  # not necessary but illustrative of back-end processing
 
 
-    simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+    simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                             0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                             2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+                             2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
     # simulated_performance = [2 for _ in range(200)]
 
     played_fg = [ [] for _ in simulated_performance]
-    played_bg = [ [] for _ in simulated_performance]
+    played_bg = [[] for _ in simulated_performance]
+    played_overall_snr = [[] for _ in simulated_performance]
 
     for trial_idx, outcome in enumerate(simulated_performance):
         w = fb.trial_waveform(trial_idx)
         d = fb.trial_parameters(trial_idx)
         fb.score_response(outcome, trial_idx=trial_idx)
-        print(d['trial_idx'], d['wav_set_idx'], d['fg_name'], d['fg_channel'], d['bg_name'], d['bg_channel'],
+        print(d['trial_idx'], d['wav_set_idx'], d['overall_snr'], d['fg_name'], d['fg_channel'], d['bg_name'], d['bg_channel'],
               d['response_condition'], d['current_full_rep'], d['trial_is_repeat'])
         played_fg[trial_idx] = d['fg_name']
         played_bg[trial_idx] = d['bg_name']
+        played_overall_snr[trial_idx] = d['overall_snr']
+
 
     print('FG')
     print(Counter(played_fg).keys())  # equals to list(set(words))
     print(Counter(played_fg).values())  # counts the elements' frequency
+
 
     print('BG')
     print(Counter(played_bg).keys())  # equals to list(set(words))
@@ -468,24 +484,29 @@ def test_simple_category():
     print(f"error trials: {sum((fb.trial_outcomes>-1) & (fb.trial_outcomes<2))}")
     print(f"trials remaining this rep: {len(fb.trial_wav_idx)-len(fb.trial_outcomes)}")
 
-    # plot waveforms from an example trial
-    trial_idx = 0
-    w = fb.trial_waveform(trial_idx).T
-    wb = fb.BgSet.waveform(fb.bg_index[trial_idx])
+    print("SNR statistics")
+    print(Counter(played_overall_snr).keys())
+    print(Counter(played_overall_snr).values())  # counts the elements' frequency
 
-    f, ax = plt.subplots(2,1, sharex='col', sharey='col')
-    t=np.arange(w.shape[0])/fb.FgSet.fs
-    ax[0].plot(t,w[:,0])
-    # ax[0].plot(t,wb[:,0])
-    ax[0].set_title('channel 1')
-    if w.shape[1]>1:
-        ax[1].plot(t,w[:,1], label='f')
-    if wb.shape[1]>1:
-        ax[1].plot(t,wb[:,1], label='b')
-    ax[1].legend()
-    ax[1].set_title('channel 2')
-    plt.tight_layout()
-    plt.show()
+    # plot waveforms from an example trial
+    # trial_idx = 0
+    for trial_idx in np.array([3, 5, 0, 8]):
+        w = fb.trial_waveform(trial_idx).T
+        wb = fb.BgSet.waveform(fb.bg_index[trial_idx])
+
+        f, ax = plt.subplots(2,1, sharex='col', sharey='col')
+        t=np.arange(w.shape[0])/fb.FgSet.fs
+        ax[0].plot(t,w[:,0])
+        # ax[0].plot(t,wb[:,0])
+        ax[0].set_title('channel 1')
+        if w.shape[1]>1:
+            ax[1].plot(t,w[:,1], label='f')
+        if wb.shape[1]>1:
+            ax[1].plot(t,wb[:,1], label='b')
+        ax[1].legend()
+        ax[1].set_title('channel 2')
+        plt.tight_layout()
+        plt.show()
 
 # test_fgbg()
 # test_vowels()

@@ -98,6 +98,61 @@ def get_stim_list(FgSet, BgSet, catch_ferret_id=3, n_env_bands=[2, 8, 32], reg2c
 
     return fgi, bgi, fgg
 
+def get_stim_list_no_catch(FgSet, BgSet):
+    be_verbose = 1
+    if os.path.exists('h:/sounds'):
+        soundpath_fg = 'h:/sounds/Categories/v3_vocoding'
+        soundpath_bg = 'h:/sounds/Categories/speech_stims'
+        soundpath_overall_noise = 'h:/sounds/Categories/overall_noise'
+    else:
+        soundpath_fg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/v3_vocoding'
+        soundpath_bg = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/speech_stims'
+        soundpath_overall_noise = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/overall_noise'
+
+    all_ferret_files = [file for file in os.listdir(soundpath_fg) if file.endswith(".wav") and file.startswith("fer")]
+    all_speech_files = [file for file in os.listdir(soundpath_bg) if file.endswith(".wav") and file.startswith("spe")]
+    all_noise_files = [file for file in os.listdir(soundpath_bg) if file.endswith(".wav") and file.startswith("spe")]
+
+
+    taboo_ferret_files = ['ferretb3001R.wav', 'ferretb4004R.wav']
+    all_ferret_files = [x for x in all_ferret_files if x not in taboo_ferret_files]
+
+    #region get all regular (non-catch) trial stimuli: fgs and speech
+    num_regular_trials= 100
+
+    # taboo_ferret_ids = [1, 2, 7, catch_ferret_id]
+    taboo_ferret_ids = [1, 2, 7]
+    reg_fg_names = choices([soundpath_fg + '/' + x for x in all_ferret_files
+                            if not any([x.startswith("ferretb{}".format(tabid)) for tabid in taboo_ferret_ids])],
+                           k=num_regular_trials)
+    reg_bg_names = [soundpath_bg + '/' + x for x in choices(all_speech_files, k=num_regular_trials)]
+    if be_verbose:
+        print("~~~~~~~~~Regular~~~~~~~~~")
+        [print(reg_fg_names[i] + ' vs ' + reg_bg_names[i]) for i in range(num_regular_trials)]
+        print("~~~~~~~~~end Regular~~~~~~~~~")
+    #endregion
+
+    session_fg_files = reg_fg_names
+    session_bg_files = reg_bg_names
+
+    # get indices
+    wav_set_fg = [str(x[0]).replace('\\', '/') for x in FgSet.filenames]
+    wav_set_bg = [str(x[0]).replace('\\', '/') for x in BgSet.filenames]
+
+    fgi = np.array([wav_set_fg.index(x) for x in session_fg_files])
+    bgi = np.array([wav_set_bg.index(x) for x in session_bg_files])
+    fgg = np.ones(num_regular_trials)
+
+    if be_verbose:
+        session_num_trials = num_regular_trials
+        print("~~~~~~~~~ Session ~~~~~~~~~")
+        [print(f"{i+1}/{len(session_fg_files)}: fgg={fgg[i]} {session_fg_files[i]} vs {session_bg_files[i]}")
+         for i in range(session_num_trials)]
+        print("~~~~~~~~~end Session~~~~~~~~~")
+
+    return fgi, bgi, fgg
+
+
 def cat_MCWavFileSets(set1, set2):
     """
         * Stand-alone function to concatenate two MCWavFileSets.
@@ -1191,10 +1246,10 @@ class CategorySet(FgBgSet):
 
     """
 
-    def __init__(self, FgSet=None, BgSet=None, CatchFgSet=None, CatchBgSet=None, combinations='custom',
-                 fg_switch_channels=True, bg_switch_channels=False, primary_channel=0, fg_delay=0.0,
-                 fg_snr=0.0, response_window=None, random_seed=0, catch_ferret_id=4,
-                 n_env_bands=[2, 8, 32], reg2catch_ratio=6):
+    def __init__(self, FgSet=None, BgSet=None, CatchFgSet=None, CatchBgSet=None, OAnoiseSet=None, 
+                 combinations='custom',fg_switch_channels=True, bg_switch_channels=False, primary_channel=0, 
+                 fg_delay=0.0, fg_snr=0.0, response_window=None, random_seed=0, catch_ferret_id=4,
+                 n_env_bands=[2, 8, 32], reg2catch_ratio=6, unique_overall_SNR= [np.inf]):
         """
         FgBgSet polls FgSet and BgSet for .max_index, .waveform, .names, and .fs
         :param FgSet: {WaveformSet, MultichannelWaveformSet, None}
@@ -1241,6 +1296,13 @@ class CategorySet(FgBgSet):
                 raise ValueError(f"Must specify BgSet if CatchBgSet is specified")
             else:
                 self.BgSet = cat_MCWavFileSets(BgSet, CatchBgSet)
+        
+        if OAnoiseSet is None:
+            self.OAnoiseSet = WaveformSet()
+            if not all(np.isinf(unique_overall_SNR)):
+                raise ValueError(f"unique_overall_SNR must be [np.inf] if OAnoiseSet is None")
+        else:
+            self.OAnoiseSet = OAnoiseSet
 
         self.combinations = combinations
         self.fg_switch_channels = fg_switch_channels
@@ -1253,6 +1315,8 @@ class CategorySet(FgBgSet):
         self.catch_ferret_id = catch_ferret_id
         self.n_env_bands = n_env_bands
         self.reg2catch_ratio = reg2catch_ratio
+
+        self.unique_overall_SNR = unique_overall_SNR
 
         # #region migrate code
         # self.migrate_fraction = migrate_fraction
@@ -1288,14 +1352,23 @@ class CategorySet(FgBgSet):
         manage trials separately to allow for repeats, etc."""
         _rng = np.random.RandomState(self.random_seed)
 
+        if all(np.isinf(self.unique_overall_SNR)):
+            fgi, bgi, fgg = get_stim_list(self.FgSet, self.BgSet, self.catch_ferret_id, self.n_env_bands, self.reg2catch_ratio)
+            overall_snr = np.inf * np.ones_like(fgi)
+        else:
+            fgi, bgi, fgg = get_stim_list_no_catch(self.FgSet, self.BgSet)
+            # add np.inf as the first snr if doesn't already exist
+            self.unique_overall_SNR = [np.inf] + list(set(self.unique_overall_SNR) - set([np.inf]))
+            num_noninf_snrs = len(self.unique_overall_SNR) - 1
+            overall_snr_weight = np.concatenate(([num_noninf_snrs], np.ones(num_noninf_snrs)))
+            overall_snr = choices(self.unique_overall_SNR, weights = overall_snr_weight, k = len(fgi))
 
-        fgi, bgi, fgg = get_stim_list(self.FgSet, self.BgSet, self.catch_ferret_id, self.n_env_bands, self.reg2catch_ratio)
         num_uniq_trial = len(fgi)
 
         # region set fg an bg
         if self.fg_switch_channels:
             fgc = np.concatenate((np.zeros_like(fgi), np.ones_like(fgi)))
-            fgi, bgi, fgg = np.tile(fgi, 2), np.tile(bgi, 2), np.tile(fgg, 2)
+            fgi, bgi, fgg, overall_snr = np.tile(fgi, 2), np.tile(bgi, 2), np.tile(fgg, 2), np.tile(overall_snr, 2)
             num_uniq_trial *= 2
         else:
             fg_channel = np.zeros_like(fgi) + self.primary_channel
@@ -1325,6 +1398,7 @@ class CategorySet(FgBgSet):
         self.fg_snr = fsnr
         self.fg_go = fgg
         self.migrate_trial = migrate_trial
+        self.overall_snr = overall_snr
         # ------- Important
 
         if (type(self._fg_delay) is np.array) | (type(self._fg_delay) is list):
@@ -1342,9 +1416,115 @@ class CategorySet(FgBgSet):
             self.current_full_rep += 1
             self.trial_is_repeat = np.concatenate((self.trial_is_repeat, np.zeros_like(new_trial_wav)))
 
-    #def trial_waveform(self, trial_idx=None, wav_set_idx=None):
-    #def trial_parameters(self, trial_idx=None, wav_set_idx=None):
-    #def score_response(self, outcome, repeat_incorrect=2, trial_idx=None):
+    def trial_waveform(self, trial_idx=None, wav_set_idx=None):
+        if wav_set_idx is None:
+            if trial_idx is None:
+                self.current_trial_idx += 1
+                trial_idx = self.current_trial_idx
+            if len(self.trial_wav_idx) <= trial_idx:
+                self.update(trial_idx=trial_idx)
+
+            wav_set_idx = self.trial_wav_idx[trial_idx]
+
+        wfg = self.FgSet.waveform(self.fg_index[wav_set_idx])
+        if self.fg_channel[wav_set_idx] == 1:
+            wfg = np.concatenate((np.zeros_like(wfg), wfg), axis=1)
+        wbg = self.BgSet.waveform(self.bg_index[wav_set_idx])
+        log.info(f"fg level: {self.FgSet.level} bg level: {self.BgSet.level} FG RMS: {wfg.std():.3f} BG RMS: {wbg.std():.3f}")
+
+        if self.bg_channel[wav_set_idx] == 1:
+            wbg = np.concatenate((np.zeros_like(wbg), wbg), axis=1)
+        elif self.bg_channel[wav_set_idx] == -1:
+            wbg = np.concatenate((wbg, wbg), axis=1)
+
+        if wbg.shape[1] < wfg.shape[1]:
+            wbg = np.concatenate((wbg, np.zeros_like(wbg)), axis=1)
+        if wfg.shape[1] < wbg.shape[1]:
+            wfg = np.concatenate((wfg, np.zeros_like(wfg)), axis=1)
+        fg_snr = self.fg_snr[wav_set_idx]
+        if fg_snr == -100:
+            fg_scale = 0
+        elif fg_snr < 50:
+            fg_scale = 10**(fg_snr / 20)
+        else:
+            # special case of effectively infinite SNR, don't actually amplify fg
+            wbg[:] = 0
+            fg_scale = 10**((fg_snr-100) / 20)
+        offsetbins = int(self.fg_delay[self.fg_index[wav_set_idx]] * self.FgSet.fs)
+
+        # combine fg and bg waveforms
+        w = wbg
+        if wfg.shape[0]+offsetbins > wbg.shape[0]:
+            print(wfg.shape[0], offsetbins, wbg.shape[0])
+            w = np.concatenate((w, np.zeros((wfg.shape[0]+offsetbins-wbg.shape[0],
+                                             wbg.shape[1]))), axis=0)
+        w[offsetbins:(offsetbins+wfg.shape[0]), :] += wfg * fg_scale
+        if w.shape[1] < 2:
+            w = np.concatenate((w, np.zeros_like(w)), axis=1)
+
+        if not np.isinf(self.overall_snr[wav_set_idx]):
+            cur_overall_snr = self.overall_snr[trial_idx]
+            overall_noise_scale = 10 ** (-cur_overall_snr / 20)
+            # noise and ferret vocal can be matched in index
+            ov_noise = overall_noise_scale * self.OAnoiseSet.waveform(self.fg_index[wav_set_idx])
+            w += ov_noise
+            
+        return w.T
+
+    def trial_parameters(self, trial_idx=None, wav_set_idx=None):
+        if wav_set_idx is None:
+            if trial_idx is None:
+                trial_idx = self.current_trial_idx
+            if len(self.trial_wav_idx) <= trial_idx:
+                self.update(trial_idx=trial_idx)
+
+            wav_set_idx = self.trial_wav_idx[trial_idx]
+        else:
+            trial_idx = 0
+
+        fg_i = self.fg_index[wav_set_idx]
+        bg_i = self.bg_index[wav_set_idx]
+
+        is_go_trial = self.fg_go[wav_set_idx]
+        if is_go_trial==-1:
+            # -1 means either port
+            response_condition = -1
+        elif is_go_trial==1:
+            # 1=spout 1, 2=spout 2
+            response_condition = int(self.fg_channel[wav_set_idx]+1)
+        else:
+            response_condition = 0
+
+        if type(self.response_window) is tuple:
+            response_window = (self.fg_delay[fg_i] + self.response_window[0],
+                               self.fg_delay[fg_i] + self.response_window[1])
+        else:
+            response_window = (self.fg_delay[fg_i] + self.response_window[fg_i][0],
+                               self.fg_delay[fg_i] + self.response_window[fg_i][1])
+
+        d = {'trial_idx': trial_idx,
+             'wav_set_idx': wav_set_idx,
+             'fg_i': fg_i,
+             'bg_i': bg_i,
+             'fg_name': self.FgSet.names[fg_i],
+             'bg_name': self.BgSet.names[bg_i],
+             'fg_duration': self.FgSet.duration,
+             'bg_duration': self.BgSet.duration,
+             'snr': self.fg_snr[wav_set_idx],
+             'this_snr': self.fg_snr[wav_set_idx],
+             'overall_snr': self.overall_snr[wav_set_idx],
+             'fg_delay': self.fg_delay[fg_i],
+             'fg_channel': self.fg_channel[wav_set_idx],
+             'bg_channel': self.bg_channel[wav_set_idx],
+             'migrate_trial': self.migrate_trial[wav_set_idx],
+             'response_condition': response_condition,
+             'response_window': response_window,
+             'current_full_rep': self.current_full_rep,
+             'primary_channel': self.primary_channel,
+             'trial_is_repeat': self.trial_is_repeat[trial_idx],
+             }
+        return d
+        #def score_response(self, outcome, repeat_incorrect=2, trial_idx=None):
 
 
 """
