@@ -256,19 +256,18 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
     #if np.max(np.abs(waveform)) > 5:
     #    raise ValueError('waveform value too large')
 
+    # Resample if sampling rate does not match
+    if fs != file_fs:
+        waveform = util.resample_fft(waveform, file_fs, fs)
+
     if force_duration is not None:
-        final_samples = int(force_duration*file_fs)
+        final_samples = int(force_duration*fs)
         if len(waveform) > final_samples:
             waveform = waveform[:final_samples]
             log.info(f'truncated to {final_samples} samples')
         elif len(waveform) < final_samples:
             waveform = np.concatenate([waveform, np.zeros(final_samples-len(waveform))])
             log.info(f'padded with {final_samples-len(waveform)} samples')
-
-    # Resample if sampling rate does not match
-    if fs != file_fs:
-        waveform_resampled = util.resample_fft(waveform, file_fs, fs)
-        return waveform_resampled
 
     return waveform
 
@@ -1430,7 +1429,7 @@ class CategorySet(FgBgSet):
         if self.fg_channel[wav_set_idx] == 1:
             wfg = np.concatenate((np.zeros_like(wfg), wfg), axis=1)
         wbg = self.BgSet.waveform(self.bg_index[wav_set_idx])
-        log.info(f"fg level: {self.FgSet.level} bg level: {self.BgSet.level} FG RMS: {wfg.std():.3f} BG RMS: {wbg.std():.3f}")
+        log.info(f"wfg={wfg.shape},wbg={wbg.shape}, bfdur={self.BgSet.duration},fg level: {self.FgSet.level} bg level: {self.BgSet.level} FG RMS: {wfg.std():.3f} BG RMS: {wbg.std():.3f}")
 
         if self.bg_channel[wav_set_idx] == 1:
             wbg = np.concatenate((np.zeros_like(wbg), wbg), axis=1)
@@ -1451,11 +1450,12 @@ class CategorySet(FgBgSet):
             wbg[:] = 0
             fg_scale = 10**((fg_snr-100) / 20)
         offsetbins = int(self.fg_delay[self.fg_index[wav_set_idx]] * self.FgSet.fs)
+        log.info(f"flag::bg::: wbg={wbg.shape},offsetbins={offsetbins},fg_delay={self.fg_delay}")
 
         # combine fg and bg waveforms
         w = wbg
         if wfg.shape[0]+offsetbins > wbg.shape[0]:
-            print(wfg.shape[0], offsetbins, wbg.shape[0])
+            log.info(f"'<qqqqqqq>', {wfg.shape[0]}, {offsetbins}, {wbg.shape[0]}")
             w = np.concatenate((w, np.zeros((wfg.shape[0]+offsetbins-wbg.shape[0],
                                              wbg.shape[1]))), axis=0)
         w[offsetbins:(offsetbins+wfg.shape[0]), :] += wfg * fg_scale
@@ -1466,9 +1466,13 @@ class CategorySet(FgBgSet):
             cur_overall_snr = self.overall_snr[trial_idx]
             overall_noise_scale = 10 ** (-cur_overall_snr / 20)
             # noise and ferret vocal can be matched in index
-            ov_noise = overall_noise_scale * self.OAnoiseSet.waveform(self.fg_index[wav_set_idx])
-            w += ov_noise
-            
+            ov_noise = self.OAnoiseSet.waveform(self.fg_index[wav_set_idx])
+            ov_noise = np.concatenate((ov_noise,ov_noise), axis=1)
+            sig_len = w.shape[0]
+            ov_noise = ov_noise[:sig_len, :]
+            log.info(f"<flag><><><><><><>< {trial_idx}|{wav_set_idx}| snr = {cur_overall_snr}: w={w.shape}, ov_noise{ov_noise.shape}")
+            w = w/overall_noise_scale + ov_noise # will be ~3 dB louder than clean
+
         return w.T
 
     def trial_parameters(self, trial_idx=None, wav_set_idx=None):

@@ -418,13 +418,13 @@ def test_simple_category():
         soundpath_OAnoise = '/auto/users/satya/code/projects_getting_started/explore_bignat/ferret_vocals/noise_vocPSDmatched'
 
     FgSet = MCWavFileSet(fs=44000, path=soundpath_fg, duration=3, normalization='rms',
-                          fit_range=-1, channel_count=1, level=60)
+                          fit_range=-1, channel_count=1, level=55)
     BgSet = MCWavFileSet(fs=44000, path=soundpath_bg, duration=3, normalization='rms',
-                          fit_range=-1, channel_count=1, level=60)
+                          fit_range=-1, channel_count=1, level=55)
     CatchBgSet = MCWavFileSet(fs=44000, path=soundpath_catch_bg, duration=3, normalization='rms',
-                          fit_range=-1, channel_count=1, level=60)
+                          fit_range=-1, channel_count=1, level=55)
     OAnoiseSet = MCWavFileSet(fs=44000, path=soundpath_OAnoise, duration=3, normalization='rms',
-                          fit_range=-1, channel_count=1, level=60)
+                          fit_range=-1, channel_count=1, level=55)
 
     print(FgSet.names)
     w = FgSet.waveform(0)
@@ -490,7 +490,7 @@ def test_simple_category():
 
     # plot waveforms from an example trial
     # trial_idx = 0
-    for trial_idx in np.array([3, 5, 0, 8]):
+    for trial_idx in np.array([0,1]):
         w = fb.trial_waveform(trial_idx).T
         wb = fb.BgSet.waveform(fb.bg_index[trial_idx])
 
