@@ -1463,7 +1463,7 @@ class CategorySet(FgBgSet):
             w = np.concatenate((w, np.zeros_like(w)), axis=1)
 
         if not np.isinf(self.overall_snr[wav_set_idx]):
-            cur_overall_snr = self.overall_snr[trial_idx]
+            cur_overall_snr = self.overall_snr[wav_set_idx]
             overall_noise_scale = 10 ** (-cur_overall_snr / 20)
             # noise and ferret vocal can be matched in index
             ov_noise = self.OAnoiseSet.waveform(self.fg_index[wav_set_idx])
