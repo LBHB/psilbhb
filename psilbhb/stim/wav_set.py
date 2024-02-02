@@ -68,10 +68,15 @@ def get_stim_list(FgSet, BgSet, catch_ferret_id=3, n_env_bands=[2, 8, 32], reg2c
 
     # taboo_ferret_ids = [1, 2, 7, catch_ferret_id]
     taboo_ferret_ids = [1, 2, 7]
-    reg_fg_names = choices([soundpath_fg + '/' + x for x in all_ferret_files
-                            if not any([x.startswith("ferretb{}".format(tabid)) for tabid in taboo_ferret_ids])],
-                           k=num_regular_trials)
-    reg_bg_names = [soundpath_bg + '/' + x for x in choices(all_speech_files, k=num_regular_trials)]
+    # reg_fg_names = choices([soundpath_fg + '/' + x for x in all_ferret_files
+    #                         if not any([x.startswith("ferretb{}".format(tabid)) for tabid in taboo_ferret_ids])],
+    #                        k=num_regular_trials)
+    reg_fg_names = np.random.choice([soundpath_fg + '/' + x for x in all_ferret_files
+                                     if not any([x.startswith("ferretb{}".format(tabid)) for tabid in taboo_ferret_ids])],
+                                    size=num_regular_trials)
+
+    # reg_bg_names = [soundpath_bg + '/' + x for x in choices(all_speech_files, k=num_regular_trials)]
+    reg_bg_names = [soundpath_bg + '/' + x for x in np.random.choice(all_speech_files, size=num_regular_trials)]
     if be_verbose:
         print("~~~~~~~~~Regular~~~~~~~~~")
         [print(reg_fg_names[i] + ' vs ' + reg_bg_names[i]) for i in range(num_regular_trials)]
@@ -99,7 +104,7 @@ def get_stim_list(FgSet, BgSet, catch_ferret_id=3, n_env_bands=[2, 8, 32], reg2c
     return fgi, bgi, fgg
 
 def get_stim_list_no_catch(FgSet, BgSet):
-    be_verbose = 1
+    be_verbose = 0
     if os.path.exists('h:/sounds'):
         soundpath_fg = 'h:/sounds/Categories/v3_vocoding'
         soundpath_bg = 'h:/sounds/Categories/speech_stims'
@@ -122,10 +127,14 @@ def get_stim_list_no_catch(FgSet, BgSet):
 
     # taboo_ferret_ids = [1, 2, 7, catch_ferret_id]
     taboo_ferret_ids = [1, 2, 7]
-    reg_fg_names = choices([soundpath_fg + '/' + x for x in all_ferret_files
-                            if not any([x.startswith("ferretb{}".format(tabid)) for tabid in taboo_ferret_ids])],
-                           k=num_regular_trials)
-    reg_bg_names = [soundpath_bg + '/' + x for x in choices(all_speech_files, k=num_regular_trials)]
+    # reg_fg_names = choices([soundpath_fg + '/' + x for x in all_ferret_files
+    #                         if not any([x.startswith("ferretb{}".format(tabid)) for tabid in taboo_ferret_ids])],
+    #                        k=num_regular_trials)
+    reg_fg_names = np.random.choice([soundpath_fg + '/' + x for x in all_ferret_files
+                                     if not any([x.startswith("ferretb{}".format(tabid)) for tabid in taboo_ferret_ids])],
+                                    size=num_regular_trials)
+    # reg_bg_names = [soundpath_bg + '/' + x for x in choices(all_speech_files, k=num_regular_trials)]
+    reg_bg_names = [soundpath_bg + '/' + x for x in np.random.choice(all_speech_files, size=num_regular_trials)]
     if be_verbose:
         print("~~~~~~~~~Regular~~~~~~~~~")
         [print(reg_fg_names[i] + ' vs ' + reg_bg_names[i]) for i in range(num_regular_trials)]
@@ -1350,6 +1359,7 @@ class CategorySet(FgBgSet):
         """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.
         manage trials separately to allow for repeats, etc."""
         _rng = np.random.RandomState(self.random_seed)
+        np.random.seed(self.random_seed)
 
         if all(np.isinf(self.unique_overall_SNR)):
             fgi, bgi, fgg = get_stim_list(self.FgSet, self.BgSet, self.catch_ferret_id, self.n_env_bands, self.reg2catch_ratio)
@@ -1360,8 +1370,9 @@ class CategorySet(FgBgSet):
             self.unique_overall_SNR = [np.inf] + list(set(self.unique_overall_SNR) - set([np.inf]))
             num_noninf_snrs = len(self.unique_overall_SNR) - 1
             overall_snr_weight = np.concatenate(([num_noninf_snrs], np.ones(num_noninf_snrs)))
-            overall_snr = choices(self.unique_overall_SNR, weights = overall_snr_weight, k = len(fgi))
-
+            overall_snr_prob = overall_snr_weight / overall_snr_weight.sum()
+            # overall_snr = choices(self.unique_overall_SNR, weights = overall_snr_weight, k = len(fgi))
+            overall_snr = np.random.choice(self.unique_overall_SNR, p=overall_snr_prob, size=len(fgi))
         num_uniq_trial = len(fgi)
 
         # region set fg an bg

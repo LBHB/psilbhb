@@ -460,18 +460,17 @@ def test_simple_category():
 
     played_fg = [[] for _ in simulated_performance]
     played_bg = [[] for _ in simulated_performance]
-    played_overall_snr = [[] for _ in simulated_performance]
+    overall_snr = [[] for _ in simulated_performance]
 
     for trial_idx, outcome in enumerate(simulated_performance):
         w = fb.trial_waveform(trial_idx)
         d = fb.trial_parameters(trial_idx)
         fb.score_response(outcome, trial_idx=trial_idx)
         print(d['trial_idx'], d['wav_set_idx'], d['overall_snr'], d['fg_name'], d['fg_channel'], d['bg_name'],
-              d['bg_channel'],
-              d['response_condition'], d['current_full_rep'], d['trial_is_repeat'])
+              d['bg_channel'], d['response_condition'], d['current_full_rep'], d['trial_is_repeat'])
         played_fg[trial_idx] = d['fg_name']
         played_bg[trial_idx] = d['bg_name']
-        played_overall_snr[trial_idx] = d['overall_snr']
+        overall_snr[trial_idx] = d['overall_snr']
 
     print('FG')
     print(Counter(played_fg).keys())  # equals to list(set(words))
@@ -489,8 +488,8 @@ def test_simple_category():
     print(f"trials remaining this rep: {len(fb.trial_wav_idx) - len(fb.trial_outcomes)}")
 
     print("SNR statistics")
-    print(Counter(played_overall_snr).keys())
-    print(Counter(played_overall_snr).values())  # counts the elements' frequency
+    print(Counter(overall_snr).keys())
+    print(Counter(overall_snr).values())  # counts the elements' frequency
 
     # plot waveforms from an example trial
     # trial_idx = 0
