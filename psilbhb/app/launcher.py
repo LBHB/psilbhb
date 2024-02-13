@@ -168,7 +168,7 @@ class SimpleLauncher(Atom):
 
     def launch_subprocess(self):
         args = ['psi', self.experiment.name]
-        plugins = [p.name for p in self.experiment.plugins if p.selected]
+        plugins = [p.id for p in self.experiment.plugins if p.selected]
         if self.save_data:
             args.append(str(self.base_folder))
         if self.preferences:
@@ -349,7 +349,7 @@ class CellDbLauncher(SimpleLauncher):
             print(error)
 
         args = ['psi', self.experiment.name]
-        plugins = [p.name for p in self.experiment.plugins if p.selected]
+        plugins = [p.id for p in self.experiment.plugins if p.selected]
         if self.save_data:
             args.append(str(self.base_folder))
         if self.preferences:

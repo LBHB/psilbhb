@@ -31,7 +31,7 @@ def load_defaults(launcher, experiments):
             t_settings = es_settings.get(experiment.experiment_type, {})
             e_settings = t_settings.get(experiment.name, {})
             for plugin in experiment.plugins:
-                p_settings = e_settings.get(plugin.name, {})
+                p_settings = e_settings.get(plugin.id, {})
                 plugin.selected = p_settings.get('selected', plugin.selected)
 
         for attr, value in settings.items():
@@ -58,7 +58,7 @@ def set_defaults(launcher, experiments):
         t_settings = es_settings.setdefault(experiment.experiment_type, {})
         e_settings = t_settings.setdefault(experiment.name, {})
         for plugin in experiment.plugins:
-            p_settings = e_settings.setdefault(plugin.name, {})
+            p_settings = e_settings.setdefault(plugin.id, {})
             p_settings['selected'] = plugin.selected
 
     with path.open('w') as fh:
