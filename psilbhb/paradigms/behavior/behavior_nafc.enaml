@@ -197,6 +197,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             ] + [f'spout_contact_{i+1}_analog' for i in range(N_response)]
         EventLog:
             show_widget = True
+            exclude = ['*contact*digital_acquired*']
         TrialLog:
             show_widget = True
 
