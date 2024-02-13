@@ -349,7 +349,6 @@ enamldef FgBgSetManifest(ExperimentManifest): manifest:
             # Calibration?
 
 
-
 # TODO make parallel for vowel set
 def configure_vowelset_stimuli(event):
     context = event.workbench.get_plugin('psi.context')
@@ -549,21 +548,30 @@ def configure_category_stimuli(event):
         fit_range=params['bgc_fit_range'], test_range=params['bgc_test_range'],
         fit_reps=params['bgc_fit_reps'], test_reps=params['bgc_test_reps'],
         channel_count=params['bgc_channel_count'],filelabels='C')
+    oan = MCWavFileSet(
+        fs=output.fs, path=params['oan_path'], duration=params['bgc_duration'],
+        normalization=params['bgc_normalization'], level=params['bgc_level'],
+        fit_range=params['bgc_fit_range'], test_range=params['bgc_test_range'],
+        fit_reps=params['bgc_fit_reps'], test_reps=params['bgc_test_reps'],
+        channel_count=params['bgc_channel_count'])
 
     controller.wavset = CategorySet(FgSet=ff, BgSet=bb,
-                                CatchFGSet=ffc, CatchBGSet=bbc,
+                                CatchFgSet=ffc, CatchBgSet=bbc, OAnoiseSet=oan,
                                 fg_switch_channels=params['fg_switch_channels'],
                                 bg_switch_channels=params['bg_switch_channels'],
                                 primary_channel=params['primary_channel'],
                                 combinations=params['combinations'],
                                 fg_snr=params['fg_snr'],
                                 fg_delay=params['fg_delay'],
-                                migrate_fraction=params['migrate_fraction'],
-                                migrate_start=params['migrate_start'],
-                                migrate_stop=params['migrate_stop'],
+                                # migrate_fraction=params['migrate_fraction'],
+                                # migrate_start=params['migrate_start'],
+                                # migrate_stop=params['migrate_stop'],
                                 random_seed=params['random_seed'],
-                                CatchFG_frac=params['CatchFG_frac'],
-                                CatchBG_frac=params['CatchBG_frac'],
+                                # CatchFG_frac=params['CatchFG_frac'],
+                                # CatchBG_frac=params['CatchBG_frac'],
+                                catch_ferret_id=params['catch_ferret_id'],
+                                n_env_bands=params['n_env_bands'],
+                                unique_overall_SNR=params['unique_overall_SNR'],
                               )
 
 enamldef CategorySetManifest(ExperimentManifest): manifest:
@@ -592,8 +600,8 @@ enamldef CategorySetManifest(ExperimentManifest): manifest:
                 name = 'combinations'
                 label = 'how to combine fg and bg waveforms'
                 compact_label = 'combinations'
-                default = 'simple'
-                choices = {'simple': "'simple'", 'all': "'all'"}
+                default = 'custom'
+                choices = {'simple': "'simple'", 'all': "'all'", 'custom': "'custom'"}
                 scope = 'experiment'
 
             EnumParameter:
@@ -611,8 +619,8 @@ enamldef CategorySetManifest(ExperimentManifest): manifest:
                 default = 'No'
                 choices = {'No': "False", 'same': "'same'",
                            'opposite': "'opposite'",
-                           'combinatorial': "'combinatorial'",
-                           'combinatorial+diotic': "'combinatorial+diotic'",
+                           # 'combinatorial': "'combinatorial'",
+                           # 'combinatorial+diotic': "'combinatorial+diotic'",
                            }
                 scope = 'experiment'
 
@@ -656,6 +664,34 @@ enamldef CategorySetManifest(ExperimentManifest): manifest:
                 name = 'CatchBG_frac'
                 label = 'CatchBG_frac'
                 expression = '0.5'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'catch_ferret_id'
+                label = 'catch_ferret_id'
+                expression = '3'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'n_env_bands'
+                label = 'n_env_bands'
+                expression = '[2, 8, 32]'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'reg2catch_ratio'
+                label = 'reg2catch_ratio'
+                expression = '6'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'unique_overall_SNR'
+                label = 'unique_overall_SNR'
+                expression = '[np.inf]'
                 dtype = 'object'
                 scope = 'experiment'
 
@@ -889,11 +925,16 @@ enamldef CategorySetManifest(ExperimentManifest): manifest:
             # Instance of MultichannelWaveformSet, defines
             # catch background stimuli in CategorySet
             name = 'Catch background wave file set'
-            label = 'CatchBGSet'
+            label = 'CatchBgSet'
 
             Parameter:
                 name = 'bgc_path'
                 label = 'folder'
+                dtype = 'S'
+
+            Parameter:
+                name = 'oan_path'
+                label = 'noise folder'
                 dtype = 'S'
 
             Parameter:

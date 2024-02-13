@@ -124,7 +124,6 @@ def log_experiment_event(event):
 enamldef OpenEphysManifest(ExperimentManifest): manifest:
 
     id = 'openephys'
-    name = 'openephys'
     title = 'Open Ephys'
 
     factory = OpenEphysPlugin
