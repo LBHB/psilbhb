@@ -6,12 +6,28 @@ CORE_PATH = 'psi.paradigms.core.'
 
 
 COMMON_PLUGINS = [
-    {'manifest': 'psilbhb.paradigms.video.PSIVideo'},
+    {'manifest': 'psilbhb.paradigms.video.PSIVideo',
+     'attrs': {
+         'id': 'psivideo',
+         'title': 'Video (top)',
+         'port': 33331,
+         'filename': 'recording.avi',
+     }},
+    {'manifest': 'psilbhb.paradigms.video.PSIVideo',
+     'attrs': {
+         'id': 'psivideo_side',
+         'title': 'Video (side)',
+         'port': 33332,
+         'filename': 'video_side.avi',
+     }},
     {'manifest': 'psilbhb.paradigms.openephys.OpenEphysManifest'},
-        {'manifest': PATH + 'behavior_mixins.SignalFFTViewManifest',
-        'attrs': {'fft_time_span': 1, 'fft_freq_lb': 5, 'fft_freq_ub': 24000,
-                'y_label': 'Level (dB)'}
-            },
+    {'manifest': PATH + 'behavior_mixins.SignalFFTViewManifest',
+     'attrs': {
+         'fft_time_span': 1,
+         'fft_freq_lb': 5,
+         'fft_freq_ub': 24000,
+         'y_label': 'Level (dB)'},
+     },
 ]
 
 
