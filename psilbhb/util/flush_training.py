@@ -2,7 +2,7 @@
 import os
 import shutil
 
-from psilbhb.util.celldb import celldb, flush_training
+from psilbhb.util.celldb import celldb, flush_training, readpsievents
 
 def flush_training_old(prefix="LMD", local_folder="e:/data", dest_root='/auto/data/daq',
                    dest_root_win='h:/daq'):
@@ -40,9 +40,10 @@ def flush_training_old(prefix="LMD", local_folder="e:/data", dest_root='/auto/da
 
     return df_to_move
 
-
-flush_training("LMD")
-flush_training("SQD")
-flush_training("SDS")
-flush_training("SLJ")
+c = celldb()
+#flush_training("LMD",c=c)
+#flush_training("SQD",c=c)
+#flush_training("SDS",c=c)
+#flush_training("SLJ",c=c)
+# flush_training("tst",c=c)
 

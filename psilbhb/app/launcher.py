@@ -9,6 +9,7 @@ from pathlib import Path
 import subprocess
 from datetime import datetime
 import json
+import matplotlib.pyplot as plt
 
 from atom.api import Atom, Bool, Enum, List, Typed, Str, Int, Value
 import enaml
@@ -26,9 +27,11 @@ from psi.application import (get_default_io, list_calibrations, list_io,
 from psi.experiment.api import ParadigmDescription, paradigm_manager
 
 from psilbhb.util.celldb import celldb, readpsievents
+from psilbhb.util.plots import plot_behavior
 
 # redeclare these structures here:
 #from psi.application.base_launcher import SimpleLauncher, launch main_animal
+plt.ion()
 
 class SimpleLauncher(Atom):
 
@@ -394,6 +397,9 @@ class CellDbLauncher(SimpleLauncher):
 
             with open(filename, 'w') as file:
                 file.write(json.dumps(d))
+
+            plot_behavior(rawdata['rawid'])
+
         except:
             print('Results read/process error')
         self._update_choices()

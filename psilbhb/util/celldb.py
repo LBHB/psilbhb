@@ -16,6 +16,20 @@ import pandas.io.sql as psql
 from psi import get_config
 from psi.util import PSIJsonEncoder
 
+def readlogs(logpath=None, rawid=None, c=None):
+    if c is None:
+        c=celldb()
+    if logpath is None:
+        rawdata = c.pd_query(f"SELECT * FROM gDataRaw where id={rawid}")
+        logpath=rawdata.loc[0,'resppath'] + rawdata.loc[0,'parmfile']
+        logpath=logpath.replace('/auto/data/daq','h:/daq')
+        logpath = logpath.replace('d:', 'e:')
+    eventlogfile = os.path.join(logpath, 'event_log.csv')
+    triallogfile = os.path.join(logpath, 'trial_log.csv')
+    df_trial = pd.read_csv(triallogfile)
+    df_event = pd.read_csv(eventlogfile)
+    return df_trial, df_event
+
 
 def readpsievents(logpath, runclass=None):
     # make sure correct path separator is used.
@@ -91,7 +105,7 @@ def readpsievents(logpath, runclass=None):
                     'rt': (df.loc[correct_trials,'response_ts']-
                            df.loc[correct_trials,'response_start']).mean()
                     }
-    elif runclass == 'VOW':
+    elif runclass in ['VOW','VGN']:
         parmnames = ['sound_path', 'target_set', 'non_target_set', 'catch_set',
                    'switch_channels', 'repeat_count', 'repeat_isi', 'tar_to_cat_ratio',
                    'level', 'fs', 'response_end', 'random_seed', 'repeat_incorrect', 'snr',
@@ -678,6 +692,8 @@ class celldb():
         return d
 
     def refresh_rawdata(self, rawid):
+        if self.user is None:
+            self.user='lbhb'
         rawdata = self.get_rawdata(rawid=rawid)
         rawdata['parmbase']=rawdata['parmfile']
         rawdata['rawid']=rawdata['id']
@@ -736,8 +752,9 @@ def __main__():
 
 
 def flush_training(prefix="LMD", local_folder="e:/data", dest_root='/auto/data/daq',
-                   dest_root_win='h:/daq'):
-    c = celldb()
+                   dest_root_win='h:/daq', c=None):
+    if c is None:
+        c = celldb()
     sql = f"SELECT * FROM gDataRaw WHERE not(bad) AND cellid like '{prefix}%' AND respfile LIKE '{local_folder}%'"
     print(sql)
     df_to_move = c.pd_query(sql)

@@ -40,6 +40,7 @@ def configure_fgbg_stimuli(event):
                               migrate_fraction=params['migrate_fraction'],
                               migrate_start=params['migrate_start'],
                               migrate_stop=params['migrate_stop'],
+                              reward_ambiguous_frac=params['reward_ambiguous_frac'],
                               random_seed=params['random_seed']
                               )
 
@@ -148,6 +149,14 @@ enamldef FgBgSetManifest(ExperimentManifest): manifest:
                 label = 'migrate_stop'
                 expression = '1.0'
                 dtype = 'object'
+                scope = 'experiment'
+
+            EnumParameter:
+                name = 'reward_ambiguous_frac'
+                label = 'How to reward ambiguous trials'
+                compact_label = 'reward_ambiguous_frac'
+                default = 'all'
+                choices = {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}
                 scope = 'experiment'
 
             Parameter:

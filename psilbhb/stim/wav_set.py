@@ -457,7 +457,7 @@ class MCWavFileSet(WavFileSet):
             test_range=slice(0)
         if fit_range is None:
             fit_range=slice(0)
-        elif fit_range is -1:
+        elif fit_range==-1:
             fit_range = slice(len(all_wav))
 
         #log.info("**************************************************")
@@ -584,7 +584,7 @@ class FgBgSet(WavSet):
                  catch_frequency=0, primary_channel=0,
                  fg_delay=1.0, fg_snr=0.0, response_window=None,
                  migrate_fraction=0.0, migrate_start=0.5, migrate_stop=1.0,
-                 random_seed=0):
+                 random_seed=0, reward_ambiguous_frac=1):
         """
         FgBgSet polls FgSet and BgSet for .max_index, .waveform, .names, and .fs
         :param FgSet: {WaveformSet, MultichannelWaveformSet, None}
@@ -626,6 +626,7 @@ class FgBgSet(WavSet):
         self.migrate_fraction = migrate_fraction
         self.migrate_start = migrate_start
         self.migrate_stop = migrate_stop
+        self.reward_ambiguous_frac = reward_ambiguous_frac
 
         if response_window is None:
             self.response_window = (0.0, 1.0)
@@ -733,10 +734,12 @@ class FgBgSet(WavSet):
 
         # remove redundant very high and very low SNR trials
         fgimin = fgi.min()
+        fgcmax = fgc.max()
+
         bgimin = bgi.min()
         bgcmax = bgc.max()
         snr_keep = ((fsnr<=50) | ((bgi==bgimin) & (bgc==bgcmax))) & \
-                   ((fsnr>-100) | (fgi==fgimin))
+                   ((fsnr>-100) | ((fgi==fgimin) & (fgc==fgcmax)))
         bgi = bgi[snr_keep]
         fgi = fgi[snr_keep]
         bgc = bgc[snr_keep]
@@ -755,7 +758,6 @@ class FgBgSet(WavSet):
         for i, f in enumerate(fgi):
             if self.FgSet.filelabels[f] == 'C':
                 fgg[i]=-1
-
         migrate_keep = (fsnr>-30) & (bgc==bgcmax)
 
         if self.migrate_fraction>=1:
@@ -883,7 +885,12 @@ class FgBgSet(WavSet):
         is_go_trial = self.fg_go[wav_set_idx]
         if is_go_trial==-1:
             # -1 means either port
-            response_condition = -1
+            if (self.reward_ambiguous_frac==0.5):
+                response_condition = int(np.ceil(np.random.uniform(0,2)))
+            elif (self.reward_ambiguous_frac==0):
+                response_condition = 0
+            else:
+                response_condition = -1
         elif is_go_trial==1:
             # 1=spout 1, 2=spout 2
             response_condition = int(self.fg_channel[wav_set_idx]+1)
@@ -1120,11 +1127,11 @@ class VowelSet(WavSet):
 
         s1idx = self.stim1idx[wav_set_idx]
         s2idx = self.stim2idx[wav_set_idx]
-        if s1idx>0:
+        if s1idx>-1:
             s1_name = self.wavset.names[s1idx]
         else:
             s1_name = ''
-        if s2idx>0:
+        if s2idx>-1:
             s2_name = self.wavset.names[s2idx]
         else:
             s2_name = ''

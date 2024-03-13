@@ -25,11 +25,14 @@ from psivideo.client import SyncVideoClient
 
 class VideoSink(Sink):
 
-    client = Typed(SyncVideoClient, ())
+    client = Typed(SyncVideoClient)
     base_path = Typed(Path)
     is_temp = Bool(False)
     port = d_(Int())
     filename = d_(Str('recording.avi'))
+
+    def _default_client(self):
+        return SyncVideoClient(port=self.port)
 
     def set_base_path(self, base_path, is_temp):
         if not is_temp:
@@ -40,7 +43,7 @@ class VideoSink(Sink):
         self.is_temp = is_temp
 
     def start_client(self):
-        self.client.connect(port=self.port)
+        self.client.connect()
         atexit.register(self.client.disconnect)
 
     def start_recording(self):
