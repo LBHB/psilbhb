@@ -348,10 +348,9 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         self.invoke_actions('trial_end', ts, kw={'result': self.trial_info.copy()})
 
         if score == NAFCTrialScore.incorrect:
-            # Call timeout actions and the wait for animal to withdraw from spout
-            self.invoke_actions('to_start', ts)
+            # Call timeout actions and then wait for animal to withdraw from spout
             self.advance_state('to', ts)
-            if response not in (NAFCResponse.np, NAFCResponse.no_response):
+            if response.value.startswith('spout'):
                 self.start_wait_for_reward_end(ts, 'to')
         elif score == NAFCTrialScore.invalid:
             # Early withdraw from nose-poke
@@ -362,9 +361,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
                 ts = self.get_ts()
                 o1.stop_waveform(ts + 0.1, False)
                 o2.stop_waveform(ts + 0.1, True)
-            self.invoke_actions('to_start', ts)
             self.advance_state('to', ts)
-        elif (score == NAFCTrialScore.correct) and (response != NAFCResponse.np):
+        elif (score == NAFCTrialScore.correct) and response.value.startswith('spout'):
             # If the correct response is not a nose-poke, then this means that
             # the animal will still be on the spout. Need to wait for animal to
             # withdraw before continuing with the trial.
