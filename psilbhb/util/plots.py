@@ -30,10 +30,11 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
 
     d_=df_trial.loc[df_trial.score>0].copy()
     if runclass=='NFB':
-        d_['ipsi']=(d_['bg_channel']==d_['fg_channel'])
-        perfsum=d_.groupby(['snr','ipsi'])[['correct']].mean()
+        d_['config'] = 'contra'
+        d_.loc[(d_['bg_channel']==d_['fg_channel']), 'config']='ipsi'
+        perfsum=d_.groupby(['snr','config'])[['correct']].mean()
         perfsum=perfsum.unstack(-1)
-        perfcount=d_.groupby(['snr','ipsi'])[['correct']].count()
+        perfcount=d_.groupby(['snr','config'])[['correct']].count()
         perfcount=perfcount.unstack(-1)
 
         dbias = d_.groupby(['response','snr'])['correct'].mean()
@@ -48,7 +49,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         dbias = dbias.unstack(-1)
         width=8
     f,ax = plt.subplots(1,3, figsize=(width,4))
-    perfsum.plot.bar(ax=ax[0], legend=False)
+    perfsum.plot.bar(ax=ax[0], legend=True)
     ax[0].axhline(y=0.5,color='b',linestyle=':')
     ax[0].set_ylabel('Frac. correct')
     perfcount.plot.bar(ax=ax[1])

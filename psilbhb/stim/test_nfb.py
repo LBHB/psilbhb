@@ -25,12 +25,12 @@ print(vv.names)
 w = vv.waveform(0)
 print(w.shape)
 
-fg_snr = -5
+fg_snr = 100
 
-fb = FgBgSet(FgSet=vv, BgSet=bb, fg_switch_channels=True,
-             bg_switch_channels='combinatorial+diotic',
-             combinations='all', migrate_fraction=0.3,
-             fg_snr=fg_snr, fg_delay=0.01, random_seed=4234)
+fb = FgBgSet(FgSet=vv, BgSet=bb, fg_switch_channels=False,
+             bg_switch_channels=False,
+             combinations='all', migrate_fraction=0.0,
+             fg_snr=fg_snr, fg_delay=0.00, random_seed=4234)
 fb.update()  # not necessary but illustrative of back-end processing
 
 simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
