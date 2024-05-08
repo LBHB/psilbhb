@@ -10,12 +10,12 @@ import matplotlib.pyplot as plt
 
 plt.ion()
 
-rawid = 150067
+rawid = 150375
 #rawid = 149974
-#df_trial = plot_behavior(rawid=rawid, save_fig=True)
+df_trial = plot_behavior(rawid=rawid, save_fig=False)
 #df_trial=plot_behavior(150093, save_fig=True)
 #dbias = d.groupby['snr',
 
 #d.groupby('response')['correct'].count()
 
-fix_old_plots("SQD07")
+#fix_old_plots("SQD07")

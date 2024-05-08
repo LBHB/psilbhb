@@ -32,6 +32,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
     if runclass=='NFB':
         d_['config'] = 'contra'
         d_.loc[(d_['bg_channel']==d_['fg_channel']), 'config']='ipsi'
+        d_.loc[(d_['bg_channel']==-1), 'config']='diotic'
         perfsum=d_.groupby(['snr','config'])[['correct']].mean()
         perfsum=perfsum.unstack(-1)
         perfcount=d_.groupby(['snr','config'])[['correct']].count()
