@@ -279,6 +279,7 @@ class BaseBehaviorPlugin(ControllerPlugin):
     def _apply_changes(self, prepare_trial=True):
         log.info('Applying changes')
         self.context.apply_changes()
+        self.context.next_setting()
         self._apply_requested = False
         if prepare_trial:
             self.prepare_trial()
