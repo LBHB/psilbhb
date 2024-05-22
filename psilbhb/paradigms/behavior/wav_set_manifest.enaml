@@ -9,8 +9,278 @@ from psi.core.enaml.api import ExperimentManifest
 
 from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet, VowelSet, CategorySet
 
-# TODO make parallel for vowel set
+# TODO automate this part
+
+
 def configure_fgbg_stimuli(event):
+    # change to def configure_fgbg(event):
+    context = event.workbench.get_plugin('psi.context')
+    controller = event.workbench.get_plugin('psi.controller')
+    output = controller.get_output('output_1')
+    params = context.get_values()
+
+    # figure out intersection between user-provided params and valid
+    # params for the class to initialize
+    plist = FgBgSet.default_parameters
+    vkey_list = [p['name'] for p in plist if p.get('type','') != 'Result']
+    ukey_list = list(params.keys())
+    uvparams = {k: params[k] for k in vkey_list if if k in ukey_list}
+
+    controller.wavset = FgBgSet(**uvparams)
+
+
+enamldef FgBgSetManifest(ExperimentManifest): manifest:
+
+    id = 'fgbgset'
+
+    Extension:
+        id = manifest.id + '.behavior_commands'
+        point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'configure_stimuli'
+            handler = configure_fgbg_stimuli
+
+    Extension:
+        id = manifest.id + '.items'
+        point = 'psi.context.items'
+"""
+    default_parameters = [
+        {'name': 'fg_path', 'label': 'FG path', 'default': 'h:/sounds/vocalizations/v4', 'dtype': 'str'},
+        {'name': 'bg_path', 'label': 'BG path', 'default': 'h:/sounds/backgrounds/v3', 'dtype': 'str'},
+        {'name': 'fg_range', 'label': 'FG wav indexes', 'expression': '[0]'},
+        {'name': 'bg_range', 'label': 'BG wav indexes', 'expression': '[0]'},
+
+        {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, },
+        {'name': 'normalization', 'label': 'Normalization', 'default': 'rms', 'type': 'EnumParameter',
+         'choices': {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}},
+        {'name': 'fg_level', 'label': 'FG level(s) dB SNR', 'expression': '[55]', 'dtype': object},
+        {'name': 'bg_level', 'label': 'BG level(s) dB SNR', 'expression': '[55]', 'dtype': object},
+        {'name': 'duration', 'label': 'FG/BG duration (s)', 'default': 3.0, 'dtype': float},
+
+        {'name': 'primary_channel', 'label': 'Primary FG channel', 'default': 0, 'dtype': int},
+        {'name': 'fg_switch_channels', 'label': 'Switch FG channel', 'type': 'BoolParameter', 'default': False, 'dtype': bool},
+        {'name': 'combinations', 'label': 'How to combine FG+BG', 'default': 'all', 'type': 'EnumParameter',
+         'choices': {'simple': "'simple'", 'all': "'all'"}},
+
+        {'name': 'contra_n', 'label': 'Contra BG portion (int)', 'default': 1, 'dtype': int},
+        {'name': 'diotic_n', 'label': 'Diotic BG portion (int)', 'default': 0, 'dtype': int},
+        {'name': 'ipsi_n', 'label': 'Ipsi BG portion (int)', 'default': 0, 'dtype': int},
+
+        {'name': 'migrate_fraction', 'label': 'Percent migrate trials', 'default': 0.0, 'type': 'EnumParameter',
+         'choices': {'0': 0.0, '25': 0.25, '50': 0.5}},
+        {'name': 'migrate_start', 'label': "migrate_start (s)", 'default': 0.5, 'dtype': float},
+        {'name': 'migrate_stop', 'label': "migrate_stop (s)", 'default': 1.0, 'dtype': float},
+
+        {'name': 'response_window', 'label': 'Response start,stop (s)', 'expression': '(0, 1)'},
+        {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 1.0, 'dtype': float},
+
+        {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': int},
+
+        {'name': 'fg_channel', 'label': 'FG chan', 'type': 'Result'},
+        {'name': 'bg_channel', 'label':  'BG chan', 'type': 'Result'},
+        {'name': 'fg_name', 'label':  'FG', 'type': 'Result'},
+        {'name': 'bg_name', 'label':  'BG', 'type': 'Result'},
+        {'name': 'this_snr', 'label':  'Trial SNR', 'type': 'Result'},
+        {'name': 'migrate_trial', 'label':  'Moving Tar', 'type': 'Result'},
+    ]
+"""
+        ContextGroup:
+            # FgBgSet generates a waveform for each trial
+            # has two children: FgSet and BgSet, both of
+            # which are instances of MultichannelWaveformSet
+            # and are defined below
+            name = 'FgBgSet'
+
+            Parameter:
+                name = 'fg_path'
+                label = 'FG wav folder'
+                default = 'h:/sounds/vocalizations/v4'
+                dtype = 'S'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'bg_path'
+                label = 'BG wav folder'
+                default = 'h:/sounds/backgrounds/v3'
+                dtype = 'S'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'fg_range'
+                label = 'FG Index Range'
+                expression = 'slice(None)'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'bg_range'
+                label = 'BG Index Range'
+                expression = 'slice(None)'
+                dtype = 'object'
+                scope = 'experiment'
+
+            EnumParameter:
+                name = 'normalization'
+                label = 'normalization'
+                compact_label = 'norm'
+                default = 'max'
+                choices = {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}
+                scope = 'experiment'
+
+            Parameter:
+                name = 'norm_fixed_scale'
+                label = 'fixed norm value'
+                default = 1
+                dtype = 'double'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'fg_level'
+                label = 'FG level (dB peSPL)'
+                dtype = 'double'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'bg_level'
+                label = 'FG level (dB peSPL)'
+                dtype = 'double'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'duration'
+                label = 'duration (s)'
+                default = 3.0
+                dtype = 'double'
+                scope = 'experiment'
+
+            EnumParameter:
+                name = 'primary_channel'
+                label = 'Primary FG channel'
+                compact_label = 'primary_channel'
+                default = '0'
+                choices = {'0': 0, '1': 1}
+                scope = 'experiment'
+
+            EnumParameter:
+                name = 'fg_switch_channels'
+                label = 'Switch FG channel'
+                compact_label = 'fg_switch_channels'
+                default = 'No'
+                choices = {'No': "False", 'Yes': "True"}
+                scope = 'experiment'
+
+            EnumParameter:
+                name = 'combinations'
+                label = 'how to combine fg and bg waveforms'
+                compact_label = 'combinations'
+                default = 'all'
+                choices = {'simple': "'simple'", 'all': "'all'"}
+                scope = 'experiment'
+
+            Parameter:
+                name = 'contra_n'
+                label = 'Contra BG portion (int)'
+                default = 1
+                dtype = 'int'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'diotic_n'
+                label = 'Diotic BG portion (int)'
+                default = 0
+                dtype = 'int'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'ipsi_n'
+                label = 'Ipsi BG portion (int)'
+                default = 0
+                dtype = 'int'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'migrate_fraction'
+                label = 'migrate_fraction'
+                default = '0'
+                choices = {'0': 0.0, '25': 0.25, '50': 0.5}
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'migrate_start'
+                label = 'migrate_start'
+                expression = '0.5'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'migrate_stop'
+                label = 'migrate_stop'
+                expression = '1.0'
+                dtype = 'object'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'response_window'
+                label = 'response_window'
+                expression = '(0.0, 1.0)'
+                dtype = 'object'
+                scope = 'experiment'
+
+            EnumParameter:
+                name = 'reward_ambiguous_frac'
+                label = 'How to reward ambiguous trials'
+                compact_label = 'reward_ambiguous_frac'
+                default = 'all'
+                choices = {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}
+                scope = 'experiment'
+
+            Parameter:
+                name = 'random_seed'
+                label = 'random_seed'
+                default = 0
+                dtype = 'int'
+                scope = 'experiment'
+
+            Parameter:
+                name = 'fs'
+                label = 'sampling rate (sec^-1)'
+                default = 44000
+                dtype = 'int'
+                scope = 'experiment'
+
+            Result:
+                name = 'fg_channel'
+                label = 'FG chan'
+
+            Result:
+                name = 'bg_channel'
+                label = 'BG chan'
+
+            Result:
+                name = 'fg_name'
+                label = 'FG'
+
+            Result:
+                name = 'bg_name'
+                label = 'BG'
+
+            Result:
+                name = 'this_snr'
+                label = 'Trial SNR'
+
+            Result:
+                name = 'migrate_trial'
+                label = 'Moving Tar'
+
+            # Calibration?
+
+
+##
+## OLD FgBgSet - To delete
+##
+# TODO make parallel for vowel set
+def configure_fgbg_stimuli_old(event):
     # change to def configure_fgbg(event):
     context = event.workbench.get_plugin('psi.context')
     controller = event.workbench.get_plugin('psi.controller')
@@ -30,7 +300,7 @@ def configure_fgbg_stimuli(event):
         fit_reps=params['bg_fit_reps'], test_reps=params['bg_test_reps'],
         channel_count=params['bg_channel_count'])
 
-    controller.wavset = FgBgSet(FgSet=vv, BgSet=bb,
+    controller.wavset = FgBgSet_old(FgSet=vv, BgSet=bb,
                               fg_switch_channels=params['fg_switch_channels'],
                               bg_switch_channels=params['bg_switch_channels'],
                               primary_channel=params['primary_channel'],
@@ -44,7 +314,7 @@ def configure_fgbg_stimuli(event):
                               random_seed=params['random_seed']
                               )
 
-enamldef FgBgSetManifest(ExperimentManifest): manifest:
+enamldef FgBgSetManifest_old(ExperimentManifest): manifest:
 
     id = 'fgbgset'
 
@@ -356,6 +626,9 @@ enamldef FgBgSetManifest(ExperimentManifest): manifest:
                 dtype = 'int'
 
             # Calibration?
+
+
+
 
 
 # TODO make parallel for vowel set
