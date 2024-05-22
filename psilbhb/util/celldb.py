@@ -22,8 +22,9 @@ def readlogs(logpath=None, rawid=None, c=None):
     if logpath is None:
         rawdata = c.pd_query(f"SELECT * FROM gDataRaw where id={rawid}")
         logpath=rawdata.loc[0,'resppath'] + rawdata.loc[0,'parmfile']
-        logpath=logpath.replace('/auto/data/daq','h:/daq')
         logpath = logpath.replace('d:', 'e:')
+        if not(os.path.isdir(logpath)):
+            logpath = logpath.replace('/auto/data/daq', 'h:/daq')
     eventlogfile = os.path.join(logpath, 'event_log.csv')
     triallogfile = os.path.join(logpath, 'trial_log.csv')
     df_trial = pd.read_csv(triallogfile)
