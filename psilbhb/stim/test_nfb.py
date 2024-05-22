@@ -1,8 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import os
+import pandas as pd
 
-from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet, FgBgSet_new, VowelSet
+from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet_old, FgBgSet, VowelSet
+
+pd.set_option('display.width',160)
 
 if os.path.exists('h:/sounds'):
     soundpath_fg = 'h:/sounds/vocalizations/v1'
@@ -27,11 +30,11 @@ else:
 #
 # fg_snr = 100
 
-fb = FgBgSet_new(fg_path=soundpath_fg, bg_path=soundpath_bg,
-                 fg_range=[0,1,2], bg_range=[0],
-                 fg_switch_channels=True, contra_n=1, ipsi_n=1, diotic_n=0,
+fb = FgBgSet(fg_path=soundpath_fg, bg_path=soundpath_bg,
+                 fg_range=[1,2], bg_range=[0],
+                 fg_switch_channels=True, contra_n=3, ipsi_n=1, diotic_n=1,
                  combinations='all', migrate_fraction=0.0,
-                 fg_level=[45,55], bg_level=55, fg_delay=0.0, random_seed=4234)
+                 fg_level=[0,55], bg_level=[0,55], fg_delay=0.0, random_seed=4234)
 fb.update()  # not necessary but illustrative of back-end processing
 
 simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
