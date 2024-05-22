@@ -449,7 +449,8 @@ class MCWavFileSet(WavFileSet):
         ----------
         '''
         all_wav = list(sorted(Path(path).glob('*.wav')))
-
+        if len(all_wav)==0:
+            log.info(f'No wav files found in path={path}')
         if duration > 0:
             force_duration = duration
         else:
@@ -528,7 +529,7 @@ class MCWavFileSet(WavFileSet):
 class WavSet:
     pass
 
-class FgBgSet_new(WavSet):
+class FgBgSet(WavSet):
     """
     Target+background class – generic self-initiated trial
         Allows yoked target and background ids
@@ -590,9 +591,9 @@ class FgBgSet_new(WavSet):
         {'name': 'fg_range', 'label': 'FG wav indexes', 'expression': '[0]'},
         {'name': 'bg_range', 'label': 'BG wav indexes', 'expression': '[0]'},
 
-        {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, },
         {'name': 'normalization', 'label': 'Normalization', 'default': 'rms', 'type': 'EnumParameter',
          'choices': {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}},
+        {'name': 'norm_fixed_scale', 'label': 'fixed norm value', 'default': 1, 'dtype': float},
         {'name': 'fg_level', 'label': 'FG level(s) dB SNR', 'expression': '[55]', 'dtype': object},
         {'name': 'bg_level', 'label': 'BG level(s) dB SNR', 'expression': '[55]', 'dtype': object},
         {'name': 'duration', 'label': 'FG/BG duration (s)', 'default': 3.0, 'dtype': float},
@@ -612,9 +613,11 @@ class FgBgSet_new(WavSet):
         {'name': 'migrate_stop', 'label': "migrate_stop (s)", 'default': 1.0, 'dtype': float},
 
         {'name': 'response_window', 'label': 'Response start,stop (s)', 'expression': '(0, 1)'},
-        {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 1.0, 'dtype': float},
+        {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 1.0, 'type': 'EnumParameter',
+         'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}},
 
         {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': int},
+        {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, },
 
         {'name': 'fg_channel', 'label': 'FG chan', 'type': 'Result'},
         {'name': 'bg_channel', 'label':  'BG chan', 'type': 'Result'},
@@ -725,8 +728,9 @@ class FgBgSet_new(WavSet):
         fg_channels = [self.primary_channel] * len(bg_channels)
         if self.fg_switch_channels:
             bg_channels += [1-self.primary_channel] * self.ipsi_n + \
-                           [self.primary_channel] * self.contra_n
-            fg_channels += [1-self.primary_channel] * (self.ipsi_n + self.contra_n)
+                           [self.primary_channel] * self.contra_n + \
+                           [-1] * self.diotic_n
+            fg_channels += [1-self.primary_channel] * (self.ipsi_n + self.contra_n + self.diotic_n)
 
         dlist = []
         for f,b in zip(fg_channels, bg_channels):
@@ -754,11 +758,19 @@ class FgBgSet_new(WavSet):
                 s['bg_level'] = f
                 dlist.append(s)
             stim = pd.concat(dlist, ignore_index=True)
+        stim = stim.loc[(stim['fg_level']>0) | (stim['bg_level']>0)]
 
         # remove dups of zero-dB spatial locations
-        stim.loc[stim['fg_level']==0, 'fg_channel']=-1
-        stim.loc[stim['bg_level']==0, 'bg_channel']=-1
-        stim = stim.drop_duplicates()
+        # but allow other dups
+        zrows = (stim['bg_level']==0) | (stim['fg_level']==0)
+        nzrows = (stim['bg_level']>0) & (stim['fg_level']>0)
+        zstim = stim.loc[zrows].copy()
+        nzstim = stim.loc[nzrows].copy()
+        zstim.loc[zstim['fg_level']==0, 'fg_channel']=-1
+        zstim.loc[zstim['fg_level']==0, 'fg_index']=stim['fg_index'].min()
+        zstim.loc[zstim['bg_level']==0, 'bg_channel']=-1
+        zstim.loc[zstim['bg_level']==0, 'bg_index']=stim['bg_index'].min()
+        stim = pd.concat([nzstim, zstim.drop_duplicates()], ignore_index=True)
 
         # check if any stims are labeled catch, and set fg_go accordingly:
         for b in set(bg_range):
@@ -987,25 +999,8 @@ class FgBgSet_new(WavSet):
         else:
             log.info('Trial {trial_idx} outcome {outcome}: moving on')
 
-"""
-        sound_path=params['sound_path'],
-        target_set=params['target_set'],
-        non_target_set=params['non_target_set'],
-        catch_set=params['catch_set'],
-        switch_channels=params['switch_channels'], 
-        primary_channel=params['primary_channel'], 
-        duration=params['duration'],
-        repeat_count=params['repeat_count'],
-        repeat_isi=params['repeat_isi'], 
-        tar_to_cat_ratio=params['tar_to_cat_ratio'],
-        level=params['level'], 
-        fs=params['fs'], 
-        response_start=params['response_start'], 
-        response_end=params['response_end'], 
-        random_seed=params['random_seed'])
-"""
 
-class FgBgSet(WavSet):
+class FgBgSet_old(WavSet):
     """
     Target+background class – generic self-initiated trial
         Allows yoked target and background ids
