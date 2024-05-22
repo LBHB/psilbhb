@@ -24,7 +24,7 @@ def configure_fgbg_stimuli(event):
     plist = FgBgSet.default_parameters
     vkey_list = [p['name'] for p in plist if p.get('type','') != 'Result']
     ukey_list = list(params.keys())
-    uvparams = {k: params[k] for k in vkey_list if if k in ukey_list}
+    uvparams = {k: params[k] for k in vkey_list if k in ukey_list}
 
     controller.wavset = FgBgSet(**uvparams)
 
@@ -43,47 +43,7 @@ enamldef FgBgSetManifest(ExperimentManifest): manifest:
     Extension:
         id = manifest.id + '.items'
         point = 'psi.context.items'
-"""
-    default_parameters = [
-        {'name': 'fg_path', 'label': 'FG path', 'default': 'h:/sounds/vocalizations/v4', 'dtype': 'str'},
-        {'name': 'bg_path', 'label': 'BG path', 'default': 'h:/sounds/backgrounds/v3', 'dtype': 'str'},
-        {'name': 'fg_range', 'label': 'FG wav indexes', 'expression': '[0]'},
-        {'name': 'bg_range', 'label': 'BG wav indexes', 'expression': '[0]'},
 
-        {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, },
-        {'name': 'normalization', 'label': 'Normalization', 'default': 'rms', 'type': 'EnumParameter',
-         'choices': {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}},
-        {'name': 'fg_level', 'label': 'FG level(s) dB SNR', 'expression': '[55]', 'dtype': object},
-        {'name': 'bg_level', 'label': 'BG level(s) dB SNR', 'expression': '[55]', 'dtype': object},
-        {'name': 'duration', 'label': 'FG/BG duration (s)', 'default': 3.0, 'dtype': float},
-
-        {'name': 'primary_channel', 'label': 'Primary FG channel', 'default': 0, 'dtype': int},
-        {'name': 'fg_switch_channels', 'label': 'Switch FG channel', 'type': 'BoolParameter', 'default': False, 'dtype': bool},
-        {'name': 'combinations', 'label': 'How to combine FG+BG', 'default': 'all', 'type': 'EnumParameter',
-         'choices': {'simple': "'simple'", 'all': "'all'"}},
-
-        {'name': 'contra_n', 'label': 'Contra BG portion (int)', 'default': 1, 'dtype': int},
-        {'name': 'diotic_n', 'label': 'Diotic BG portion (int)', 'default': 0, 'dtype': int},
-        {'name': 'ipsi_n', 'label': 'Ipsi BG portion (int)', 'default': 0, 'dtype': int},
-
-        {'name': 'migrate_fraction', 'label': 'Percent migrate trials', 'default': 0.0, 'type': 'EnumParameter',
-         'choices': {'0': 0.0, '25': 0.25, '50': 0.5}},
-        {'name': 'migrate_start', 'label': "migrate_start (s)", 'default': 0.5, 'dtype': float},
-        {'name': 'migrate_stop', 'label': "migrate_stop (s)", 'default': 1.0, 'dtype': float},
-
-        {'name': 'response_window', 'label': 'Response start,stop (s)', 'expression': '(0, 1)'},
-        {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 1.0, 'dtype': float},
-
-        {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': int},
-
-        {'name': 'fg_channel', 'label': 'FG chan', 'type': 'Result'},
-        {'name': 'bg_channel', 'label':  'BG chan', 'type': 'Result'},
-        {'name': 'fg_name', 'label':  'FG', 'type': 'Result'},
-        {'name': 'bg_name', 'label':  'BG', 'type': 'Result'},
-        {'name': 'this_snr', 'label':  'Trial SNR', 'type': 'Result'},
-        {'name': 'migrate_trial', 'label':  'Moving Tar', 'type': 'Result'},
-    ]
-"""
         ContextGroup:
             # FgBgSet generates a waveform for each trial
             # has two children: FgSet and BgSet, both of
@@ -153,6 +113,13 @@ enamldef FgBgSetManifest(ExperimentManifest): manifest:
                 dtype = 'double'
                 scope = 'experiment'
 
+            Parameter:
+                name = 'fg_delay'
+                label = 'FG delay (s)'
+                default = 0.0
+                dtype = 'double'
+                scope = 'experiment'
+
             EnumParameter:
                 name = 'primary_channel'
                 label = 'Primary FG channel'
@@ -198,12 +165,12 @@ enamldef FgBgSetManifest(ExperimentManifest): manifest:
                 dtype = 'int'
                 scope = 'experiment'
 
-            Parameter:
+            EnumParameter:
                 name = 'migrate_fraction'
                 label = 'migrate_fraction'
+                compact_label = 'migrate_fraction'
                 default = '0'
-                choices = {'0': 0.0, '25': 0.25, '50': 0.5}
-                dtype = 'object'
+                choices = {'0': "0.0", '25': "0.25", '50': "0.5"}
                 scope = 'experiment'
 
             Parameter:
