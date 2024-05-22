@@ -28,7 +28,13 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
 
     df_trial, df_event = readlogs(rawid=rawid, c=c)
 
+    # throw out invalid trials-- early NP or previous trial was error
     d_=df_trial.loc[df_trial.score>0].copy()
+    v = np.roll(d_['score'].values,1)
+    v[0]=2
+    d_['prev_score']=v
+    d_ = d_.loc[d_['prev_score']==2]
+
     if runclass=='NFB':
         d_['config'] = 'contra'
         d_.loc[(d_['bg_channel']==d_['fg_channel']), 'config']='ipsi'
