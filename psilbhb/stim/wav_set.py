@@ -597,6 +597,7 @@ class FgBgSet(WavSet):
         {'name': 'fg_level', 'label': 'FG level(s) dB SNR', 'expression': '[55]', 'dtype': object},
         {'name': 'bg_level', 'label': 'BG level(s) dB SNR', 'expression': '[55]', 'dtype': object},
         {'name': 'duration', 'label': 'FG/BG duration (s)', 'default': 3.0, 'dtype': float},
+        {'name': 'fg_delay', 'label': 'FG delay (s)', 'default': 0.0, 'dtype': float},
 
         {'name': 'primary_channel', 'label': 'Primary FG channel', 'default': 0, 'dtype': int},
         {'name': 'fg_switch_channels', 'label': 'Switch FG channel', 'type': 'BoolParameter', 'default': False, 'dtype': bool},
@@ -700,10 +701,10 @@ class FgBgSet(WavSet):
         manage trials separately to allow for repeats, etc."""
         _rng = np.random.RandomState(self.random_seed)
 
-        bg_range = list(np.arange(self.BgSet.max_index, dtype=int))
-        fg_range = list(np.arange(self.FgSet.max_index, dtype=int))
-
         if self.combinations == 'simple':
+            bg_range = list(np.arange(self.BgSet.max_index, dtype=int))
+            fg_range = list(np.arange(self.FgSet.max_index, dtype=int))
+
             if len(fg_range)>len(bg_range):
                 while len(bg_range)<len(fg_range):
                     bg_range += bg_range
@@ -713,11 +714,14 @@ class FgBgSet(WavSet):
                     fg_range += fg_range
                 fg_range=fg_range[:len(bg_range)]
         elif self.combinations == 'all':
-            fg_range = fg_range * len(bg_range)
-            b_temp=bg_range.copy()
-            bg_range=[]
-            [bg_range.extend([b]*len(fg_range)) for b in b_temp];
+            bg_range_ = list(np.arange(self.BgSet.max_index, dtype=int))
+            fg_range_ = list(np.arange(self.FgSet.max_index, dtype=int))
 
+            fg_range = fg_range_ * len(bg_range_)
+            bg_range=[]
+            [bg_range.extend([b]*len(fg_range_)) for b in bg_range_];
+        data = {'fg_index': fg_range, 'bg_index': bg_range, 'fg_go': 1, 'fg_delay': self.fg_delay}
+        log.info(f"{data}")
         stim = pd.DataFrame(data={'fg_index': fg_range, 'bg_index': bg_range, 'fg_go': 1, 'fg_delay': self.fg_delay},
                             columns=['fg_index', 'bg_index', 'fg_channel', 'bg_channel', 'fg_level', 'bg_level',
                                      'fg_go', 'fg_delay', 'migrate_trial'])
