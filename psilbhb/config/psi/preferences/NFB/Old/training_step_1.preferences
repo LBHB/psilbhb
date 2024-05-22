@@ -1,0 +1,225 @@
+IR_sensors:
+  y_max: 5.0
+  y_min: 0.0
+context:
+  meta:
+    trial_log:
+    - fg_channel
+    - bg_channel
+    - fg_name
+    - bg_name
+    - this_snr
+    - migrate_trial
+    - response
+    - trial_type
+    - score
+    - correct
+    - response_ts
+    - trial_start
+    - response_time
+  parameters:
+    Background wave file set:
+      bg_binaural_combinations:
+        rove: false
+        selected: single_offset
+      bg_channel_count:
+        expression: '1'
+        rove: false
+      bg_channel_offset:
+        expression: '1'
+        rove: false
+      bg_duration:
+        expression: '3'
+        rove: false
+      bg_fit_range:
+        expression: '[9]'
+        rove: false
+      bg_fit_reps:
+        expression: '1'
+        rove: false
+      bg_level:
+        expression: '60'
+        rove: false
+      bg_norm_fixed_scale:
+        expression: '1'
+        rove: false
+      bg_normalization:
+        rove: false
+        selected: RMS
+      bg_path:
+        expression: '"h:/sounds/backgrounds/v3"'
+        rove: false
+      bg_test_range:
+        expression: slice(0)
+        rove: false
+      bg_test_reps:
+        expression: '1'
+        rove: false
+    FgBgSet:
+      bg_channel: {}
+      bg_name: {}
+      bg_switch_channels:
+        rove: false
+        selected: 'No'
+      combinations:
+        rove: false
+        selected: all
+      fg_channel: {}
+      fg_delay:
+        expression: '0'
+        rove: false
+      fg_go_index:
+        expression: None
+        rove: false
+      fg_name: {}
+      fg_snr:
+        expression: '100'
+        rove: false
+      fg_switch_channels:
+        rove: false
+        selected: 'No'
+      migrate_fraction:
+        expression: '0'
+        rove: false
+      migrate_start:
+        expression: '0.1'
+        rove: false
+      migrate_stop:
+        expression: '0.6'
+        rove: false
+      migrate_trial: {}
+      primary_channel:
+        rove: false
+        selected: '1'
+      random_seed:
+        expression: '572'
+        rove: false
+      response_window:
+        expression: (0.0, 1.0)
+        rove: false
+      reward_ambiguous_frac:
+        rove: false
+        selected: random 50%
+      this_snr: {}
+    Foreground wave file set:
+      fg_binaural_combinations:
+        rove: false
+        selected: single_offset
+      fg_channel_count:
+        expression: '1'
+        rove: false
+      fg_channel_offset:
+        expression: '1'
+        rove: false
+      fg_duration:
+        expression: '3'
+        rove: false
+      fg_fit_range:
+        expression: '[4,5]'
+        rove: false
+      fg_fit_reps:
+        expression: '1'
+        rove: false
+      fg_level:
+        expression: '60'
+        rove: false
+      fg_norm_fixed_scale:
+        expression: '1'
+        rove: false
+      fg_normalization:
+        rove: false
+        selected: RMS
+      fg_path:
+        expression: '"h:/sounds/vocalizations/v4"'
+        rove: false
+      fg_test_range:
+        expression: slice(0,)
+        rove: false
+      fg_test_reps:
+        expression: '1'
+        rove: false
+    results:
+      correct: {}
+      response: {}
+      response_time: {}
+      response_ts: {}
+      score: {}
+      trial_start: {}
+      trial_type: {}
+    trial:
+      hold_duration:
+        expression: '0.15'
+        rove: false
+      iti_duration:
+        expression: '1.0'
+        rove: false
+      keep_lights_on:
+        expression: 'True'
+        rove: false
+      manual_control:
+        expression: 'False'
+        rove: false
+      np_duration:
+        expression: '0.15'
+        rove: false
+      repeat_incorrect:
+        rove: false
+        selected: Early only
+      response_duration:
+        expression: fg_duration+3.0
+        rove: false
+      snr:
+        expression: '0'
+        rove: true
+      target_delay:
+        expression: '0'
+        rove: false
+      to_duration:
+        expression: '1'
+        rove: false
+      training_mode:
+        expression: 'False'
+        rove: false
+      water_dispense_1_duration:
+        expression: '1'
+        rove: false
+      water_dispense_2_duration:
+        expression: '1'
+        rove: false
+  selectors: {}
+event_log:
+  column_widths:
+    event: 100
+    info: 864
+    timestamp: 100
+microphone:
+  y_max: 9.721712441101696
+  y_min: -10.972564825722129
+trial_log:
+  column_config:
+    bg_channel:
+      width: 54
+    bg_name:
+      width: 80
+    correct:
+      width: 39
+    fg_channel:
+      width: 52
+    fg_name:
+      width: 97
+    migrate_trial:
+      width: 70
+    response:
+      width: 51
+    response_time:
+      width: 67
+    response_ts:
+      width: 40
+    score:
+      width: 40
+    this_snr:
+      width: 58
+    trial_start:
+      width: 40
+    trial_type:
+      width: 39

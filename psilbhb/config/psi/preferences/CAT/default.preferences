@@ -1,0 +1,244 @@
+IR_sensors:
+  y_max: 5.0
+  y_min: 0.0
+context:
+  meta:
+    trial_log:
+    - trial_type
+    - correct
+    - fg_channel
+    - response
+    - fg_name
+    - bg_name
+  parameters:
+    Background wave file set:
+      bg_binaural_combinations:
+        rove: false
+        selected: single_offset
+      bg_channel_count:
+        expression: '1'
+        rove: false
+      bg_channel_offset:
+        expression: '1'
+        rove: false
+      bg_duration:
+        expression: '3'
+        rove: false
+      bg_fit_range:
+        expression: '-1'
+        rove: false
+      bg_fit_reps:
+        expression: '7'
+        rove: false
+      bg_level:
+        expression: '55'
+        rove: false
+      bg_norm_fixed_scale:
+        expression: '1'
+        rove: false
+      bg_normalization:
+        rove: false
+        selected: RMS
+      bg_path:
+        expression: '"h:/sounds/Categories/speech_stims"'
+        rove: false
+      bg_test_range:
+        expression: slice(0)
+        rove: false
+      bg_test_reps:
+        expression: '1'
+        rove: false
+    Catch background wave file set:
+      bgc_binaural_combinations:
+        rove: false
+        selected: single_offset
+      bgc_channel_count:
+        expression: '1'
+        rove: false
+      bgc_channel_offset:
+        expression: '1'
+        rove: false
+      bgc_duration:
+        expression: '3'
+        rove: false
+      bgc_fit_range:
+        expression: '-1'
+        rove: false
+      bgc_fit_reps:
+        expression: '1'
+        rove: false
+      bgc_level:
+        expression: '55'
+        rove: false
+      bgc_norm_fixed_scale:
+        expression: '1'
+        rove: false
+      bgc_normalization:
+        rove: false
+        selected: RMS
+      bgc_path:
+        expression: '"h:/sounds/Categories/chimeric_voc"'
+        rove: false
+      bgc_test_range:
+        expression: slice(0)
+        rove: false
+      bgc_test_reps:
+        expression: '1'
+        rove: false
+    CategorySet:
+      CatchBG_frac:
+        expression: '0.5'
+        rove: false
+      CatchFG_frac:
+        expression: '0.0'
+        rove: false
+      bg_channel: {}
+      bg_name: {}
+      bg_switch_channels:
+        rove: false
+        selected: opposite
+      catch_ferret_id:
+        expression: '3'
+        rove: false
+      combinations:
+        rove: false
+        selected: custom
+      fg_channel: {}
+      fg_delay:
+        expression: '0.01'
+        rove: false
+      fg_go_index:
+        expression: None
+        rove: false
+      fg_name: {}
+      fg_snr:
+        expression: '[0.0]'
+        rove: false
+      fg_switch_channels:
+        rove: false
+        selected: 'Yes'
+      migrate_fraction:
+        expression: '0.0'
+        rove: false
+      migrate_start:
+        expression: '0.5'
+        rove: false
+      migrate_stop:
+        expression: '1.0'
+        rove: false
+      migrate_trial: {}
+      n_env_bands:
+        expression: '[2, 8, 32]'
+        rove: false
+      primary_channel:
+        rove: false
+        selected: '0'
+      random_seed:
+        expression: '0'
+        rove: false
+      response_window:
+        expression: (0.0, 1.0)
+        rove: false
+      this_snr: {}
+    Foreground wave file set:
+      fg_binaural_combinations:
+        rove: false
+        selected: single_offset
+      fg_channel_count:
+        expression: '1'
+        rove: false
+      fg_channel_offset:
+        expression: '1'
+        rove: false
+      fg_duration:
+        expression: '3'
+        rove: false
+      fg_fit_range:
+        expression: '-1'
+        rove: false
+      fg_fit_reps:
+        expression: '1'
+        rove: false
+      fg_level:
+        expression: '55'
+        rove: false
+      fg_norm_fixed_scale:
+        expression: '1'
+        rove: false
+      fg_normalization:
+        rove: false
+        selected: RMS
+      fg_path:
+        expression: '"h:/sounds/Categories/v3_vocoding"'
+        rove: false
+      fg_test_range:
+        expression: slice(0)
+        rove: false
+      fg_test_reps:
+        expression: '1'
+        rove: false
+    results:
+      correct: {}
+      response: {}
+      response_time: {}
+      response_ts: {}
+      score: {}
+      trial_start: {}
+      trial_type: {}
+    trial:
+      hold_duration:
+        expression: '0.4'
+        rove: false
+      iti_duration:
+        expression: '1'
+        rove: false
+      keep_lights_on:
+        expression: 'True'
+        rove: false
+      manual_control:
+        expression: 'False'
+        rove: false
+      np_duration:
+        expression: '0.3'
+        rove: false
+      repeat_incorrect:
+        rove: false
+        selected: Early only
+      response_duration:
+        expression: fg_duration+3.0
+        rove: false
+      snr:
+        expression: '0'
+        rove: false
+      target_delay:
+        expression: '0'
+        rove: false
+      to_duration:
+        expression: '4'
+        rove: false
+      training_mode:
+        expression: 'False'
+        rove: false
+      water_dispense_duration:
+        expression: '0.7'
+        rove: false
+  selectors: {}
+event_log:
+  column_widths: {}
+microphone:
+  y_max: 1.0
+  y_min: -1.0
+trial_log:
+  column_config:
+    bg_name:
+      width: 39
+    correct:
+      width: 39
+    fg_channel:
+      width: 52
+    fg_name:
+      width: 39
+    response:
+      width: 39
+    trial_type:
+      width: 39

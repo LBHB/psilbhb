@@ -1,0 +1,132 @@
+IR_sensors:
+  y_max: 5.0
+  y_min: 0.0
+context:
+  meta:
+    trial_log:
+    - response
+    - trial_type
+    - score
+    - correct
+    - response_time
+    - s1_name
+    - s2_name
+  parameters:
+    VowelSet:
+      catch_set:
+        expression: '[]'
+        rove: false
+      duration:
+        expression: '0.24'
+        rove: false
+      fs:
+        expression: '44000'
+        rove: false
+      level:
+        expression: '65'
+        rove: false
+      non_target_set:
+        expression: '["XX_noiselo+XX_noiselo","OO.321.818.2500.106+OO.321.818.2500.106"]'
+        rove: false
+      primary_channel:
+        rove: false
+        selected: '0'
+      random_seed:
+        expression: '0'
+        rove: false
+      repeat_count:
+        expression: '3'
+        rove: false
+      repeat_isi:
+        expression: '0.2'
+        rove: false
+      response_end:
+        expression: '2'
+        rove: false
+      response_start:
+        expression: '0'
+        rove: false
+      s1_name: {}
+      s2_name: {}
+      sound_path:
+        expression: '''H:/sounds/vowels/v4/'''
+        rove: false
+      switch_channels:
+        rove: false
+        selected: 'No'
+      tar_to_cat_ratio:
+        expression: '5'
+        rove: false
+      target_set:
+        expression: '["AE.828.1920.2500.106+AE.828.1920.2500.106","EH.564.1764.2500.106+EH.564.1764.2500.106"]'
+        rove: false
+    results:
+      correct: {}
+      response: {}
+      response_time: {}
+      response_ts: {}
+      score: {}
+      trial_start: {}
+      trial_type: {}
+    trial:
+      hold_duration:
+        expression: '0.05'
+        rove: false
+      iti_duration:
+        expression: '0.5'
+        rove: false
+      keep_lights_on:
+        expression: 'False'
+        rove: false
+      manual_control:
+        expression: 'False'
+        rove: false
+      np_duration:
+        expression: '0.05'
+        rove: false
+      repeat_incorrect:
+        rove: false
+        selected: 'Yes'
+      response_duration:
+        expression: '8.0'
+        rove: false
+      snr:
+        expression: '0'
+        rove: false
+      target_delay:
+        expression: '0.25'
+        rove: false
+      to_duration:
+        expression: '5'
+        rove: false
+      training_mode:
+        expression: 'False'
+        rove: false
+      water_dispense_1_duration:
+        expression: '1'
+        rove: false
+  selectors: {}
+event_log:
+  column_widths:
+    event: 100
+    info: 100
+    timestamp: 100
+microphone:
+  y_max: 1.0
+  y_min: -1.0
+trial_log:
+  column_config:
+    correct:
+      width: 39
+    response:
+      width: 39
+    response_time:
+      width: 67
+    s1_name:
+      width: 39
+    s2_name:
+      width: 39
+    score:
+      width: 40
+    trial_type:
+      width: 39
