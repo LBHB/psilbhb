@@ -46,6 +46,7 @@ flush_training("SQD",c=c)
 flush_training("SDS",c=c)
 flush_training("REI",c=c)
 flush_training("LGI",c=c)
+
 #flush_training("SLJ",c=c)
 # flush_training("tst",c=c)
 
