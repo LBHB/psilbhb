@@ -102,7 +102,7 @@ enamldef FgBgSetManifest(ExperimentManifest): manifest:
 
             Parameter:
                 name = 'bg_level'
-                label = 'FG level (dB peSPL)'
+                label = 'BG level (dB peSPL)'
                 dtype = 'double'
                 scope = 'experiment'
 

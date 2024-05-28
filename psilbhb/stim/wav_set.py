@@ -783,6 +783,7 @@ class FgBgSet(WavSet):
         for f in set(fg_range):
             if self.FgSet.filelabels[f] == 'C':
                 stim.loc[stim['fg_index'] == f, 'fg_go'] = -1
+        stim.loc[stim['fg_level']==0, 'fg_go'] = -1
 
         if self.migrate_fraction>=1:
             migrate_list = [1]
@@ -850,7 +851,7 @@ class FgBgSet(WavSet):
         if row['bg_channel'] == 1:
             wbg = np.concatenate((np.zeros_like(wbg), wbg), axis=1)
         elif row['bg_channel'] == -1:
-            wbg = np.concatenate((wbg, wbg), axis=1)
+            wbg = np.concatenate((wbg/(2**0.5), wbg/(2**0.5)), axis=1)
 
         fg_level = row['fg_level']
         bg_level = row['bg_level']
@@ -915,7 +916,7 @@ class FgBgSet(WavSet):
         if is_go_trial==-1:
             # -1 means either port
             if (self.reward_ambiguous_frac==0.5):
-                response_condition = int(np.ceil(np.random.uniform(0,2)))
+                response_condition = int(np.ceil(np.random.uniform(0, 2)))
             elif (self.reward_ambiguous_frac==0):
                 response_condition = 0
             else:
