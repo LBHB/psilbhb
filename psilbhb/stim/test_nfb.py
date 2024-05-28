@@ -30,11 +30,14 @@ else:
 #
 # fg_snr = 100
 
-fb = FgBgSet(fg_path=soundpath_fg, bg_path=soundpath_bg,
+params = FgBgSet.default_values()
+params.update(dict(fg_path=soundpath_fg, bg_path=soundpath_bg,
                  fg_range=[1,2], bg_range=[0],
                  fg_switch_channels=True, contra_n=3, ipsi_n=1, diotic_n=1,
                  combinations='all', migrate_fraction=0.0,
-                 fg_level=[0,55], bg_level=[0,55], fg_delay=0.0, random_seed=4234)
+                 fg_level=[0,55], bg_level=[0,55], fg_delay=0.0, random_seed=4234))
+
+fb = FgBgSet(**params)
 fb.update()  # not necessary but illustrative of back-end processing
 
 simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
