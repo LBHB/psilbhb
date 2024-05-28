@@ -996,23 +996,28 @@ class FgBgSet(WavSet):
             n = trial_idx - len(self.trial_outcomes) + 1
             self.trial_outcomes = np.concatenate((self.trial_outcomes, np.zeros(n)-1))
         self.trial_outcomes[trial_idx] = int(outcome)
-        if (repeat_incorrect==2 and (outcome in [0, 1])) or (repeat_incorrect==1 and (outcome in [0])):
+
+        wav_set_idx = self.trial_wav_idx[trial_idx]
+        row = self.stim_list.loc[wav_set_idx]
+        if (row['fg_go'] > -1) & (repeat_incorrect == 2 and (outcome in [0, 1])) \
+                or (repeat_incorrect == 1 and (outcome in [0])):
             #log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
             #self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
             #self.trial_is_repeat = np.concatenate((self.trial_is_repeat, [1]))
             # log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
             # self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
             # self.trial_is_repeat = np.concatenate((self.trial_is_repeat, [1]))
-            log.info('Trial {trial_idx} outcome {outcome}: repeating immediately')
+            log.info(f'Trial {trial_idx} outcome {outcome}: repeating immediately')
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx[:trial_idx],
                                                  [self.trial_wav_idx[trial_idx]],
                                                  self.trial_wav_idx[trial_idx:]))
             self.trial_is_repeat = np.concatenate((self.trial_is_repeat[:(trial_idx + 1)],
                                                    [1],
                                                    self.trial_is_repeat[(trial_idx + 1):]))
-
+        elif row['fg_go']==-1:
+            log.info(f'Trial {trial_idx} bg-only trial: moving on')
         else:
-            log.info('Trial {trial_idx} outcome {outcome}: moving on')
+            log.info(f'Trial {trial_idx} outcome {outcome}: moving on')
 
 
 class FgBgSet_old(WavSet):
