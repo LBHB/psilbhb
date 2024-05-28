@@ -14,9 +14,6 @@ from copy import deepcopy
 from random import choices
 import os
 
-from psiaudio.stim import Waveform, FixedWaveform, ToneFactory, \
-    WavFileFactory, WavSequenceFactory, wavs_from_path
-
 import logging
 log = logging.getLogger(__name__)
 
@@ -469,7 +466,7 @@ class MCWavFileSet(WavFileSet):
             fit_range = list(range(len(all_wav))[fit_range])
         if type(test_range) is slice:
             test_range = list(range(len(all_wav))[test_range])
-            
+
         if include_silence:
             silent_f = [f for i,f in enumerate(all_wav) if str(f).endswith('x_silence.wav')]
             ff = [all_wav[f] for f in fit_range] + silent_f
@@ -628,8 +625,29 @@ class FgBgSet(WavSet):
         {'name': 'migrate_trial', 'label':  'Moving Tar', 'type': 'Result'},
     ]
 
-    for i,d in enumerate(default_parameters):
-        default_parameters[i]['group_name'] = 'FgBgSet'
+    for d in default_parameters:
+        # Use `setdefault` so we don't accidentally override a parameter that
+        # wants to use a different group.
+        d.setdefault('group_name', 'FgBgSet')
+
+    @classmethod
+    def default_values(self):
+        '''
+        Returns a list of default values for each parameter for testing.
+
+        The actual values of the parameters are evaluated by `psi.context`, but
+        we want to be able to set these ourselves in test scripts.
+        '''
+        values = {}
+        for d in self.default_parameters:
+            if d.get('type', '') == 'Result':
+                pass  # used for psi display and logging
+            elif 'expression' in d.keys():
+                values[d['name']] = eval(d['expression'])
+                setattr(self, d['name'], eval(d['expression']))
+            else:
+                values[d['name']] = eval(d['default'])
+        return values
 
     def __init__(self, **parameter_dict):
         """
@@ -655,15 +673,6 @@ class FgBgSet(WavSet):
             If array, length should bg >= FgSet.max_index
         :param random_seed: int
         """
-        for d in self.default_parameters:
-            #print(d)
-            if d.get('type','') == 'Result':
-                pass  # used for psi display and logging
-            elif 'expression' in d.keys():
-                setattr(self, d['name'], eval(d['expression']))
-            else:
-                setattr(self, d['name'], d['default'])
-
         # trial management
         self.current_trial_idx = -1
         self.trial_wav_idx = np.array([], dtype=int)
@@ -968,13 +977,13 @@ class FgBgSet(WavSet):
         :param repeat_incorrect: no/early/all
             If all -- repeat all incorrect, if early, repeat only early withdraws
         :param trial_idx: int
-            must be less than len(trial_wav_idx) to be valid. by default, updates score for 
+            must be less than len(trial_wav_idx) to be valid. by default, updates score for
             current_trial_idx and increments current_trial_idx by 1.
         :return:
         """
         if trial_idx is None:
             trial_idx = self.current_trial_idx
-            # Only incrementing current trial index if trial_idx is None. Do we always 
+            # Only incrementing current trial index if trial_idx is None. Do we always
             # want to do this???
             self.current_trial_idx = trial_idx + 1
 
@@ -1454,16 +1463,16 @@ class FgBgSet_old(WavSet):
         target_set=params['target_set'],
         non_target_set=params['non_target_set'],
         catch_set=params['catch_set'],
-        switch_channels=params['switch_channels'], 
-        primary_channel=params['primary_channel'], 
+        switch_channels=params['switch_channels'],
+        primary_channel=params['primary_channel'],
         duration=params['duration'],
         repeat_count=params['repeat_count'],
-        repeat_isi=params['repeat_isi'], 
+        repeat_isi=params['repeat_isi'],
         tar_to_cat_ratio=params['tar_to_cat_ratio'],
-        level=params['level'], 
-        fs=params['fs'], 
-        response_start=params['response_start'], 
-        response_end=params['response_end'], 
+        level=params['level'],
+        fs=params['fs'],
+        response_start=params['response_start'],
+        response_end=params['response_end'],
         random_seed=params['random_seed'])
 """
 class VowelSet(WavSet):
@@ -1575,7 +1584,7 @@ class VowelSet(WavSet):
         else:
             w2 = self.wavset.waveform_zero()
         w = np.concatenate([w1, w2], axis=1)
-        
+
         if self.repeat_count>1:
             isi_bins = int(self.wavset.fs * self.repeat_isi)
             w_silence=np.zeros((isi_bins, w.shape[1]))
@@ -1749,8 +1758,8 @@ class CategorySet(FgBgSet):
 
     """
 
-    def __init__(self, FgSet=None, BgSet=None, CatchFgSet=None, CatchBgSet=None, OAnoiseSet=None, 
-                 combinations='custom',fg_switch_channels=True, bg_switch_channels=False, primary_channel=0, 
+    def __init__(self, FgSet=None, BgSet=None, CatchFgSet=None, CatchBgSet=None, OAnoiseSet=None,
+                 combinations='custom',fg_switch_channels=True, bg_switch_channels=False, primary_channel=0,
                  fg_delay=0.0, fg_snr=0.0, response_window=None, random_seed=0, catch_ferret_id=4,
                  n_env_bands=[2, 8, 32], reg2catch_ratio=6, unique_overall_SNR= [np.inf]):
         """
@@ -1799,7 +1808,7 @@ class CategorySet(FgBgSet):
                 raise ValueError(f"Must specify BgSet if CatchBgSet is specified")
             else:
                 self.BgSet = cat_MCWavFileSets(BgSet, CatchBgSet)
-        
+
         if OAnoiseSet is None:
             self.OAnoiseSet = WaveformSet()
             if not all(np.isinf(unique_overall_SNR)):
@@ -2042,16 +2051,16 @@ class CategorySet(FgBgSet):
         target_set=params['target_set'],
         non_target_set=params['non_target_set'],
         catch_set=params['catch_set'],
-        switch_channels=params['switch_channels'], 
-        primary_channel=params['primary_channel'], 
+        switch_channels=params['switch_channels'],
+        primary_channel=params['primary_channel'],
         duration=params['duration'],
         repeat_count=params['repeat_count'],
-        repeat_isi=params['repeat_isi'], 
+        repeat_isi=params['repeat_isi'],
         tar_to_cat_ratio=params['tar_to_cat_ratio'],
-        level=params['level'], 
-        fs=params['fs'], 
-        response_start=params['response_start'], 
-        response_end=params['response_end'], 
+        level=params['level'],
+        fs=params['fs'],
+        response_start=params['response_start'],
+        response_end=params['response_end'],
         random_seed=params['random_seed'])
 """
 
