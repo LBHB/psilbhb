@@ -17,12 +17,12 @@ from psilbhb.stim import wav_set
 CONTEXT_ITEM_CACHE = {}
 
 
-def configure_stimuli(event, manifest):
+def configure_stimuli(manifest, event):
     # change to def configure_fgbg(event):
     context = event.workbench.get_plugin('psi.context')
     controller = event.workbench.get_plugin('psi.controller')
-    output = controller.get_output('output_1')
     params = context.get_values()
+    n_response = getattr(controller, 'N_response', 2)
 
     # All values in `default_parameters` should automatically be present in the
     # dictionary returned by context. It's not necessary to compute the
@@ -30,7 +30,7 @@ def configure_stimuli(event, manifest):
     plist = manifest.stim_class.default_parameters
     wavset_keys = [p['name'] for p in plist if p.get('type','') != 'Result']
     wavset_params = {k: params[k] for k in wavset_keys}
-    controller.wavset = FgBgSet(**wavset_params)
+    controller.wavset = manifest.stim_class(n_response=n_response, **wavset_params)
 
 
 def generate_context_items(manifest):
@@ -76,170 +76,10 @@ enamldef WavSetManifest(ExperimentManifest): manifest:
         factory = partial(generate_context_items, manifest)
 
 
-# TODO make parallel for vowel set
-def configure_vowelset_stimuli(event):
-    context = event.workbench.get_plugin('psi.context')
-    controller = event.workbench.get_plugin('psi.controller')
-    output = controller.get_output('output_1')
-    n_response = getattr(controller, 'N_response', 2)
-    params = context.get_values()
-
-    controller.wavset = VowelSet(
-        sound_path=params['sound_path'],
-        target_set=params['target_set'],
-        non_target_set=params['non_target_set'],
-        catch_set=params['catch_set'],
-        switch_channels=params['switch_channels'],
-        primary_channel=params['primary_channel'],
-        duration=params['duration'],
-        repeat_count=params['repeat_count'],
-        repeat_isi=params['repeat_isi'],
-        tar_to_cat_ratio=params['tar_to_cat_ratio'],
-        level=params['level'],
-        fs=params['fs'],
-        response_start=params['response_start'],
-        response_end=params['response_end'],
-        random_seed=params['random_seed'],
-        n_response=n_response
-    )
-
 # Delete once we have brought rest of stuff to fruition
 from psi.context.api import (
     BoolParameter, EnumParameter, ContextGroup, ContextRow, Parameter, Result
 )
-
-# TODO This is a stub. Make this work with VowelSet instead of FgBgSet
-enamldef VowelSetManifest(WavSetManifest): manifest:
-
-    # Sets the default stim class
-    attr stim_class = VowelSet
-
-    Extension:
-        # TODO: Make this happen in the psilbhb.stim.wav_set area instead
-        id = manifest.id + '.items'
-        point = 'psi.context.items'
-
-        ContextGroup:
-            # FgBgSet generates a waveform for each trial
-            # has two children: FgSet and BgSet, both of
-            # which are instances of MultichannelWaveformSet
-            # and are defined below
-            name = 'VowelSet'
-
-            Parameter:
-                name = 'sound_path'
-                label = 'folder'
-                dtype = 'S'
-                scope = 'experiment'
-
-            Parameter:
-                name = 'target_set'
-                label = 'Target names (list)'
-                expression = '["EH_106"]'
-                dtype = 'object'
-                scope = 'experiment'
-
-            Parameter:
-                name = 'non_target_set'
-                label = 'Non-target names (list)'
-                expression = '[]'
-                dtype = 'object'
-                scope = 'experiment'
-
-            Parameter:
-                name = 'catch_set'
-                label = 'Catch names (list)'
-                expression = '[]'
-                dtype = 'object'
-                scope = 'experiment'
-
-            EnumParameter:
-                name = 'switch_channels'
-                label = 'Targets from both sides?'
-                compact_label = 'combinations'
-                default = 'No'
-                choices = {'No': "False", 'Yes': "True"}
-                scope = 'experiment'
-
-            EnumParameter:
-                name = 'primary_channel'
-                label = 'primary_channel'
-                compact_label = 'primary_channel'
-                default = '0'
-                choices = {'0': 0, '1': 1}
-                scope = 'experiment'
-
-            Parameter:
-                name = 'duration'
-                label = 'duration of each sample (s)'
-                default = 0.24
-                dtype = 'double'
-                scope = 'experiment'
-
-            Parameter:
-                name = 'repeat_count'
-                label = 'repeats per trial'
-                default = 2
-                dtype = 'int'
-                scope = 'experiment'
-
-            Parameter:
-                name = 'repeat_isi'
-                label = 'ISI between repeats (s)'
-                default = 0.2
-                dtype = 'double'
-                scope = 'experiment'
-
-            Parameter:
-                name = 'tar_to_cat_ratio'
-                label = 'Ratio of tar to catch trials'
-                default = 5
-                dtype = 'int'
-                scope = 'experiment'
-
-            Parameter:
-                name = 'level'
-                label = 'level (dB peSPL)'
-                default = 60
-                dtype = 'double'
-                scope = 'experiment'
-
-            Parameter:
-                name = 'fs'
-                label = 'sampling rate (1/s)'
-                default = 44000
-                dtype = 'double'
-                scope = 'experiment'
-
-            Parameter:
-                name = 'response_start'
-                label = 'response win start (s)'
-                default = 0
-                dtype = 'double'
-                scope = 'experiment'
-
-            Parameter:
-                name = 'response_end'
-                label = 'response win end (s)'
-                default = 2
-                dtype = 'double'
-                scope = 'experiment'
-
-            Parameter:
-                name = 'random_seed'
-                label = 'random_seed'
-                default = 0
-                dtype = 'int'
-                scope = 'experiment'
-
-            Result:
-                name = 's1_name'
-                label = 'S1'
-
-            Result:
-                name = 's2_name'
-                label = 'S2'
-            # Calibration?
 
 
 def configure_category_stimuli(event):
