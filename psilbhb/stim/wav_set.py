@@ -239,6 +239,10 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
         waveform = waveform.astype(np.float32)
         waveform = (waveform - ii.min) / (ii.max - ii.min) * 2 - 1
 
+    # Resample if sampling rate does not match
+    if fs != file_fs:
+        waveform = util.resample_fft(waveform, file_fs, fs)
+
     if force_duration is not None:
         final_samples = int(force_duration*fs)
         if len(waveform) > final_samples:
@@ -272,9 +276,6 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
     #if np.max(np.abs(waveform)) > 5:
     #    raise ValueError('waveform value too large')
 
-    # Resample if sampling rate does not match
-    if fs != file_fs:
-        waveform = util.resample_fft(waveform, file_fs, fs)
 
     return waveform
 
@@ -645,12 +646,12 @@ class FgBgSet(WavSet):
         {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': 'int'},
         {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, },
 
-        {'name': 'fg_channel', 'label': 'FG chan', 'type': 'Result'},
-        {'name': 'bg_channel', 'label':  'BG chan', 'type': 'Result'},
-        {'name': 'fg_name', 'label':  'FG', 'type': 'Result'},
-        {'name': 'bg_name', 'label':  'BG', 'type': 'Result'},
-        {'name': 'this_snr', 'label':  'Trial SNR', 'type': 'Result'},
-        {'name': 'migrate_trial', 'label':  'Moving Tar', 'type': 'Result'},
+        {'name': 'fg_channel', 'label': 'FG chan', 'type': 'Result', 'group_name': 'Results'},
+        {'name': 'bg_channel', 'label':  'BG chan', 'type': 'Result', 'group_name': 'Results'},
+        {'name': 'fg_name', 'label':  'FG', 'type': 'Result', 'group_name': 'Results'},
+        {'name': 'bg_name', 'label':  'BG', 'type': 'Result', 'group_name': 'Results'},
+        {'name': 'this_snr', 'label':  'Trial SNR', 'type': 'Result', 'group_name': 'Results'},
+        {'name': 'migrate_trial', 'label':  'Moving Tar', 'type': 'Result', 'group_name': 'Results'},
     ]
 
     for d in default_parameters:
@@ -902,12 +903,15 @@ class FgBgSet(WavSet):
             wfg = w1 + w2
 
         # combine fg and bg waveforms
+        total_bins = int(self.duration*self.FgSet.fs)
         offsetbins = int(row['fg_delay'] * self.FgSet.fs)
-        w = wbg
+        if wbg.shape[0]>total_bins:
+            wbg=wbg[:total_bins]
+        w = np.zeros((total_bins,wbg.shape[1]))
+        w[:wbg.shape[0],:] = wbg
+
         if wfg.shape[0]+offsetbins > wbg.shape[0]:
-            print(wfg.shape[0], offsetbins, wbg.shape[0])
-            w = np.concatenate((w, np.zeros((wfg.shape[0]+offsetbins-wbg.shape[0],
-                                             wbg.shape[1]))), axis=0)
+            wfg = wfg[:(total_bins-offsetbins),:]
         w[offsetbins:(offsetbins+wfg.shape[0]), :] += wfg
 
         return w.T

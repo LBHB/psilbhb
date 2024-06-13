@@ -29,6 +29,18 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
     df_trial, df_event = readlogs(rawid=rawid, c=c)
 
     # throw out invalid trials-- early NP or previous trial was error
+    if df_trial.score.dtype == 'O':
+        # convert from HIT/MISS to
+        df_trial['score_str']=df_trial['score']
+        df_trial['score']=0
+        # 2: hit = 'HIT'     0: miss = 'MISS' 3: correct_reject = 'CR'    1: false_alarm = 'FA'
+
+        df_trial.loc[df_trial['score_str']=='FA','score']=1
+        df_trial.loc[df_trial['score_str']=='HIT','score']=2
+        df_trial.loc[df_trial['score_str']=='CR','score']=3
+        df_trial['correct'] = df_trial['score']>=2
+
+
     d_=df_trial.loc[df_trial.score>0].copy()
     v = np.roll(d_['score'].values,1)
     v[0]=2
@@ -47,6 +59,15 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         dbias = d_.groupby(['response','snr'])['correct'].mean()
         dbias = dbias.unstack(-1)
         width=12
+    elif runclass == 'NTD':
+        perfsum = d_.groupby(['snr'])[['correct']].mean()
+        perfsum = perfsum.unstack(-1)
+        perfcount = d_.groupby(['snr'])[['correct']].count()
+        perfcount = perfcount.unstack(-1)
+
+        dbias = d_.groupby(['response', 'snr'])['correct'].mean()
+        dbias = dbias.unstack(-1)
+        width = 12
     else:
         d_.loc[(d_['s1idx'] == 0) & (d_['s1_name'].astype(str) == 'nan'), 's1_name'] = "AE.828.1920.2500.106.wav"
         d_.loc[(d_['s2idx'] == 0) & (d_['s2_name'].astype(str) == 'nan'), 's2_name'] = "AE.828.1920.2500.106.wav"
