@@ -390,7 +390,7 @@ class CellDbLauncher(SimpleLauncher):
             config_parms = ['BASE_DIRECTORY', 'LOG_ROOT', 'DATA_ROOT',
                             'TRAINING_ROOT','VIDEO_ROOT','PROCESSED_ROOT',
                             'CAL_ROOT','PREFERENCES_ROOT','LAYOUT_ROOT',
-                            'IO_ROOT','OPENEPHYS_URI',
+                            'OPENEPHYS_URI',
                             'MYSQL_HOST','MYSQL_DB']
             for k in config_parms:
                 d[k] = str(get_config(k))
