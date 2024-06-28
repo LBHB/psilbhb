@@ -95,6 +95,8 @@ enamldef BaseGoNogoMixin(ExperimentManifest): manifest:
         point = 'psi.data.sinks'
         EventLog:
             show_widget = True
+            exclude = ['np_contact_digital_acquired',
+                       'reward_contact_digital_acquired']
         TrialLog:
             show_widget = True
         SDTAnalysis:

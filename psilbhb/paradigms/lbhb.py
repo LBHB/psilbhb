@@ -49,7 +49,9 @@ ParadigmDescription(
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
          'attrs': {'N_response': 2}},
-        {'manifest': PATH + 'wav_set_manifest.FgBgSetManifest', 'required': True},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'FgBgSet'}
+         },
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_1',
                    'event_name': 'deliver_reward_1'}},
@@ -65,7 +67,8 @@ ParadigmDescription(
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
          'attrs': {'N_response': 2}},
-        {'manifest': PATH + 'wav_set_manifest.VowelSetManifest', 'required': True},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'VowelSet'}},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_1',
                    'event_name': 'deliver_reward_1'}},
@@ -81,7 +84,8 @@ ParadigmDescription(
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
          'attrs': {'N_response': 1}},
-        {'manifest': PATH + 'wav_set_manifest.VowelSetManifest', 'required': True},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'VowelSet'}},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_1',
                    'event_name': 'deliver_reward_1'}},
