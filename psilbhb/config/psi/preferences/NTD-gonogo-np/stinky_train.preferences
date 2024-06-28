@@ -43,7 +43,7 @@ context:
         rove: false
         selected: fixed
       background_wav_sequence_path:
-        expression: r"E:\sounds\v2"
+        expression: r"E:\sounds\BigNat\v2"
         rove: false
       background_wav_sequence_random_seed:
         expression: '0'
@@ -77,7 +77,7 @@ context:
         rove: false
         selected: fixed
       background_1_wav_sequence_path:
-        expression: r"E:\sounds\v2"
+        expression: r"E:\sounds\BigNat\v2"
         rove: false
       background_1_wav_sequence_random_seed:
         expression: '0'
@@ -90,6 +90,10 @@ context:
         rove: false
     results:
       correct: {}
+      psivideo_frame_ts: {}
+      psivideo_frames_written: {}
+      psivideo_side_frame_ts: {}
+      psivideo_side_frames_written: {}
       response: {}
       response_time: {}
       response_ts: {}
@@ -193,7 +197,7 @@ context:
 event_log:
   column_widths:
     event: 100
-    info: 213
+    info: 1804
     timestamp: 100
 microphone:
   y_max: 0.344497357815968

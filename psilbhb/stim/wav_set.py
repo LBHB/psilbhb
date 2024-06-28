@@ -255,7 +255,8 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
     if normalization == 'pe':
         waveform = waveform / waveform.max()
     elif normalization == 'rms':
-        waveform = waveform / util.rms(waveform)
+        # 3.5349 V RMS = 80 dB tone
+        waveform = remove_clicks(waveform / util.rms(waveform), max_threshold=15) * 3.5349
     elif normalization == 'fixed':
         waveform = waveform * norm_fixed_scale
         waveform = remove_clicks(waveform, max_threshold=15)
@@ -268,7 +269,7 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
     elif level is not None:
         attenuatedB = 80-level
         sf = 10 ** (-attenuatedB/20)
-        waveform *= (1.4141 * sf)  # 1.4141 V RMS = 80 dB
+        waveform *= sf
         #log.info(f"Atten: {attenuatedB} SF: {sf} RMS: {waveform.std()}")
 
     waveform[waveform>5]=5
