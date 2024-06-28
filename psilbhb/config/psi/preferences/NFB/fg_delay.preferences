@@ -50,7 +50,11 @@ context:
         expression: '"e:/sounds/vocalizations/v4"'
         rove: false
       fg_range:
+<<<<<<< HEAD
         expression: '[10,12]'
+=======
+        expression: '[9,12]'
+>>>>>>> 84ae5be650e684cd8dc9b156c0ade81ab7d5d20a
         rove: false
       fg_switch_channels:
         expression: 'True'

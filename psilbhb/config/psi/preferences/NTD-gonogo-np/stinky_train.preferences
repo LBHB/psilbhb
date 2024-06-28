@@ -34,7 +34,7 @@ context:
         expression: '1'
         rove: false
       background_wav_sequence_level:
-        expression: '45'
+        expression: '55'
         rove: false
       background_wav_sequence_norm_fixed_scale:
         expression: '25'
@@ -68,7 +68,7 @@ context:
         expression: '1'
         rove: false
       background_1_wav_sequence_level:
-        expression: '45'
+        expression: '55'
         rove: false
       background_1_wav_sequence_norm_fixed_scale:
         expression: '25'
@@ -118,7 +118,7 @@ context:
         expression: '1'
         rove: false
       target_tone_frequency:
-        expression: '4000'
+        expression: '650'
         rove: false
       target_tone_level:
         expression: background_1_wav_sequence_level+snr
@@ -137,7 +137,7 @@ context:
         rove: false
     trial:
       hold_duration:
-        expression: '0.1'
+        expression: '0.15'
         rove: false
       iti_duration:
         expression: '.5'
@@ -155,10 +155,10 @@ context:
         expression: '4'
         rove: false
       snr:
-        expression: '10'
+        expression: '0'
         rove: true
       target_delay:
-        expression: '0.2'
+        expression: '0.3'
         rove: false
       to_duration:
         expression: '1.0'
@@ -175,10 +175,10 @@ context:
       - snr
       order: ascending
       settings:
+      - snr: -5
+      - snr: 0
       - snr: 5
       - snr: 10
-      - snr: 15
-      - snr: 20
     nogo:
       context_item_order:
       - snr
