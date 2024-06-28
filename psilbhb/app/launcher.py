@@ -141,7 +141,7 @@ class SimpleLauncher(Atom):
                 return
 
         if self.save_data:
-            log.debug(f"updating template")
+            log.debug(f"Updating template")
             template_vals = get_tagged_values(self, 'template')
             template_vals['experiment'] = template_vals['experiment'].name
             self.base_folder = self.root_folder / self.template.format(**template_vals)
@@ -384,7 +384,7 @@ class CellDbLauncher(SimpleLauncher):
             filename = psipath + "globalparams.json"
             print(f"params file: {filename}")
 
-            save_parms = ['experimenter','animal','training','runclass','base_folder']
+            save_parms = ['experimenter','animal','training','runclass','base_folder','io']
             d = {k: str(getattr(self, k)) for k in save_parms}
             for k in rawdata.keys():
                 d[k] = str(rawdata[k])
