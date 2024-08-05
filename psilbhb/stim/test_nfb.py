@@ -33,7 +33,7 @@ else:
 params = FgBgSet.default_values()
 params.update(dict(fg_path=soundpath_fg, bg_path=soundpath_bg,
                  fg_range=[1,2], bg_range=[0],
-                 fg_switch_channels=True, contra_n=3, ipsi_n=1, diotic_n=1,
+                 fg_switch_channels=True, contra_n=1, ipsi_n=1, diotic_n=1, fg_choice_trials=2,
                  combinations='all', migrate_fraction=0.0, fg_delay=0.5, duration=2.0,
                  fg_level=[0, 55], bg_level=[0, 55], random_seed=4234))
 
@@ -59,16 +59,19 @@ for trial_idx in range(0,5):
     w = fb.trial_waveform(trial_idx)
     d = fb.trial_parameters(trial_idx)
     print(trial_idx, w.shape)
-    if d['fg_level'] == 0:
+    if d['this_fg_level'] == 0:
         fg_scaleby = 0
     else:
-        fg_scaleby = 10 ** ((d['fg_level'] - fb.FgSet.level) / 20)
-    if d['bg_level'] == 0:
+        fg_scaleby = 10 ** ((d['this_fg_level'] - fb.FgSet.level) / 20)
+    if d['this_bg_level'] == 0:
         bg_scaleby = 0
     else:
-        bg_scaleby = 10 ** ((d['bg_level'] - fb.BgSet.level) / 20)
+        bg_scaleby = 10 ** ((d['this_bg_level'] - fb.BgSet.level) / 20)
 
-    wb = fb.BgSet.waveform(d['bg_i'])*bg_scaleby
+    if d['response_condition']==-1:
+        wb = fb.FgSet.waveform(d['bg_i'])*bg_scaleby
+    else:
+        wb = fb.BgSet.waveform(d['bg_i'])*bg_scaleby
     wf = fb.FgSet.waveform(d['fg_i'])*fg_scaleby
     print(trial_idx, w.shape, wb.shape, wf.shape)
 
@@ -85,7 +88,7 @@ for trial_idx in range(0,5):
     ax[1].legend()
     ax[1].set_title('channel 2')
 
-    ax[0].set_title(f"trial {trial_idx} fgc={d['fg_channel']} bgc={d['bg_channel']} fgdB={d['fg_level']}")
+    ax[0].set_title(f"trial {trial_idx} fgc={d['fg_channel']} bgc={d['bg_channel']} fgdB={d['this_fg_level']}")
 
     plt.tight_layout()
 

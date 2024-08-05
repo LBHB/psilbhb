@@ -644,8 +644,8 @@ class FgBgSet(WavSet):
         {'name': 'fg_switch_channels', 'label': 'Switch FG channel', 'type': 'BoolParameter', 'default': False},
         {'name': 'combinations', 'label': 'How to combine FG+BG', 'default': 'all', 'type': 'EnumParameter',
          'choices': {'simple': "'simple'", 'all': "'all'"}},
-        {'name': 'fg_choice_trials', 'label': 'FG choice trials', 'type': 'BoolParameter', 'default': False},
 
+        {'name': 'fg_choice_trials', 'label': 'FG choice portion (int)', 'default': 0, 'dtype': 'int'},
         {'name': 'contra_n', 'label': 'Contra BG portion (int)', 'default': 1, 'dtype': 'int'},
         {'name': 'diotic_n', 'label': 'Diotic BG portion (int)', 'default': 0, 'dtype': 'int'},
         {'name': 'ipsi_n', 'label': 'Ipsi BG portion (int)', 'default': 0, 'dtype': 'int'},
@@ -752,9 +752,13 @@ class FgBgSet(WavSet):
             fg_range = fg_range_ * len(bg_range_)
             bg_range=[]
             [bg_range.extend([b]*len(fg_range_)) for b in bg_range_];
-        data = {'fg_index': fg_range, 'bg_index': bg_range, 'fg_go': 1, 'fg_delay': self.fg_delay}
-        log.info(f"{data}")
-        stim = pd.DataFrame(data={'fg_index': fg_range, 'bg_index': bg_range, 'fg_go': 1, 'fg_delay': self.fg_delay},
+
+        go_trials = [1] * len(fg_range)
+
+        data = {'fg_index': fg_range, 'bg_index': bg_range, 'fg_go': go_trials, 'fg_delay': self.fg_delay}
+        log.info(f"{pd.DataFrame(data)}")
+        stim = pd.DataFrame(data={'fg_index': fg_range, 'bg_index': bg_range, 'fg_go': go_trials,
+                                  'fg_delay': self.fg_delay},
                             columns=['fg_index', 'bg_index', 'fg_channel', 'bg_channel', 'fg_level', 'bg_level',
                                      'fg_go', 'fg_delay', 'migrate_trial'])
 
@@ -774,6 +778,20 @@ class FgBgSet(WavSet):
             s['fg_channel']=f
             s['bg_channel']=b
             dlist.append(s)
+
+        if self.fg_choice_trials > 0:
+            fgc_range = [0] * self.fg_choice_trials * 2
+            bgc_range = [1] * self.fg_choice_trials * 2
+            fgc_channels = [0] * self.fg_choice_trials + [1] * self.fg_choice_trials
+            bgc_channels = [1] * self.fg_choice_trials + [0] * self.fg_choice_trials
+
+            stimc = pd.DataFrame(data={'fg_index': fgc_range, 'bg_index': bgc_range,
+                                       'fg_channel': fgc_channels, 'bg_channel': bgc_channels,
+                                       'fg_go': -2, 'fg_delay': self.fg_delay},
+                                columns=['fg_index', 'bg_index', 'fg_channel', 'bg_channel', 'fg_level', 'bg_level',
+                                         'fg_go', 'fg_delay', 'migrate_trial'])
+            dlist.append(stimc)
+
         stim = pd.concat(dlist, ignore_index=True)
 
         if type(self.fg_level) is int:
@@ -794,7 +812,9 @@ class FgBgSet(WavSet):
                 s['bg_level'] = f
                 dlist.append(s)
             stim = pd.concat(dlist, ignore_index=True)
-        stim = stim.loc[(stim['fg_level']>0) | (stim['bg_level']>0)]
+        stim = stim.loc[((stim['fg_level']>0) & (stim['fg_go']>-2)) |
+                        ((stim['bg_level']>0) & (stim['fg_go']>-2)) |
+                        ((stim['fg_level']>0) & (stim['bg_level']>0))]
 
         # remove dups of zero-dB spatial locations
         # but allow other dups
@@ -809,9 +829,9 @@ class FgBgSet(WavSet):
         stim = pd.concat([nzstim, zstim.drop_duplicates()], ignore_index=True)
 
         # check if any stims are labeled catch, and set fg_go accordingly:
-        for b in set(bg_range):
+        for b in set(stim.loc[(stim['fg_go']==1),'bg_index'].values):
             if self.BgSet.filelabels[b] == 'C':
-                stim.loc[stim['bg_index']==b,'fg_go']=-1
+                stim.loc[(stim['bg_index']==b) & (stim['fg_go']==1),'fg_go'] = -1
         for f in set(fg_range):
             if self.FgSet.filelabels[f] == 'C':
                 stim.loc[stim['fg_index'] == f, 'fg_go'] = -1
@@ -879,7 +899,11 @@ class FgBgSet(WavSet):
         wfg = self.FgSet.waveform(row['fg_index'])
         if row['fg_channel'] == 1:
             wfg = np.concatenate((np.zeros_like(wfg), wfg), axis=1)
-        wbg = self.BgSet.waveform(row['bg_index'])
+        if row['fg_go']==-2:
+            # choice trial, FgSet for both channels
+            wbg = self.FgSet.waveform(row['bg_index'])
+        else:
+            wbg = self.BgSet.waveform(row['bg_index'])
         if row['bg_channel'] == 1:
             wbg = np.concatenate((np.zeros_like(wbg), wbg), axis=1)
         elif row['bg_channel'] == -1:
@@ -949,7 +973,11 @@ class FgBgSet(WavSet):
         bg_i = row['bg_index']
 
         is_go_trial = row['fg_go']
-        if is_go_trial==-1:
+        if is_go_trial==-2:
+            # choice trial - 2 fgs with different reward
+            response_condition = -1
+
+        elif is_go_trial == -1:
             # -1 means either port
             if (self.reward_ambiguous_frac==0.5):
                 response_condition = int(np.ceil(np.random.uniform(0, 2)))
@@ -970,13 +998,19 @@ class FgBgSet(WavSet):
             response_window = (row['fg_delay'] + self.response_window[fg_i][0],
                                row['fg_delay'] + self.response_window[fg_i][1])
 
+        if is_go_trial>-1:
+            fg_name = self.FgSet.names[fg_i]
+            bg_name = self.BgSet.names[bg_i]
+        else:
+            fg_name = self.FgSet.names[fg_i]
+            bg_name = self.FgSet.names[bg_i]
 
         d = {'trial_idx': trial_idx,
              'wav_set_idx': wav_set_idx,
              'fg_i': fg_i,
              'bg_i': bg_i,
-             'fg_name': self.FgSet.names[fg_i],
-             'bg_name': self.BgSet.names[bg_i],
+             'fg_name': fg_name,
+             'bg_name': bg_name,
              'fg_duration': self.FgSet.duration,
              'bg_duration': self.BgSet.duration,
              'snr': row['fg_level']-row['bg_level'],
@@ -993,8 +1027,15 @@ class FgBgSet(WavSet):
              'primary_channel': self.primary_channel,
              'trial_is_repeat': self.trial_is_repeat[trial_idx],
              }
-        if fg_i < len(self.reward_durations):
+        if (is_go_trial==-2) & (len(self.reward_durations)>1):
+            d[f'dispense_duration'] = -1
+            d[f'dispense_1_duration'] = self.reward_durations[fg_i]
+            d[f'dispense_2_duration'] = self.reward_durations[bg_i]
+        elif fg_i < len(self.reward_durations):
             d[f'dispense_duration'] = self.reward_durations[fg_i]
+            d[f'dispense_1_duration'] = -1
+            d[f'dispense_2_duration'] = -1
+
         # Override dispense durations
         # for i in range(self.N_response):
         #    if 'dispense_{i+1}_duration' in wavset_info:
