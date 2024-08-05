@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 plt.ion()
 
-rawid = 150785
+rawid = 150982
 #rawid = 149974
 df_trial = plot_behavior(rawid=rawid, save_fig=True)
 #df_trial=plot_behavior(150093, save_fig=True)

@@ -201,6 +201,21 @@ def cat_MCWavFileSets(set1, set2):
     return cat_set
 # End of cat_MCWavFileSets
 
+def remove_clicks(w, max_threshold=10, verbose=False):
+    w_clean = w
+
+    # log compress everything > 67% of max
+    crossover = 0.67 * max_threshold
+    ii = (w>crossover)
+    w_clean[ii] = crossover + np.log(w_clean[ii]-crossover+1);
+    jj = (w<-crossover)
+    w_clean[jj] = -crossover - np.log(-w_clean[jj]-crossover+1);
+
+    if verbose:
+       print(f'bins compressed down: {ii.sum()} up: {jj.sum()} max {np.abs(w).max():.2f}-->{np.abs(w_clean).max():.2f}')
+
+    return w_clean
+
 
 def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_scale=1,
              force_duration=None):
@@ -610,7 +625,6 @@ class FgBgSet(WavSet):
     TODO:
         1. Merge fg/bgset settings into main class
 
-
     """
     default_parameters = [
         {'name': 'fg_path', 'label': 'FG path', 'default': 'h:/sounds/vocalizations/v4', 'dtype': 'str'},
@@ -630,6 +644,7 @@ class FgBgSet(WavSet):
         {'name': 'fg_switch_channels', 'label': 'Switch FG channel', 'type': 'BoolParameter', 'default': False},
         {'name': 'combinations', 'label': 'How to combine FG+BG', 'default': 'all', 'type': 'EnumParameter',
          'choices': {'simple': "'simple'", 'all': "'all'"}},
+        {'name': 'fg_choice_trials', 'label': 'FG choice trials', 'type': 'BoolParameter', 'default': False},
 
         {'name': 'contra_n', 'label': 'Contra BG portion (int)', 'default': 1, 'dtype': 'int'},
         {'name': 'diotic_n', 'label': 'Diotic BG portion (int)', 'default': 0, 'dtype': 'int'},
@@ -643,9 +658,10 @@ class FgBgSet(WavSet):
         {'name': 'response_window', 'label': 'Response start,stop (s)', 'expression': '(0, 1)'},
         {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 'all', 'type': 'EnumParameter',
          'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}},
+        {'name': 'reward_durations', 'label': 'FG reward durations', 'expression': '()'},
 
         {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': 'int'},
-        {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, },
+        {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, 'group_name': 'Results' },
 
         {'name': 'fg_channel', 'label': 'FG chan', 'type': 'Result', 'group_name': 'Results'},
         {'name': 'bg_channel', 'label':  'BG chan', 'type': 'Result', 'group_name': 'Results'},
@@ -954,6 +970,7 @@ class FgBgSet(WavSet):
             response_window = (row['fg_delay'] + self.response_window[fg_i][0],
                                row['fg_delay'] + self.response_window[fg_i][1])
 
+
         d = {'trial_idx': trial_idx,
              'wav_set_idx': wav_set_idx,
              'fg_i': fg_i,
@@ -976,6 +993,15 @@ class FgBgSet(WavSet):
              'primary_channel': self.primary_channel,
              'trial_is_repeat': self.trial_is_repeat[trial_idx],
              }
+        if fg_i < len(self.reward_durations):
+            d[f'dispense_duration'] = self.reward_durations[fg_i]
+        # Override dispense durations
+        # for i in range(self.N_response):
+        #    if 'dispense_{i+1}_duration' in wavset_info:
+        #        self.context.set_value(f'water_dispense_{i+1}_duration', wavset_info[f'dispense_{i+1}_duration'])
+        #    elif 'dispense_duration' in wavset_info:
+        #        self.context.set_value(f'water_dispense_{i+1}_duration', wavset_info[f'dispense_duration'])
+
         return d
 
     def score_response(self, outcome, repeat_incorrect=2, trial_idx=None):

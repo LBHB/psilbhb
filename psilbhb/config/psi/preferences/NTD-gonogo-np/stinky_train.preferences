@@ -34,7 +34,7 @@ context:
         expression: '1'
         rove: false
       background_wav_sequence_level:
-        expression: '55'
+        expression: '65'
         rove: false
       background_wav_sequence_norm_fixed_scale:
         expression: '25'
@@ -68,7 +68,7 @@ context:
         expression: '1'
         rove: false
       background_1_wav_sequence_level:
-        expression: '55'
+        expression: '65'
         rove: false
       background_1_wav_sequence_norm_fixed_scale:
         expression: '25'
@@ -90,10 +90,6 @@ context:
         rove: false
     results:
       correct: {}
-      psivideo_frame_ts: {}
-      psivideo_frames_written: {}
-      psivideo_side_frame_ts: {}
-      psivideo_side_frames_written: {}
       response: {}
       response_time: {}
       response_ts: {}
@@ -102,13 +98,13 @@ context:
       trial_type: {}
     selector:
       go_probability:
-        expression: '0.8'
+        expression: '0.9'
         rove: false
       remind_trials:
         expression: '0'
         rove: false
       repeat_fa:
-        expression: 'False'
+        expression: 'True'
         rove: false
       warmup_trials:
         expression: '0'
@@ -118,7 +114,7 @@ context:
         expression: '1'
         rove: false
       target_tone_frequency:
-        expression: '650'
+        expression: '4000'
         rove: false
       target_tone_level:
         expression: background_1_wav_sequence_level+snr
@@ -137,7 +133,7 @@ context:
         rove: false
     trial:
       hold_duration:
-        expression: '0.15'
+        expression: '0.1'
         rove: false
       iti_duration:
         expression: '.5'
@@ -152,13 +148,13 @@ context:
         expression: '0.05'
         rove: false
       response_duration:
-        expression: '4'
+        expression: '6'
         rove: false
       snr:
-        expression: '0'
+        expression: '15'
         rove: true
       target_delay:
-        expression: '0.3'
+        expression: '0.4'
         rove: false
       to_duration:
         expression: '1.0'
@@ -167,7 +163,7 @@ context:
         expression: 'False'
         rove: false
       water_dispense_1_duration:
-        expression: '0.4'
+        expression: '0.6'
         rove: false
   selectors:
     go:
@@ -197,11 +193,11 @@ context:
 event_log:
   column_widths:
     event: 100
-    info: 1804
+    info: 713
     timestamp: 100
 microphone:
-  y_max: 0.344497357815968
-  y_min: -0.38398868557023114
+  y_max: 0.5700429967927134
+  y_min: -0.15844304659348535
 output.background:
   token_name: wav_sequence
 output.background_1:
@@ -228,12 +224,12 @@ trial_log:
     correct:
       width: 39
     response:
-      width: 39
+      width: 73
     score:
       width: 40
     snr:
       width: 58
     trial_start:
-      width: 39
+      width: 40
     trial_type:
       width: 39
