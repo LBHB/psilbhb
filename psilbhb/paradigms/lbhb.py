@@ -118,3 +118,29 @@ ParadigmDescription(
     ],
 )
 
+ParadigmDescription(
+    'AMF', '(AMF) Amplitude modulation/fusion 2AFC',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
+         'attrs': {'N_response': 2}},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'AMFusion'}
+         },
+        {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
+         'attrs': {'output_name': 'water_dispense_1',
+                   'event_name': 'deliver_reward_1'}},
+        {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
+         'attrs': {'output_name': 'water_dispense_2',
+                   'event_name': 'deliver_reward_2'}},
+    ],
+)
+
+ParadigmDescription(
+    'OLP', 'OLP - Overlapping Sounds Passive [Placeholder]',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'OverlappingSounds'}
+         },
+    ],
+)
+
