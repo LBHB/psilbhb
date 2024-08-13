@@ -141,7 +141,7 @@ class SimpleLauncher(Atom):
                 return
 
         if self.save_data:
-            log.debug(f"updating template")
+            log.debug(f"Updating template")
             template_vals = get_tagged_values(self, 'template')
             template_vals['experiment'] = template_vals['experiment'].name
             self.base_folder = self.root_folder / self.template.format(**template_vals)
@@ -381,15 +381,17 @@ class CellDbLauncher(SimpleLauncher):
             self.db.save_data(rawdata['rawid'], dataperf, parmtype=1, keep_existing=False)
 
             # save global parameters
-            filename = self.base_folder / "globalparams.json"
-            save_parms = ['experimenter','animal','training','runclass','base_folder']
+            filename = psipath + "globalparams.json"
+            print(f"params file: {filename}")
+
+            save_parms = ['experimenter','animal','training','runclass','base_folder','io']
             d = {k: str(getattr(self, k)) for k in save_parms}
             for k in rawdata.keys():
                 d[k] = str(rawdata[k])
 
-            config_parms = ['BASE_DIRECTORY', 'LOG_ROOT', 'DATA_ROOT',
-                            'TRAINING_ROOT','VIDEO_ROOT','PROCESSED_ROOT',
-                            'CAL_ROOT','PREFERENCES_ROOT','LAYOUT_ROOT',
+            config_parms = ['DATA_ROOT','OPENEPHYS_ROOT','CACHE_ROOT',
+                            'TRAINING_ROOT','VIDEO_ROOT',
+                            'PREFERENCES_ROOT','LAYOUT_ROOT',
                             'OPENEPHYS_URI',
                             'MYSQL_HOST','MYSQL_DB']
             for k in config_parms:

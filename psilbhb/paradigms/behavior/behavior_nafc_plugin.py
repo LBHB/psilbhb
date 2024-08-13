@@ -46,14 +46,14 @@ class NAFCTrialState(TrialState):
     "waiting_for_to").
     '''
     waiting_for_resume = 'waiting for resume'
-    waiting_for_trial_start = 'waiting for trial start'
-    waiting_for_np_start = 'waiting for nose-poke start'
-    waiting_for_np_duration = 'waiting for nose-poke duration '
+    waiting_for_trial_start = 'waiting trial start'
+    waiting_for_np_start = 'waiting nose-poke start'
+    waiting_for_np_duration = 'waiting nose-poke duration'
     waiting_for_hold = 'waiting for hold'
     waiting_for_response = 'waiting for response'
     waiting_for_to = 'waiting for timeout'
-    waiting_for_iti = 'waiting for intertrial interval'
-    waiting_for_reward_end = 'waiting for animal to break spout contact'
+    waiting_for_iti = 'waiting intertrial interval'
+    waiting_for_reward_end = 'waiting break spout contact'
 
 
 class NAFCEvent(enum.Enum):
@@ -205,10 +205,12 @@ class BehaviorPlugin(BaseBehaviorPlugin):
 
         # Override dispense durations
         for i in range(self.N_response):
-            if 'dispense_{i+1}_duration' in wavset_info:
-                self.context.set_value(f'water_dispense_{i+1}_duration', wavset_info[f'dispense_{i+1}_duration'])
-            elif 'dispense_duration' in wavset_info:
-                self.context.set_value(f'water_dispense_{i+1}_duration', wavset_info[f'dispense_duration'])
+            if f'dispense_{i+1}_duration' in wavset_info:
+                if wavset_info[f'dispense_{i+1}_duration'] > 0:
+                    self.context.set_value(f'water_dispense_{i+1}_duration', wavset_info[f'dispense_{i+1}_duration'])
+            if 'dispense_duration' in wavset_info:
+                if wavset_info[f'dispense_duration'] > 0:
+                    self.context.set_value(f'water_dispense_{i+1}_duration', wavset_info[f'dispense_duration'])
 
         self.trial_info.update(wavset_info)
         self.side = self.trial_info['response_condition']

@@ -201,6 +201,21 @@ def cat_MCWavFileSets(set1, set2):
     return cat_set
 # End of cat_MCWavFileSets
 
+def remove_clicks(w, max_threshold=10, verbose=False):
+    w_clean = w
+
+    # log compress everything > 67% of max
+    crossover = 0.67 * max_threshold
+    ii = (w>crossover)
+    w_clean[ii] = crossover + np.log(w_clean[ii]-crossover+1);
+    jj = (w<-crossover)
+    w_clean[jj] = -crossover - np.log(-w_clean[jj]-crossover+1);
+
+    if verbose:
+       print(f'bins compressed down: {ii.sum()} up: {jj.sum()} max {np.abs(w).max():.2f}-->{np.abs(w_clean).max():.2f}')
+
+    return w_clean
+
 
 def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_scale=1,
              force_duration=None):
@@ -255,7 +270,8 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
     if normalization == 'pe':
         waveform = waveform / waveform.max()
     elif normalization == 'rms':
-        waveform = waveform / util.rms(waveform)
+        # 3.5349 V RMS = 80 dB tone
+        waveform = remove_clicks(waveform / util.rms(waveform), max_threshold=15) * 3.5349
     elif normalization == 'fixed':
         waveform = waveform * norm_fixed_scale
         waveform = remove_clicks(waveform, max_threshold=15)
@@ -268,7 +284,7 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
     elif level is not None:
         attenuatedB = 80-level
         sf = 10 ** (-attenuatedB/20)
-        waveform *= (1.4141 * sf)  # 1.4141 V RMS = 80 dB
+        waveform *= sf
         #log.info(f"Atten: {attenuatedB} SF: {sf} RMS: {waveform.std()}")
 
     waveform[waveform>5]=5
@@ -609,7 +625,6 @@ class FgBgSet(WavSet):
     TODO:
         1. Merge fg/bgset settings into main class
 
-
     """
     default_parameters = [
         {'name': 'fg_path', 'label': 'FG path', 'default': 'h:/sounds/vocalizations/v4', 'dtype': 'str'},
@@ -630,6 +645,7 @@ class FgBgSet(WavSet):
         {'name': 'combinations', 'label': 'How to combine FG+BG', 'default': 'all', 'type': 'EnumParameter',
          'choices': {'simple': "'simple'", 'all': "'all'"}},
 
+        {'name': 'fg_choice_trials', 'label': 'FG choice portion (int)', 'default': 0, 'dtype': 'int'},
         {'name': 'contra_n', 'label': 'Contra BG portion (int)', 'default': 1, 'dtype': 'int'},
         {'name': 'diotic_n', 'label': 'Diotic BG portion (int)', 'default': 0, 'dtype': 'int'},
         {'name': 'ipsi_n', 'label': 'Ipsi BG portion (int)', 'default': 0, 'dtype': 'int'},
@@ -642,9 +658,10 @@ class FgBgSet(WavSet):
         {'name': 'response_window', 'label': 'Response start,stop (s)', 'expression': '(0, 1)'},
         {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 'all', 'type': 'EnumParameter',
          'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}},
+        {'name': 'reward_durations', 'label': 'FG reward durations', 'expression': '()'},
 
         {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': 'int'},
-        {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, },
+        {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, 'group_name': 'Results' },
 
         {'name': 'fg_channel', 'label': 'FG chan', 'type': 'Result', 'group_name': 'Results'},
         {'name': 'bg_channel', 'label':  'BG chan', 'type': 'Result', 'group_name': 'Results'},
@@ -735,9 +752,13 @@ class FgBgSet(WavSet):
             fg_range = fg_range_ * len(bg_range_)
             bg_range=[]
             [bg_range.extend([b]*len(fg_range_)) for b in bg_range_];
-        data = {'fg_index': fg_range, 'bg_index': bg_range, 'fg_go': 1, 'fg_delay': self.fg_delay}
-        log.info(f"{data}")
-        stim = pd.DataFrame(data={'fg_index': fg_range, 'bg_index': bg_range, 'fg_go': 1, 'fg_delay': self.fg_delay},
+
+        go_trials = [1] * len(fg_range)
+
+        data = {'fg_index': fg_range, 'bg_index': bg_range, 'fg_go': go_trials, 'fg_delay': self.fg_delay}
+        log.info(f"{pd.DataFrame(data)}")
+        stim = pd.DataFrame(data={'fg_index': fg_range, 'bg_index': bg_range, 'fg_go': go_trials,
+                                  'fg_delay': self.fg_delay},
                             columns=['fg_index', 'bg_index', 'fg_channel', 'bg_channel', 'fg_level', 'bg_level',
                                      'fg_go', 'fg_delay', 'migrate_trial'])
 
@@ -757,6 +778,20 @@ class FgBgSet(WavSet):
             s['fg_channel']=f
             s['bg_channel']=b
             dlist.append(s)
+
+        if self.fg_choice_trials > 0:
+            fgc_range = [0] * self.fg_choice_trials * 2
+            bgc_range = [1] * self.fg_choice_trials * 2
+            fgc_channels = [0] * self.fg_choice_trials + [1] * self.fg_choice_trials
+            bgc_channels = [1] * self.fg_choice_trials + [0] * self.fg_choice_trials
+
+            stimc = pd.DataFrame(data={'fg_index': fgc_range, 'bg_index': bgc_range,
+                                       'fg_channel': fgc_channels, 'bg_channel': bgc_channels,
+                                       'fg_go': -2, 'fg_delay': self.fg_delay},
+                                columns=['fg_index', 'bg_index', 'fg_channel', 'bg_channel', 'fg_level', 'bg_level',
+                                         'fg_go', 'fg_delay', 'migrate_trial'])
+            dlist.append(stimc)
+
         stim = pd.concat(dlist, ignore_index=True)
 
         if type(self.fg_level) is int:
@@ -777,7 +812,9 @@ class FgBgSet(WavSet):
                 s['bg_level'] = f
                 dlist.append(s)
             stim = pd.concat(dlist, ignore_index=True)
-        stim = stim.loc[(stim['fg_level']>0) | (stim['bg_level']>0)]
+        stim = stim.loc[((stim['fg_level']>0) & (stim['fg_go']>-2)) |
+                        ((stim['bg_level']>0) & (stim['fg_go']>-2)) |
+                        ((stim['fg_level']>0) & (stim['bg_level']>0))]
 
         # remove dups of zero-dB spatial locations
         # but allow other dups
@@ -792,9 +829,9 @@ class FgBgSet(WavSet):
         stim = pd.concat([nzstim, zstim.drop_duplicates()], ignore_index=True)
 
         # check if any stims are labeled catch, and set fg_go accordingly:
-        for b in set(bg_range):
+        for b in set(stim.loc[(stim['fg_go']==1),'bg_index'].values):
             if self.BgSet.filelabels[b] == 'C':
-                stim.loc[stim['bg_index']==b,'fg_go']=-1
+                stim.loc[(stim['bg_index']==b) & (stim['fg_go']==1),'fg_go'] = -1
         for f in set(fg_range):
             if self.FgSet.filelabels[f] == 'C':
                 stim.loc[stim['fg_index'] == f, 'fg_go'] = -1
@@ -837,6 +874,9 @@ class FgBgSet(WavSet):
         if trial_idx >= len(self.trial_wav_idx):
             dd = 10
             ii = 0
+            # fix to prevent identical sequences from repeating
+            for t in range(trial_idx):
+                _ = _rng.permutation(np.arange(total_wav_set, dtype=int))
             new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
             while (dd > 3) & (ii < 10) & (len(self.stim_list) > 3):
                 new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
@@ -862,7 +902,11 @@ class FgBgSet(WavSet):
         wfg = self.FgSet.waveform(row['fg_index'])
         if row['fg_channel'] == 1:
             wfg = np.concatenate((np.zeros_like(wfg), wfg), axis=1)
-        wbg = self.BgSet.waveform(row['bg_index'])
+        if row['fg_go']==-2:
+            # choice trial, FgSet for both channels
+            wbg = self.FgSet.waveform(row['bg_index'])
+        else:
+            wbg = self.BgSet.waveform(row['bg_index'])
         if row['bg_channel'] == 1:
             wbg = np.concatenate((np.zeros_like(wbg), wbg), axis=1)
         elif row['bg_channel'] == -1:
@@ -932,7 +976,11 @@ class FgBgSet(WavSet):
         bg_i = row['bg_index']
 
         is_go_trial = row['fg_go']
-        if is_go_trial==-1:
+        if is_go_trial==-2:
+            # choice trial - 2 fgs with different reward
+            response_condition = -1
+
+        elif is_go_trial == -1:
             # -1 means either port
             if (self.reward_ambiguous_frac==0.5):
                 response_condition = int(np.ceil(np.random.uniform(0, 2)))
@@ -953,17 +1001,24 @@ class FgBgSet(WavSet):
             response_window = (row['fg_delay'] + self.response_window[fg_i][0],
                                row['fg_delay'] + self.response_window[fg_i][1])
 
+        if is_go_trial>-1:
+            fg_name = self.FgSet.names[fg_i]
+            bg_name = self.BgSet.names[bg_i]
+        else:
+            fg_name = self.FgSet.names[fg_i]
+            bg_name = self.FgSet.names[bg_i]
+
         d = {'trial_idx': trial_idx,
              'wav_set_idx': wav_set_idx,
              'fg_i': fg_i,
              'bg_i': bg_i,
-             'fg_name': self.FgSet.names[fg_i],
-             'bg_name': self.BgSet.names[bg_i],
+             'fg_name': fg_name,
+             'bg_name': bg_name,
              'fg_duration': self.FgSet.duration,
              'bg_duration': self.BgSet.duration,
              'snr': row['fg_level']-row['bg_level'],
-             'fg_level': row['fg_level'],
-             'bg_level': row['bg_level'],
+             'this_fg_level': row['fg_level'],
+             'this_bg_level': row['bg_level'],
              'this_snr': row['fg_level']-row['bg_level'],
              'fg_delay': row['fg_delay'],
              'fg_channel': row['fg_channel'],
@@ -975,6 +1030,27 @@ class FgBgSet(WavSet):
              'primary_channel': self.primary_channel,
              'trial_is_repeat': self.trial_is_repeat[trial_idx],
              }
+        if (is_go_trial==-2) & (len(self.reward_durations)>1):
+            d[f'dispense_duration'] = -1
+            if row['fg_channel'] == 0:
+                d[f'dispense_1_duration'] = self.reward_durations[fg_i]
+                d[f'dispense_2_duration'] = self.reward_durations[bg_i]
+            else:
+                d[f'dispense_2_duration'] = self.reward_durations[fg_i]
+                d[f'dispense_1_duration'] = self.reward_durations[bg_i]
+
+        elif fg_i < len(self.reward_durations):
+            d[f'dispense_duration'] = self.reward_durations[fg_i]
+            d[f'dispense_1_duration'] = -1
+            d[f'dispense_2_duration'] = -1
+
+        # Override dispense durations
+        # for i in range(self.N_response):
+        #    if 'dispense_{i+1}_duration' in wavset_info:
+        #        self.context.set_value(f'water_dispense_{i+1}_duration', wavset_info[f'dispense_{i+1}_duration'])
+        #    elif 'dispense_duration' in wavset_info:
+        #        self.context.set_value(f'water_dispense_{i+1}_duration', wavset_info[f'dispense_duration'])
+
         return d
 
     def score_response(self, outcome, repeat_incorrect=2, trial_idx=None):
@@ -1029,10 +1105,272 @@ class FgBgSet(WavSet):
             log.info(f'Trial {trial_idx} outcome {outcome}: moving on')
 
 
+class AMFusion(WavSet):
+
+    default_parameters = [
+        {'name': 'target_frequency', 'label': 'Target center frequenc(ies) (list)',
+         'expression': '[1000]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'target_am_rate', 'label': 'Target AM rate (list)',
+         'expression': '[20]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'target_bandwidth', 'label': 'Target bandwidth (0=PT)',
+         'expression': '0', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'modulation_depth', 'label': 'Target modulation depth(s) (list)',
+         'expression': '[100]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'target_level', 'label': 'Target dB SPL (list)',
+         'expression': '[60]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'distractor_frequency', 'label': 'Distractor center frequenc(ies) (list)',
+         'expression': '[4000]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'distractor_level', 'label': 'Distractor dB SPL (list)',
+         'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'duration', 'label': 'duration of each sample (s)',
+         'default': 1.0, 'dtype': 'double', 'scope': 'experiment'},
+
+        {'name': 'primary_channel', 'label': 'Primary channel',
+         'compact_label': 'primary_channel', 'default': '0',
+         'choices': {'0': 0, '1': 1},
+         'scope': 'experiment', 'type': 'EnumParameter'},
+        {'name': 'switch_channels', 'label': 'Switch target channel?',
+         'compact_label': 'combinations', 'default': 'No',
+         'choices': {'No': "False", 'Yes': "True"},
+         'scope': 'experiment', 'type': 'EnumParameter'},
+        {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 'all', 'type': 'EnumParameter',
+         'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}},
+
+        {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
+         'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'response_start', 'label': 'response win start (s)',
+         'default': 0, 'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'response_end', 'label': 'response win end (s)', 'default': 2,
+         'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
+         'int', 'scope': 'experiment'},
+        {'name': 'target_name', 'label': 'T', 'type': 'Result', 'type': 'Result'},
+        {'name': 'distractor_name', 'label': 'D', 'type': 'Result', 'type': 'Result'},
+    ]
+
+    for d in default_parameters:
+        # Use `setdefault` so we don't accidentally override a parameter that
+        # wants to use a different group.
+        d.setdefault('group_name', 'AMFusion')
+
+    def __init__(self, n_response, **parameter_dict):
+        super().__init__(n_response=n_response)
+        # internal object to handle wavs, don't need to specify independently
+        log.info('N_response %r', self.n_response)
+        self.current_trial_idx = -1
+
+        # trial management
+        self.trial_wav_idx = np.array([], dtype=int)
+        self.trial_outcomes = np.array([], dtype=int)
+        self.trial_is_repeat = np.array([], dtype=int)
+        self.current_full_rep = 0
+        self.update_parameters(parameter_dict)
+
+
+    def update_parameters(self, parameter_dict):
+        for k, v in parameter_dict.items():
+            setattr(self, k, v)
+        self.response_window = (parameter_dict['response_start'], parameter_dict['response_end'])
+
+        self.update()
+
+    @property
+    def wav_per_rep(self):
+        return len(self.stim1idx)
+
+    def update(self, trial_idx=None):
+        """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.
+        manage trials separately to allow for repeats, etc."""
+        _rng = np.random.RandomState(self.random_seed)
+
+        tar_range_ = np.array(self.target_frequency, dtype=float)
+        am_rate_ = np.array(self.target_am_rate, dtype=float)
+        if len(am_rate_)==1:
+            am_rate_ = np.zeros_like(tar_range_) + am_rate_
+        am_depth_ = np.array(self.modulation_depth, dtype=float)
+        if len(am_depth_)==1:
+            am_depth_ = np.zeros_like(tar_range_) + am_depth_
+        dis_range_ = np.array(self.distractor_frequency, dtype=float)
+
+        # combinations
+        tar_count=len(tar_range_)
+        dis_count=len(dis_range_)
+        data = {'tar_freq': np.concatenate([tar_range_] * dis_count),
+                'tar_am': np.concatenate([am_rate_] * dis_count),
+                'tar_depth': np.concatenate([am_depth_] * dis_count),
+                'tar_bandwidth': self.target_bandwidth,
+                'tar_level': self.target_level[0],
+                'dis_freq': np.concatenate([np.zeros(tar_count)+d for d in dis_range_]),
+                'dis_level': self.distractor_level[0],
+                'duration': self.duration,
+                'tar_channel': self.primary_channel,
+                }
+        log.info(f"{data}")
+        stim = pd.DataFrame(data)
+        stim['go_trial'] = stim['tar_freq']!=stim['dis_freq']
+
+        if self.switch_channels:
+            d2=stim.copy()
+            d2['tar_channel']=1-self.primary_channel
+            stim = pd.concat([stim,d2], ignore_index=True)
+
+        self.stim_list = stim.copy()
+        total_wav_set = len(stim)
+
+        # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
+        if trial_idx is None:
+            trial_idx = self.current_trial_idx
+
+        if trial_idx >= len(self.trial_wav_idx):
+            # hack to prevent identical sequences from repeating
+            for t in range(trial_idx):
+                _ = _rng.permutation(np.arange(total_wav_set, dtype=int))
+            new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
+            self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))
+            log.info(f'Added {len(new_trial_wav)}/{len(self.trial_wav_idx)} trials to trial_wav_idx')
+            self.current_full_rep += 1
+            self.trial_is_repeat = np.concatenate((self.trial_is_repeat, np.zeros_like(new_trial_wav)))
+
+
+    def trial_waveform(self, trial_idx=None, wav_set_idx=None):
+        if wav_set_idx is None:
+            if trial_idx is None:
+                self.current_trial_idx += 1
+                trial_idx = self.current_trial_idx
+            if len(self.trial_wav_idx) <= trial_idx:
+                self.update(trial_idx=trial_idx)
+
+            wav_set_idx = self.trial_wav_idx[trial_idx-1]
+
+        row = self.stim_list.loc[wav_set_idx]
+        wbins = int(row['duration']*self.fs)
+        t=np.arange(wbins)/self.fs
+        wfg = np.sin(t*2*np.pi*row['tar_freq'])*5
+        env = np.abs(np.sin(t*2*np.pi*row['tar_am']/2))*2
+        wfg *= env
+        wbg = np.sin(t*2*np.pi*row['dis_freq'])*5
+
+        fg_level = row['tar_level']
+        bg_level = row['dis_level']
+        if fg_level == 0:
+            fg_scaleby = 0
+        else:
+            fg_scaleby = 10 ** ((fg_level - 80) / 20)
+        if bg_level == 0:
+            bg_scaleby = 0
+        else:
+            bg_scaleby = 10 ** ((bg_level - 80) / 20)
+        wfg *= fg_scaleby
+        wbg *= bg_scaleby
+
+        # combine fg and bg waveforms
+        if row['tar_channel'] == 0:
+            w = np.stack((wfg, wbg), axis=1)
+        else:
+            w = np.stack((wbg, wfg), axis=1)
+
+        log.info(f"fg level: {fg_level} bg level: {bg_level} FG RMS: {wfg.std():.3f} BG RMS: {wbg.std():.3f}")
+
+        return w.T
+
+    def trial_parameters(self, trial_idx=None, wav_set_idx=None):
+        if wav_set_idx is None:
+            if trial_idx is None:
+                trial_idx = self.current_trial_idx
+            if len(self.trial_wav_idx) <= trial_idx:
+                self.update(trial_idx=trial_idx)
+
+            wav_set_idx = self.trial_wav_idx[trial_idx]
+        else:
+            trial_idx = 0
+        row = self.stim_list.loc[wav_set_idx]
+
+        is_go_trial = row['go_trial']
+        if is_go_trial == 0:
+            if (self.reward_ambiguous_frac == 0.5):
+                # random
+                response_condition = int(np.ceil(np.random.uniform(0, 2)))
+            elif (self.reward_ambiguous_frac == 0):
+                # none
+                response_condition = 0
+            else:
+                # either
+                response_condition = -1
+        else:
+            # 1=spout 1, 2=spout 2
+            response_condition = int(row['tar_channel'] + 1)
+
+        tar_name = 'tar'
+        dis_name = 'dis'
+        response_window = (self.response_window[0],self.response_window[1])
+
+        d = {'trial_idx': trial_idx,
+             'wav_set_idx': wav_set_idx,
+             'target_name': tar_name,
+             'distractor_name': dis_name,
+             'this_target_frequency': row['tar_freq'],
+             'this_target_am': row['tar_am'],
+             'this_distractor_frequency': row['dis_freq'],
+             'this_duration': row['duration'],
+             'this_target_level': row['tar_level'],
+             'this_distractor_level': row['dis_level'],
+             'this_snr': row['tar_level']-row['dis_level'],
+             'response_condition': response_condition,
+             'response_window': response_window,
+             'current_full_rep': self.current_full_rep,
+             'primary_channel': self.primary_channel,
+             'trial_is_repeat': self.trial_is_repeat[trial_idx],
+        }
+
+        return d
+
+    def score_response(self, outcome, repeat_incorrect=True, trial_idx=None):
+        """
+        current logic: if invalid or incorrect, trial should be repeated
+        :param outcome: int
+            -1 trial not scored (yet?) - happens if score_response skips a trial_idx
+            0 invalid
+            1 incorrect
+            2 correct
+            3 correct - either response ok
+        :param repeat_incorrect: bool
+            If True, repeat incorrect and invalid trials.
+        :param trial_idx: int
+            must be less than len(trial_wav_idx) to be valid. by default, updates score for
+            current_trial_idx and increments current_trial_idx by 1.
+        :return:
+        """
+        if trial_idx is None:
+            trial_idx = self.current_trial_idx
+            # Only incrementing current trial index if trial_idx is None. Do we always
+            # want to do this???
+            self.current_trial_idx = trial_idx + 1
+
+        if trial_idx>=len(self.trial_wav_idx):
+            raise ValueError(f"attempting to score response for trial_idx out of range")
+
+        if trial_idx>=len(self.trial_outcomes):
+            n = trial_idx - len(self.trial_outcomes) + 1
+            self.trial_outcomes = np.concatenate((self.trial_outcomes, np.zeros(n)-1))
+        self.trial_outcomes[trial_idx] = int(outcome)
+        if repeat_incorrect and (outcome in [0, 1]):
+            #log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
+            #self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
+            #self.trial_is_repeat = np.concatenate((self.trial_is_repeat, [1]))
+            log.info('Trial {trial_idx} outcome {outcome}: repeating immediately')
+            self.trial_wav_idx = np.concatenate((self.trial_wav_idx[:trial_idx],
+                                                 [self.trial_wav_idx[trial_idx]],
+                                                 self.trial_wav_idx[trial_idx:]))
+            self.trial_is_repeat = np.concatenate((self.trial_is_repeat[:(trial_idx+1)],
+                                                 [1],
+                                                 self.trial_is_repeat[(trial_idx+1):]))
+        else:
+            log.info('Trial {trial_idx} outcome {outcome}: moving on')
+
 class VowelSet(WavSet):
 
     default_parameters = [
-        {'name': 'sound_path', 'label': 'folder', 'default': 'h:/sounds/vowels/v2', 
+        {'name': 'sound_path', 'label': 'folder', 'default': 'h:/sounds/vowels/v2',
          'dtype': 'str', 'scope': 'experiment'},
         {'name': 'target_set', 'label': 'Target names (list)',
          'expression': '["EH_106"]', 'dtype': 'object', 'scope': 'experiment'},
@@ -1045,18 +1383,18 @@ class VowelSet(WavSet):
          'choices': {'No': "False", 'Yes': "True"},
          'scope': 'experiment', 'type': 'EnumParameter'},
         {'name': 'primary_channel', 'label': 'primary_channel',
-         'compact_label': 'primary_channel', 'default': '0', 
+         'compact_label': 'primary_channel', 'default': '0',
          'choices': {'0': 0, '1': 1},
          'scope': 'experiment', 'type': 'EnumParameter'},
-        {'name': 'duration', 'label': 'duration of each sample (s)', 
+        {'name': 'duration', 'label': 'duration of each sample (s)',
          'default': 0.24, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'repeat_count', 'label': 'repeats per trial', 'default': 2,
          'dtype': 'int', 'scope': 'experiment'},
-        {'name': 'repeat_isi', 'label': 'ISI between repeats (s)', 
+        {'name': 'repeat_isi', 'label': 'ISI between repeats (s)',
          'default': 0.2, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'tar_to_cat_ratio', 'label': 'Ratio of tar to catch trials',
          'default': 5, 'dtype': 'int', 'scope': 'experiment'},
-        {'name': 'level', 'label': 'level (dB peSPL)', 'default': 60, 
+        {'name': 'level', 'label': 'level (dB peSPL)', 'default': 60,
          'dtype': 'double', 'scope': 'experiment'},
         {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
          'dtype': 'double', 'scope': 'experiment'},
@@ -1630,6 +1968,10 @@ class CategorySet(FgBgSet):
         return d
         #def score_response(self, outcome, repeat_incorrect=2, trial_idx=None):
 
+class OverlappingSounds(FgBgSet):
+
+    def __init__(self, n_response, **parameter_dict):
+        raise NotImplementedError('Placeholder')
 
 """
         sound_path=params['sound_path'],

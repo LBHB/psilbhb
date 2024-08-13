@@ -28,13 +28,13 @@ context:
         expression: '18'
         rove: false
       background_wav_sequence_fit_range:
-        expression: slice(56, 156)
+        expression: slice(456, 556)
         rove: false
       background_wav_sequence_fit_reps:
         expression: '1'
         rove: false
       background_wav_sequence_level:
-        expression: '55'
+        expression: '65'
         rove: false
       background_wav_sequence_norm_fixed_scale:
         expression: '25'
@@ -43,7 +43,7 @@ context:
         rove: false
         selected: fixed
       background_wav_sequence_path:
-        expression: r"E:\sounds\v2"
+        expression: r"E:\sounds\BigNat\v2"
         rove: false
       background_wav_sequence_random_seed:
         expression: '0'
@@ -62,13 +62,13 @@ context:
         expression: '18'
         rove: false
       background_1_wav_sequence_fit_range:
-        expression: slice(56, 156)
+        expression: slice(456, 556)
         rove: false
       background_1_wav_sequence_fit_reps:
         expression: '1'
         rove: false
       background_1_wav_sequence_level:
-        expression: '55'
+        expression: '65'
         rove: false
       background_1_wav_sequence_norm_fixed_scale:
         expression: '25'
@@ -77,7 +77,7 @@ context:
         rove: false
         selected: fixed
       background_1_wav_sequence_path:
-        expression: r"E:\sounds\v2"
+        expression: r"E:\sounds\BigNat\v2"
         rove: false
       background_1_wav_sequence_random_seed:
         expression: '0'
@@ -104,7 +104,7 @@ context:
         expression: '0'
         rove: false
       repeat_fa:
-        expression: 'False'
+        expression: 'True'
         rove: false
       warmup_trials:
         expression: '0'
@@ -114,7 +114,7 @@ context:
         expression: '1'
         rove: false
       target_tone_frequency:
-        expression: '650'
+        expression: '1400'
         rove: false
       target_tone_level:
         expression: background_1_wav_sequence_level+snr
@@ -133,7 +133,7 @@ context:
         rove: false
     trial:
       hold_duration:
-        expression: '0.15'
+        expression: '0.1'
         rove: false
       iti_duration:
         expression: '.5'
@@ -148,13 +148,13 @@ context:
         expression: '0.05'
         rove: false
       response_duration:
-        expression: '4'
+        expression: '5'
         rove: false
       snr:
-        expression: '0'
+        expression: '15'
         rove: true
       target_delay:
-        expression: '0.3'
+        expression: '0.5'
         rove: false
       to_duration:
         expression: '1.0'
@@ -163,7 +163,7 @@ context:
         expression: 'False'
         rove: false
       water_dispense_1_duration:
-        expression: '0.4'
+        expression: '0.5'
         rove: false
   selectors:
     go:
@@ -174,7 +174,8 @@ context:
       - snr: -5
       - snr: 0
       - snr: 5
-      - snr: 10
+      - snr: 5
+      - snr: -10
     nogo:
       context_item_order:
       - snr
@@ -189,15 +190,15 @@ context:
       - snr
       order: ascending
       settings:
-      - snr: 20
+      - snr: 15
 event_log:
   column_widths:
     event: 100
-    info: 341
+    info: 795
     timestamp: 100
 microphone:
-  y_max: 0.344497357815968
-  y_min: -0.38398868557023114
+  y_max: 0.5700429967927134
+  y_min: -0.15844304659348535
 output.background:
   token_name: wav_sequence
 output.background_1:
@@ -224,12 +225,12 @@ trial_log:
     correct:
       width: 39
     response:
-      width: 39
+      width: 73
     score:
       width: 40
     snr:
       width: 58
     trial_start:
-      width: 39
+      width: 40
     trial_type:
-      width: 39
+      width: 73

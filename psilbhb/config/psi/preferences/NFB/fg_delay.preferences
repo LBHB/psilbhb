@@ -23,10 +23,10 @@ context:
         expression: '[0, 55]'
         rove: false
       bg_path:
-        expression: '"h:/sounds/backgrounds/v3"'
+        expression: '"e:/sounds/backgrounds/v3"'
         rove: false
       bg_range:
-        expression: '[10,12,24]'
+        expression: '[10,13,24]'
         rove: false
       combinations:
         rove: false
@@ -41,17 +41,17 @@ context:
         expression: '2.0'
         rove: false
       fg_delay:
-        expression: '0.2'
+        expression: '0.1'
         rove: false
       fg_level:
-        expression: '[0, 40, 45, 50, 55]'
+        expression: '[0, 43, 45, 50, 55]'
         rove: false
       fg_path:
-        expression: '"h:/sounds/vocalizations/v4"'
+        expression: '"e:/sounds/vocalizations/v4"'
         rove: false
       fg_range:
-        expression: '[9,12]'
-        rove: false
+        expression: '[10,12]'
+	rove: false
       fg_switch_channels:
         expression: 'True'
         rove: false
@@ -80,7 +80,7 @@ context:
         expression: '0'
         rove: false
       random_seed:
-        expression: '591'
+        expression: '594'
         rove: false
       response_window:
         expression: (0.0, 1.0)
