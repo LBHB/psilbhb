@@ -31,6 +31,14 @@ COMMON_PLUGINS = [
 ]
 
 
+ParadigmDescription(
+    'NFB-passive', '(NFB) Passive FG in natural background',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'passive.PassiveManifest',
+        {'manifest': PATH + 'wav_set_manifest.FgBgSetManifest', 'required': True},
+    ],
+)
+
 
 ParadigmDescription(
     'NTD-gonogo-np', '(NTD) Go-nogo tone detection in natural background (initiated)',

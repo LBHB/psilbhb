@@ -7,18 +7,19 @@ from enaml.workbench.api import Extension
 from enaml.workbench.core.api import Command
 
 from psi.context.api import (
-    BoolParameter, EnumParameter, ContextGroup, ContextRow, Parameter, Result
+    ContextGroup, Parameter, Result
 )
 from psi.controller.api import (
-    ContinuousInput, ControllerManifest, EpochOutput, ExperimentAction,
-    ExperimentEvent, ExperimentState, TimedTrigger
+    ContinuousInput, ControllerManifest, EpochOutput,
+    ExperimentAction, ExperimentEvent, ExperimentState,
+    TimedTrigger
 )
 from psi.data.sinks.api import EventLog, TrialLog
 from psi.experiment.api import StatusItem
 from psi.data.plots import (TimeContainer, ChannelPlot, ViewBox)
 from psi.data.sinks.api import BinaryStore
 
-from .behavior_nafc_plugin import BehaviorPlugin, NAFCEvent
+from .passive_plugin import PassivePlugin
 
 
 def get_status(trial, trial_state, experiment_state, side):
@@ -51,13 +52,9 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
     Defines the core settings that any behavior experiment may require. Does
     not include timeout/reward settings as those are provided by plugins.
     '''
-    # Number of response inputs (i.e., lick spouts or food hoppers). 1 =
-    # go/nogo. 2+ = NAFC.
-    attr N_response = 1
-
     # Number of speaker outputs
     attr N_output = 2
-    factory = lambda: BehaviorPlugin(N_response=N_response)
+    factory = lambda: PassivePlugin()
 
     Extension:
         id = manifest.id + '.status'
@@ -97,23 +94,9 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             name = 'trial'
 
         ExperimentState:
-            name = 'digital_reward'
-        ExperimentState:
-            name = 'reward'
-        ExperimentState:
             name = 'iti'
-        ExperimentState:
-            name = 'response'
-        ExperimentState:
-            name = 'to'
-        ExperimentEvent:
-            name = 'response_duration_elapsed'
-
         ExperimentEvent:
             name = 'iti_duration_elapsed'
-        ExperimentEvent:
-            name = 'to_duration_elapsed'
-
         ExperimentEvent:
             name = 'trial_ready'
 
@@ -131,40 +114,9 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             command = 'sync_trigger.trigger'
             kwargs = {'duration': 0.5}
 
-        Looper:
-            # Set up the actions and events for each lick spout that the animal
-            # will provide a response at.
-            iterable = range(N_response)
-
-            ExperimentAction:
-                event = f'spout_contact_{loop_item+1}_digital_acquired'
-                command = 'psi.controller.process_et'
-                kwargs = {'name': f'spout_contact_{loop_item+1}'}
-
-            ExperimentEvent:
-                name = f'deliver_reward_{loop_item+1}'
-
-        ExperimentAction:
-            event = 'np_contact_digital_acquired'
-            command = 'psi.controller.process_et'
-            kwargs = {'name': 'np_contact'}
-
         ExperimentAction:
             event = 'engines_configured'
             command = 'psi.controller.prepare_trial'
-
-        ExperimentAction:
-            event = 'engines_started'
-            command = 'room_light_toggle.on'
-
-        ExperimentAction:
-            event = 'to_start'
-            command = 'room_light_toggle.toggle'
-            kwargs = {'state': C.lookup('keep_lights_on')}
-
-        ExperimentAction:
-            event = 'to_end'
-            command = 'room_light_toggle.on'
 
         ExperimentAction:
             event = 'experiment_prepare'
@@ -187,13 +139,9 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         BinaryStore:
             # Make sure we save all the spout contact data
             name = 'initiated_data'
-            continuous_inputs = [
-                'np_contact_analog',
-                'microphone'
-            ] + [f'spout_contact_{i+1}_analog' for i in range(N_response)]
+            continuous_inputs = ['microphone']
         EventLog:
             show_widget = True
-            exclude = ['*contact*digital_acquired*']
         TrialLog:
             show_widget = True
 
@@ -234,13 +182,6 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             name = 'trial'
             label = 'Trial'
 
-            EnumParameter:
-                name = 'repeat_incorrect'
-                label = 'Repeat incorrect/invalid trials?'
-                compact_label = 'repeat_incorrect'
-                default = 'Yes'
-                choices = {'No': 0, 'Early only': 1,
-                           'Yes': 2}
             Parameter:
                 name = 'snr'
                 label = 'SNR (dB)'
@@ -251,76 +192,17 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 compact_label = 'ITI'
                 default = 0.1
             Parameter:
-                name = 'to_duration'
-                label = 'Timeout duration (s)'
-                compact_label = 'TO'
-                default = 1.0
-            Parameter:
-                name = 'response_duration'
-                label = 'Response duration (s)'
-                compact_label = 'Resp'
-                default = 3.0
-            Parameter:
                 name = 'target_delay'
                 label = 'Target delay (s)'
                 default = 0.5
-            Parameter:
-                name = 'np_duration'
-                label = 'Nose-poke start duration (s)'
-                compact_label = 'NP'
-                default = 0.25
-            Parameter:
-                name = 'hold_duration'
-                label = 'Nose-poke hold duration (s)'
-                compact_label = 'Hold'
-                default = 0.0
-            BoolParameter:
-                name = 'training_mode'
-                label = 'Training mode'
-                scope = 'arbitrary'
-                default = True
-            BoolParameter:
-                name = 'manual_control'
-                label = 'Manual control?'
-                scope = 'arbitrary'
-                default = False
-            BoolParameter:
-                name = 'keep_lights_on'
-                label = 'Lights on during TO?'
-                scope = 'arbitrary'
-                default = False
 
         ContextGroup:
             name = 'results'
             label = 'Trial results'
 
             Result:
-                name = 'response'
-                compact_label = 'Resp.'
-                dtype = 'S32'
-            Result:
-                name = 'trial_type'
-                compact_label = 'Type'
-                dtype = 'S32'
-            Result:
-                name = 'score'
-                dtype = 'S32'
-            Result:
-                name = 'correct'
-                compact_label = 'C'
-                dtype = 'bool'
-            Result:
-                name = 'response_ts'
-                label = 'Response timestamp'
-                compact_label = 'R|'
-                dtype = 'float64'
-            Result:
                 name = 'trial_start'
                 compact_label = 'T/'
-                dtype = 'float64'
-            Result:
-                name = 'response_time'
-                compact_label = 'Resp. time'
                 dtype = 'float64'
 
     Extension:
@@ -328,42 +210,6 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         point = 'psi.experiment.toolbar'
 
         ToolBar:
-            Action:
-                text = 'Request Remind'
-                triggered ::
-                    controller.request_remind()
-                enabled << controller.experiment_state  == 'running'
-            Action:
-                text = 'Start Trial'
-                triggered ::
-                    controller.request_trial()
-                enabled << controller.experiment_state == 'running' \
-                    and controller.manual_control
-            Action:
-                separator = True
-            Action:
-                text = 'Simulate poke'
-                checkable = True
-                toggled ::
-                    if checked:
-                        controller.handle_event(NAFCEvent.digital_np_start)
-                    else:
-                        controller.handle_event(NAFCEvent.digital_np_end)
-                enabled << controller.experiment_state not in ('initialized', 'stopped')
-            Looper:
-                iterable = range(N_response)
-                Action:
-                    text = f'Simulate spout {loop_item+1}'
-                    checkable = True
-                    toggled ::
-                        if checked:
-                            event = getattr(NAFCEvent, f'digital_response_{loop_item+1}_start')
-                        else:
-                            event = getattr(NAFCEvent, f'digital_response_{loop_item+1}_end')
-                        controller.handle_event(event)
-                    enabled << controller.experiment_state not in ('initialized', 'stopped')
-            Action:
-                separator = True
             Action:
                 text = 'Pause'
                 enabled << controller.experiment_state not in ('initialized', 'stopped')
@@ -375,14 +221,6 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                     else:
                         log.info('Requesting resume')
                         controller.request_resume()
-            Action:
-                text = 'Random poke generator'
-                checkable = True
-                triggered ::
-                    if checked:
-                        controller.start_random_behavior()
-                    else:
-                        controller.stop_random_behavior()
 
     Extension:
         id = 'plots'
@@ -405,22 +243,3 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 ChannelPlot:
                     source_name = 'speaker_1_monitor'
                     pen_color = 'blue'
-
-            ViewBox:
-                name = 'IR_sensors'
-                y_min = 0
-                y_max = 5
-
-                Looper: looper:
-                    attr colors = ['blue', 'red', 'yellow', 'orange']
-                    iterable = range(N_response)
-
-                    ChannelPlot:
-                        decimate_mode = 'none'
-                        source_name = f'spout_contact_{loop_item+1}'
-                        pen_color = looper.colors[loop_item]
-
-                ChannelPlot:
-                    decimate_mode = 'none'
-                    source_name = 'np_contact_analog'
-                    pen_color = 'green'
