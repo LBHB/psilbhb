@@ -34,8 +34,8 @@ COMMON_PLUGINS = [
 ParadigmDescription(
     'NFB-passive', '(NFB) Passive FG in natural background',
     'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'passive.PassiveManifest',
-        {'manifest': PATH + 'wav_set_manifest.FgBgSetManifest', 'required': True},
+        {'manifest': PATH + 'passive.PassiveManifest',},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True, 'attrs': {'stim_class_name': 'FgBgSet'}},
     ],
 )
 

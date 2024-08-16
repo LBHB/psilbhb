@@ -72,6 +72,9 @@ class PassivePlugin(BaseBehaviorPlugin):
             return True
         return False
 
+    def prepare_trial(self):
+        self.start_trial()
+
     def start_trial(self):
         # Figure out next trial and set up selector.
         log.info('Starting next trial')
@@ -119,8 +122,7 @@ class PassivePlugin(BaseBehaviorPlugin):
         ts = self.get_ts()
         self.invoke_actions('trial_end', ts, kw={'result': self.trial_info.copy()})
         self.trial_state = PassiveTrialState.waiting_for_iti
-        self.start_event_timer('iti_duration', PassiveEvent.iti_duration_elpased')
-        self.advance_state('iti', ts)
+        self.start_event_timer('iti_duration', PassiveEvent.iti_duration_elapsed)
 
         # Apply pending changes that way any parameters (such as repeat_FA or
         # go_probability) are reflected in determining the next trial type.
@@ -134,8 +136,12 @@ class PassivePlugin(BaseBehaviorPlugin):
         elapsed_event = getattr(NAFCEvent, f'{state}_duration_elapsed')
         self.start_event_timer(f'{state}_duration', elapsed_event)
 
+    def handle_waiting_for_trial_end(self, event, timestamp):
+        if event == PassiveEvent.trial_duration_elapsed:
+            self.end_trial()
+
     def handle_waiting_for_iti(self, event, timestamp):
-        if event == NAFCEvent.iti_duration_elapsed:
+        if event == PassiveEvent.iti_duration_elapsed:
             self.invoke_actions(PassiveEvent.iti_end.name, timestamp)
             if self._pause_requested:
                 self.pause_experiment()

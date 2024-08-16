@@ -22,7 +22,7 @@ from psi.data.sinks.api import BinaryStore
 from .passive_plugin import PassivePlugin
 
 
-def get_status(trial, trial_state, experiment_state, side):
+def get_status(trial, trial_state, experiment_state):
     # Experiment not running
     if experiment_state == 'paused':
         return 'Experiment paused'
@@ -31,15 +31,7 @@ def get_status(trial, trial_state, experiment_state, side):
     elif experiment_state == 'stopped':
         return 'Experiment complete'
     state = '' if trial_state is None else trial_state.value
-    return 'Trial {} - {} (respond on {})'.format(trial, state, side)
-
-
-def process_et(event):
-    plugin = event.workbench.get_plugin('psi.controller')
-    name = event.parameters['name']
-    events = event.parameters['data'].events
-    for _, (edge, ts) in events[['event', 'ts']].iterrows():
-        plugin.et_callback(name, edge, ts)
+    return 'Trial {} - {}'.format(trial, state)
 
 
 def update_trial_log(event):
@@ -47,7 +39,7 @@ def update_trial_log(event):
     core.invoke_command('trial_log.save', {'data': event.parameters['result']})
 
 
-enamldef BehaviorManifest(ControllerManifest): manifest:
+enamldef PassiveManifest(ControllerManifest): manifest:
     '''
     Defines the core settings that any behavior experiment may require. Does
     not include timeout/reward settings as those are provided by plugins.
@@ -67,15 +59,11 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                     workbench.get_plugin('psi.controller').trial,
                     workbench.get_plugin('psi.controller').trial_state,
                     workbench.get_plugin('psi.controller').experiment_state,
-                    workbench.get_plugin('psi.controller').side,
                 )
 
     Extension:
         id = manifest.id + '.behavior_commands'
         point = 'enaml.workbench.core.commands'
-        Command:
-            id = 'psi.controller.process_et'
-            handler = process_et
         Command:
             id = 'psi.controller.update_trial_log'
             handler = update_trial_log
