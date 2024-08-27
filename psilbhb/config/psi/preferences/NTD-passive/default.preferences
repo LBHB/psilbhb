@@ -144,9 +144,6 @@ context:
       manual_control:
         expression: 'False'
         rove: false
-      np_duration:
-        expression: '0.05'
-        rove: false
       response_duration:
         expression: '5'
         rove: false
@@ -171,11 +168,7 @@ context:
       - snr
       order: ascending
       settings:
-      - snr: -5
-      - snr: 0
-      - snr: 5
-      - snr: 5
-      - snr: -10
+      - snr: -400
     nogo:
       context_item_order:
       - snr
@@ -194,7 +187,7 @@ context:
 event_log:
   column_widths:
     event: 100
-    info: 1733
+    info: 795
     timestamp: 100
 microphone:
   y_max: 0.5700429967927134

@@ -106,10 +106,6 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             event = 'engines_configured'
             command = 'psi.controller.prepare_trial'
 
-        ExperimentAction:
-            event = 'experiment_prepare'
-            command = 'configure_stimuli'
-
         # This action is mandatory and must be executed before any other
         # commands that require some information from context. By default, an
         # infinite number of cycles are specified.

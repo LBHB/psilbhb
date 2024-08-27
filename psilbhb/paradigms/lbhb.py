@@ -41,15 +41,6 @@ ParadigmDescription(
 
 
 ParadigmDescription(
-    'NTD-passive', '(NTD) Tone in natural background',
-    'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'passive.PassiveManifest',
-        {'manifest': PATH + 'stimuli.ToneInNaturalSoundsGoNogo'},
-    ],
-)
-
-
-ParadigmDescription(
     'NTD-gonogo-np', '(NTD) Go-nogo tone detection in natural background (initiated)',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_mixins.BaseGoNogoMixin'},
@@ -57,6 +48,20 @@ ParadigmDescription(
          'attrs': {'output_name': 'water_dispense_1',
                    'event_name': 'deliver_reward'}},
         {'manifest': PATH + 'behavior_gonogo.InitiatedBehaviorManifest'},
+        {'manifest': PATH + 'stimuli.ToneInNaturalSoundsGoNogo'},
+    ],
+)
+
+
+
+ParadigmDescription(
+    'NTD-passive', '(NTD) Tone in natural background (passive)',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'behavior_mixins.BaseGoNogoMixin'},
+        {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
+         'attrs': {'output_name': 'water_dispense_1',
+                   'event_name': 'deliver_reward'}},
+        {'manifest': PATH + 'behavior_gonogo.AutoBehaviorManifest'},
         {'manifest': PATH + 'stimuli.ToneInNaturalSoundsGoNogo'},
     ],
 )

@@ -7,6 +7,7 @@ from enaml.workbench.api import Extension
 from enaml.workbench.core.api import Command
 
 from psi.context import api as context_api
+from psi.controller.api import ExperimentAction
 from psi.core.enaml.api import ExperimentManifest
 
 from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet, VowelSet, CategorySet
@@ -74,6 +75,15 @@ enamldef WavSetManifest(ExperimentManifest): manifest:
         id = manifest.id + '.items'
         point = 'psi.context.items'
         factory = partial(generate_context_items, manifest)
+
+    Extension:
+        id = manifest.id + '.events'
+        point = 'psi.controller.actions'
+
+        ExperimentAction:
+            event = 'experiment_prepare'
+            command = 'configure_stimuli'
+
 
 
 # Delete once we have brought rest of stuff to fruition
