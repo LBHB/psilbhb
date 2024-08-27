@@ -41,6 +41,15 @@ ParadigmDescription(
 
 
 ParadigmDescription(
+    'NTD-passive', '(NTD) Tone in natural background',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'passive.PassiveManifest',
+        {'manifest': PATH + 'stimuli.ToneInNaturalSoundsGoNogo'},
+    ],
+)
+
+
+ParadigmDescription(
     'NTD-gonogo-np', '(NTD) Go-nogo tone detection in natural background (initiated)',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_mixins.BaseGoNogoMixin'},
