@@ -1,0 +1,131 @@
+context:
+  meta:
+    trial_log:
+    - fg_channel
+    - bg_channel
+    - fg_name
+    - bg_name
+    - this_snr
+    - migrate_trial
+    - trial_start
+  parameters:
+    FgBgSet:
+      bg_level:
+        expression: '[0, 55]'
+        rove: false
+      bg_path:
+        expression: '"h:/sounds/backgrounds/v3"'
+        rove: false
+      bg_range:
+        expression: '[10,12,24]'
+        rove: false
+      combinations:
+        rove: false
+        selected: all
+      contra_n:
+        expression: '0'
+        rove: false
+      diotic_n:
+        expression: '1'
+        rove: false
+      duration:
+        expression: '2.0'
+        rove: false
+      fg_choice_trials:
+        expression: '0'
+        rove: false
+      fg_delay:
+        expression: '0.2'
+        rove: false
+      fg_level:
+        expression: '[0, 40, 45, 50, 55]'
+        rove: false
+      fg_path:
+        expression: '"h:/sounds/vocalizations/v4"'
+        rove: false
+      fg_range:
+        expression: '[9,12]'
+        rove: false
+      fg_switch_channels:
+        expression: 'True'
+        rove: false
+      ipsi_n:
+        expression: '0'
+        rove: false
+      migrate_fraction:
+        rove: false
+        selected: '0'
+      migrate_start:
+        expression: '0.1'
+        rove: false
+      migrate_stop:
+        expression: '0.6'
+        rove: false
+      norm_fixed_scale:
+        expression: '1'
+        rove: false
+      normalization:
+        rove: false
+        selected: RMS
+      primary_channel:
+        expression: '0'
+        rove: false
+      random_seed:
+        expression: '591'
+        rove: false
+      response_window:
+        expression: (0.0, 1.0)
+        rove: false
+      reward_ambiguous_frac:
+        rove: false
+        selected: random 50%
+      reward_durations:
+        expression: ()
+        rove: false
+    Results:
+      bg_channel: {}
+      bg_name: {}
+      fg_channel: {}
+      fg_name: {}
+      fs:
+        expression: '44000'
+        rove: false
+      migrate_trial: {}
+      this_snr: {}
+    results:
+      trial_start: {}
+    trial:
+      iti_duration:
+        expression: '.5'
+        rove: false
+      snr:
+        expression: '0'
+        rove: true
+      target_delay:
+        expression: '0'
+        rove: false
+  selectors: {}
+event_log:
+  column_widths:
+    event: 100
+    info: 190
+    timestamp: 100
+microphone:
+  y_max: 9.721712441101696
+  y_min: -10.972564825722129
+trial_log:
+  column_config:
+    bg_channel:
+      width: 54
+    bg_name:
+      width: 39
+    fg_channel:
+      width: 52
+    fg_name:
+      width: 39
+    migrate_trial:
+      width: 70
+    this_snr:
+      width: 58
+    trial_start:
+      width: 39
