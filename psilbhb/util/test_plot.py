@@ -1,6 +1,6 @@
 
 import matplotlib
-#matplotlib.use('QtAgg')
+matplotlib.use('QtAgg')
 from psilbhb.util import plots
 from psilbhb.util.celldb import celldb, readpsievents, readlogs
 from psilbhb.util.plots import plot_behavior, fix_old_plots
@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 
 plt.ion()
 
-rawid = 150982
+rawid = 151360
 #rawid = 149974
-df_trial = plot_behavior(rawid=rawid, save_fig=False)
+df_trial = plot_behavior(rawid=rawid, save_fig=True)
 #df_trial=plot_behavior(150093, save_fig=True)
 #dbias = d.groupby['snr',
 

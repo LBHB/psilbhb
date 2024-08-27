@@ -1144,8 +1144,9 @@ class AMFusion(WavSet):
          'dtype': 'double', 'scope': 'experiment'},
         {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
          'int', 'scope': 'experiment'},
-        {'name': 'target_name', 'label': 'T', 'type': 'Result', 'type': 'Result'},
-        {'name': 'distractor_name', 'label': 'D', 'type': 'Result', 'type': 'Result'},
+        {'name': 'this_target_frequency', 'label': 'T', 'type': 'Result'},
+        {'name': 'this_distractor_frequency', 'label': 'D', 'type': 'Result'},
+        {'name': 'this_snr', 'label': 'SNR', 'type': 'Result'},
     ]
 
     for d in default_parameters:
@@ -1195,19 +1196,25 @@ class AMFusion(WavSet):
         # combinations
         tar_count=len(tar_range_)
         dis_count=len(dis_range_)
-        data = {'tar_freq': np.concatenate([tar_range_] * dis_count),
-                'tar_am': np.concatenate([am_rate_] * dis_count),
-                'tar_depth': np.concatenate([am_depth_] * dis_count),
-                'tar_bandwidth': self.target_bandwidth,
-                'tar_level': self.target_level[0],
-                'dis_freq': np.concatenate([np.zeros(tar_count)+d for d in dis_range_]),
-                'dis_level': self.distractor_level[0],
-                'duration': self.duration,
-                'tar_channel': self.primary_channel,
-                }
-        log.info(f"{data}")
-        stim = pd.DataFrame(data)
+        slist = []
+        for tlevel in self.target_level:
+            for dlevel in self.distractor_level:
+                data = {'tar_freq': np.concatenate([tar_range_] * dis_count),
+                        'tar_am': np.concatenate([am_rate_] * dis_count),
+                        'tar_depth': np.concatenate([am_depth_] * dis_count),
+                        'tar_bandwidth': self.target_bandwidth,
+                        'tar_level': tlevel,
+                        'dis_freq': np.concatenate([np.zeros(tar_count)+d for d in dis_range_]),
+                        'dis_level': dlevel,
+                        'duration': self.duration,
+                        'tar_channel': self.primary_channel,
+                        }
+                log.info(f"{data}")
+                slist.append(pd.DataFrame(data))
+
+        stim = pd.concat(slist, ignore_index=True)
         stim['go_trial'] = stim['tar_freq']!=stim['dis_freq']
+
 
         if self.switch_channels:
             d2=stim.copy()
@@ -1270,6 +1277,7 @@ class AMFusion(WavSet):
             w = np.stack((wbg, wfg), axis=1)
 
         log.info(f"fg level: {fg_level} bg level: {bg_level} FG RMS: {wfg.std():.3f} BG RMS: {wbg.std():.3f}")
+        log.info(f"**** trial {trial_idx} wavidx {wav_set_idx}  tar channel: {row['tar_channel']}")
 
         return w.T
 
@@ -1280,7 +1288,7 @@ class AMFusion(WavSet):
             if len(self.trial_wav_idx) <= trial_idx:
                 self.update(trial_idx=trial_idx)
 
-            wav_set_idx = self.trial_wav_idx[trial_idx]
+            wav_set_idx = self.trial_wav_idx[trial_idx-1]
         else:
             trial_idx = 0
         row = self.stim_list.loc[wav_set_idx]
@@ -1303,6 +1311,7 @@ class AMFusion(WavSet):
         tar_name = 'tar'
         dis_name = 'dis'
         response_window = (self.response_window[0],self.response_window[1])
+        log.info(f"**** trial {trial_idx} wavidx {wav_set_idx}   parms tar channel: {row['tar_channel']} response cond {response_condition}")
 
         d = {'trial_idx': trial_idx,
              'wav_set_idx': wav_set_idx,
@@ -1352,12 +1361,12 @@ class AMFusion(WavSet):
         if trial_idx>=len(self.trial_outcomes):
             n = trial_idx - len(self.trial_outcomes) + 1
             self.trial_outcomes = np.concatenate((self.trial_outcomes, np.zeros(n)-1))
-        self.trial_outcomes[trial_idx] = int(outcome)
+        self.trial_outcomes[trial_idx-1] = int(outcome)
         if repeat_incorrect and (outcome in [0, 1]):
             #log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
             #self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
             #self.trial_is_repeat = np.concatenate((self.trial_is_repeat, [1]))
-            log.info('Trial {trial_idx} outcome {outcome}: repeating immediately')
+            log.info(f'Trial {trial_idx} outcome {outcome}: repeating immediately')
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx[:trial_idx],
                                                  [self.trial_wav_idx[trial_idx]],
                                                  self.trial_wav_idx[trial_idx:]))
@@ -1365,7 +1374,7 @@ class AMFusion(WavSet):
                                                  [1],
                                                  self.trial_is_repeat[(trial_idx+1):]))
         else:
-            log.info('Trial {trial_idx} outcome {outcome}: moving on')
+            log.info(f'Trial {trial_idx} outcome {outcome}: moving on')
 
 class VowelSet(WavSet):
 

@@ -107,13 +107,30 @@ def readpsievents(logpath, runclass=None):
                     'rt': (df.loc[correct_trials,'response_ts']-
                            df.loc[correct_trials,'response_start']).mean()
                     }
-    elif runclass in ['VOW','VGN']:
+    elif runclass in ['VOW', 'VGN']:
         parmnames = ['sound_path', 'target_set', 'non_target_set', 'catch_set',
-                   'switch_channels', 'repeat_count', 'repeat_isi', 'tar_to_cat_ratio',
-                   'level', 'fs', 'response_end', 'random_seed', 'repeat_incorrect', 'snr',
-                   'iti_duration', 'to_duration', 'response_duration', 'target_delay',
-                   'np_duration', 'hold_duration', 'training_mode', 'manual_control',
-                   'keep_lights_on', 'water_dispense_duration']
+                     'switch_channels', 'repeat_count', 'repeat_isi', 'tar_to_cat_ratio',
+                     'level', 'fs', 'response_end', 'random_seed', 'repeat_incorrect', 'snr',
+                     'iti_duration', 'to_duration', 'response_duration', 'target_delay',
+                     'np_duration', 'hold_duration', 'training_mode', 'manual_control',
+                     'keep_lights_on', 'water_dispense_duration']
+        row = df.iloc[-1]
+        dataparm = {k: row[k] for k in parmnames if k in row.index}
+
+        correct_trials = (df['score'] == 2)
+        dataperf = {'trials': df.shape[0],
+                    'correct': (df['score'] == 2).sum(),
+                    'invalid': (df['score'] == 0).sum(),
+                    'incorrect': (df['score'] == 1).sum(),
+                    'repeat_trials': df['trial_is_repeat'].sum(),
+                    'rt': (df.loc[correct_trials, 'response_ts'] -
+                           df.loc[correct_trials, 'np_start']).mean()
+                    }
+    elif runclass in ['AMF']:
+        parmnames = ['target_frequency', 'target_am_rate', 'target_bandwidth', 'modulation_depth',
+                     'target_level', 'distractor_frequency', 'distractor_level', 'duration',
+                     'primary_channel', 'switch_channels', 'reward_ambiguous_frac', 'fs', 'response_start', 'response_end',
+                     'random_seed']
         row = df.iloc[-1]
         dataparm = {k: row[k] for k in parmnames if k in row.index}
 

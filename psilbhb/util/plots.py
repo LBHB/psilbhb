@@ -75,10 +75,19 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         dbias = d_.groupby(['response','snr'])['correct'].mean()
         dbias = dbias.unstack(-1)
         width=12
-    elif runclass == 'NTD':
+    elif runclass in ['NTD']:
         perfsum = d_.groupby(['snr'])[['correct']].mean()
         perfsum = perfsum.unstack(-1)
         perfcount = d_.groupby(['snr'])[['correct']].count()
+        perfcount = perfcount.unstack(-1)
+
+        dbias = d_.groupby(['response', 'snr'])['correct'].mean()
+        dbias = dbias.unstack(-1)
+        width = 12
+    elif runclass in ['AMF']:
+        perfsum = d_.groupby(['this_snr', 'this_distractor_frequency'])[['correct']].mean()
+        perfsum = perfsum.unstack(-1)
+        perfcount = d_.groupby(['this_snr', 'this_distractor_frequency'])[['correct']].count()
         perfcount = perfcount.unstack(-1)
 
         dbias = d_.groupby(['response', 'snr'])['correct'].mean()
@@ -91,13 +100,14 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         perfcount = d_.groupby(['s1_name'])[['correct']].count()
         dbias = d_.groupby(['response','snr'])['correct'].mean()
         dbias = dbias.unstack(-1)
-        width=8
+        width = 8
 
-    f,ax = plt.subplots(1,3, figsize=(width,4))
-    perfsum.plot.bar(ax=ax[0], legend=True)
-    ax[0].axhline(y=0.5,color='b',linestyle=':')
+    f, ax = plt.subplots(1,3, figsize=(width, 5))
+    perfsum.plot.bar(ax=ax[0], legend=False)
+    ax[0].axhline(y=0.5, color='b', linestyle=':')
+    ax[0].axhline(y=0.5, color='b', linestyle=':')
     ax[0].set_ylabel('Frac. correct')
-    perfcount.plot.bar(ax=ax[1])
+    perfcount.plot.bar(ax=ax[1], legend=True)
     ax[1].set_ylabel('n trials')
     dbias.plot.bar(ax=ax[2])
     ax[2].set_title('Bias')
