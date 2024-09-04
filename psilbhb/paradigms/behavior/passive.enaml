@@ -125,7 +125,7 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             name = 'initiated_data'
             continuous_inputs = ['microphone']
         EventLog:
-            show_widget = True
+            show_widget = False
         TrialLog:
             show_widget = True
 
