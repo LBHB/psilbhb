@@ -33,6 +33,7 @@ enamldef IRChannel(NIDAQHardwareAIChannel): irc:
 
     ADC: adc:
         name << irc.name
+        threshold = 0.75
 
 
 enamldef IOManifest(ExperimentManifest): manifest:

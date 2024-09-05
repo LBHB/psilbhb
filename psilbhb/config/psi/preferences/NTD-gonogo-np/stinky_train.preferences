@@ -15,7 +15,7 @@ context:
   parameters:
     .ContextRow:
       max_nogo:
-        expression: '2'
+        expression: '3'
         rove: false
       min_nogo:
         expression: '0'
@@ -28,7 +28,7 @@ context:
         expression: '18'
         rove: false
       background_wav_sequence_fit_range:
-        expression: slice(456, 556)
+        expression: slice(156, 256)
         rove: false
       background_wav_sequence_fit_reps:
         expression: '1'
@@ -62,7 +62,7 @@ context:
         expression: '18'
         rove: false
       background_1_wav_sequence_fit_range:
-        expression: slice(456, 556)
+        expression: slice(156, 256)
         rove: false
       background_1_wav_sequence_fit_reps:
         expression: '1'
@@ -98,7 +98,7 @@ context:
       trial_type: {}
     selector:
       go_probability:
-        expression: '0.8'
+        expression: '0.65'
         rove: false
       remind_trials:
         expression: '0'
@@ -114,7 +114,7 @@ context:
         expression: '1'
         rove: false
       target_tone_frequency:
-        expression: '1400'
+        expression: '440'
         rove: false
       target_tone_level:
         expression: background_1_wav_sequence_level+snr
@@ -171,11 +171,10 @@ context:
       - snr
       order: ascending
       settings:
+      - snr: -10
       - snr: -5
       - snr: 0
       - snr: 5
-      - snr: 5
-      - snr: -10
     nogo:
       context_item_order:
       - snr
@@ -190,11 +189,11 @@ context:
       - snr
       order: ascending
       settings:
-      - snr: 15
+      - snr: 10
 event_log:
   column_widths:
     event: 100
-    info: 795
+    info: 1017
     timestamp: 100
 microphone:
   y_max: 0.5700429967927134
@@ -225,12 +224,12 @@ trial_log:
     correct:
       width: 39
     response:
-      width: 73
+      width: 39
     score:
       width: 40
     snr:
       width: 58
     trial_start:
-      width: 40
+      width: 39
     trial_type:
-      width: 73
+      width: 39

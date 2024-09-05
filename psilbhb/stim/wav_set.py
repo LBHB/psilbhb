@@ -619,7 +619,7 @@ class WavSet:
     def trial_waveform(self, trial_idx=None, wav_set_idx=None):
         pass
 
-    def score_response(self, outcome, repeat_incorrect=True, trial_idx=None):
+    def score_response(self, outcome, repeat_incorrect=1, trial_idx=None):
         """
         current logic: if invalid or incorrect, trial should be repeated
         :param outcome: int
@@ -628,14 +628,18 @@ class WavSet:
             1 incorrect
             2 correct
             3 correct - either response ok
-        :param repeat_incorrect: bool
-            If True, repeat incorrect and invalid trials.
+        :param repeat_incorrect: int
+            choices = {'No': 0, 'Early only': 1, 'Yes': 2}
+            0: never repeat
+            1: repeat if outcome = 0
+            2: repeat if outcome in [0,1]
         :param trial_idx: int
             Values are decremented by 1 to match pythonic 0-based indexing.
             Must be >0 and <len(trial_wav_idx) to be valid. By default, function updates
             score for current_trial_idx and increments current_trial_idx by 1.
         :return:
         """
+        outstr = ['Invalid', 'Incorrect', 'Correct']
         if trial_idx is None:
             trial_idx = self.current_trial_idx
             # Only incrementing current trial index if trial_idx is None. Do we always
@@ -649,8 +653,9 @@ class WavSet:
             n = trial_idx - len(self.trial_outcomes)
             self.trial_outcomes = np.concatenate((self.trial_outcomes, np.zeros(n, dtype=int)))
         self.trial_outcomes[trial_idx-1] = int(outcome)
-        if repeat_incorrect and (outcome in [0, 1]):
-            log.info(f'Trial {trial_idx} outcome {outcome}: repeating immediately')
+        if ((repeat_incorrect == 2) and (outcome in [0, 1])) or \
+                ((repeat_incorrect == 1) and (outcome == 0)):
+            log.info(f'Trial {trial_idx} outcome {outstr[outcome]}: repeating immediately')
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx[:trial_idx],
                                                  [self.trial_wav_idx[trial_idx-1]],
                                                  self.trial_wav_idx[trial_idx:]))
@@ -658,7 +663,7 @@ class WavSet:
                                                  [1],
                                                  self.trial_is_repeat[(trial_idx):]))
         else:
-            log.info(f'Trial {trial_idx} outcome {outcome}: moving on')
+            log.info(f'Trial {trial_idx} outcome {outstr[outcome]}: moving on')
 
 
 class FgBgSet(WavSet):
@@ -759,7 +764,7 @@ class FgBgSet(WavSet):
         {'name': 'this_snr', 'label': 'Trial SNR', 'type': 'Result', 'group_name': 'Results'},
         {'name': 'migrate_trial', 'label': 'Moving Tar', 'type': 'Result', 'group_name': 'Results'},
         {'name': 'current_full_rep', 'label': 'Rep', 'type': 'Result', 'group_name': 'Results'},
-        {'name': 'trial_type', 'label': 'Type', 'type': 'Result', 'group_name': 'Results'},
+        {'name': 'trial_cat', 'label': 'Type', 'type': 'Result', 'group_name': 'Results'},
     ]
 
     for d in default_parameters:
@@ -1066,15 +1071,15 @@ class FgBgSet(WavSet):
                                row['fg_delay'] + self.response_window[fg_i][1])
 
         if is_go_trial>=0:
-            trial_type='normal'
+            trial_cat='normal'
             fg_name = self.FgSet.names[fg_i]
             bg_name = self.BgSet.names[bg_i]
         elif is_go_trial == -1:
-            trial_type='catch'
+            trial_cat='catch'
             fg_name = 'null'
             bg_name = self.BgSet.names[bg_i]
         else:
-            trial_type='choice'
+            trial_cat='choice'
             fg_name = self.FgSet.names[fg_i]
             bg_name = self.FgSet.names[bg_i]
 
@@ -1099,7 +1104,7 @@ class FgBgSet(WavSet):
              'current_full_rep': self.current_full_rep,
              'primary_channel': self.primary_channel,
              'trial_is_repeat': self.trial_is_repeat[trial_idx-1],
-             'trial_type': trial_type,
+             'trial_cat': trial_cat,
              }
 
         if (is_go_trial==-2) & (len(self.reward_durations)>1):
@@ -2025,11 +2030,14 @@ class BinauralTone(WavSet):
 
         {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
          'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'ramp', 'label': 'on/off ramp (ms)', 'default': 5,
+         'dtype': 'double', 'scope': 'experiment'},
         {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
          'int', 'scope': 'experiment'},
         {'name': 'this_reference_frequency', 'label': 'R', 'type': 'Result'},
         {'name': 'this_probe_frequency', 'label': 'P', 'type': 'Result'},
-        {'name': 'this_level', 'label': 'level', 'type': 'Result'},
+        {'name': 'this_snr', 'label': 'level', 'type': 'Result'},
+        {'name': 'current_full_rep', 'label': 'rep', 'type': 'Result'},
     ]
 
     for d in default_parameters:
@@ -2101,6 +2109,14 @@ class BinauralTone(WavSet):
         t=np.arange(wbins)/self.fs
         wfg = np.sin(t*2*np.pi*row['reference_frequency'])*5
         wbg = np.sin(t*2*np.pi*row['probe_frequency'])*5
+
+        rampbins = int(self.ramp * self.fs / 1000)
+        onramp = np.linspace(0,1,rampbins)
+        offramp = np.linspace(1,0,rampbins)
+        wfg[:rampbins] = wfg[:rampbins] * onramp
+        wfg[-rampbins:] = wfg[-rampbins:] * offramp
+        wbg[:rampbins] = wbg[:rampbins] * onramp
+        wbg[-rampbins:] = wbg[-rampbins:] * offramp
 
         fg_level = self.reference_level
         bg_level = self.reference_level + row['probe_level']
