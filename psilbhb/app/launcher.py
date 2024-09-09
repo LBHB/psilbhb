@@ -307,6 +307,10 @@ class CellDbLauncher(SimpleLauncher):
             except:
                 filenum = 1
                 self.runnumber = '1'
+            if self.training == 'Physiology+passive':
+                bcode = 'p'
+            else:
+                bcode = 'a'
             if is_training:
                 year = datetime.today().strftime('%Y')
                 datestr = datetime.today().strftime('%Y_%m_%d')
@@ -314,7 +318,7 @@ class CellDbLauncher(SimpleLauncher):
                                    f'{self.animal}_{datestr}_{self.runclass}_{filenum}'
             else:
                 self.base_folder = self.root_folder / self.animal / self.penname / \
-                                   f'{self.siteid}{filenum:02d}_a_{self.runclass}'
+                                   f'{self.siteid}{filenum:02d}_{bcode}_{self.runclass}'
         else:
             self.base_folder = None
         self.save_settings()
@@ -374,11 +378,6 @@ class CellDbLauncher(SimpleLauncher):
             print('returned from subprocess')
             print(f'psipath: {psipath}')
             print(rawdata)
-            d, dataparm, dataperf = readpsievents(psipath, rawdata['runclass'])
-
-            self.db.sqlupdate('gDataRaw', rawdata['rawid'], d=d, idfield='id')
-            self.db.save_data(rawdata['rawid'], dataparm, parmtype=0, keep_existing=False)
-            self.db.save_data(rawdata['rawid'], dataperf, parmtype=1, keep_existing=False)
 
             # save global parameters
             filename = psipath + "globalparams.json"
@@ -399,6 +398,12 @@ class CellDbLauncher(SimpleLauncher):
 
             with open(filename, 'w') as file:
                 file.write(json.dumps(d))
+
+            d, dataparm, dataperf = readpsievents(psipath, rawdata['runclass'])
+
+            self.db.sqlupdate('gDataRaw', rawdata['rawid'], d=d, idfield='id')
+            self.db.save_data(rawdata['rawid'], dataparm, parmtype=0, keep_existing=False)
+            self.db.save_data(rawdata['rawid'], dataperf, parmtype=1, keep_existing=False)
 
             plot_behavior(rawdata['rawid'])
 

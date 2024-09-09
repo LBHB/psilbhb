@@ -103,7 +103,7 @@ class PassivePlugin(BaseBehaviorPlugin):
             ts = self.get_ts()
             o1.start_waveform(ts + 0.1, False)
             o2.start_waveform(ts + 0.1, True)
-            st.trigger(ts + 0.1, 0.5)
+            st.trigger(ts + 0.1, 0.1)
 
         self.trial_info = {
             'trial_number': self.trial,

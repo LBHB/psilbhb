@@ -239,8 +239,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 label = 'Repeat incorrect/invalid trials?'
                 compact_label = 'repeat_incorrect'
                 default = 'Yes'
-                choices = {'No': 0, 'Early only': 1,
-                           'Yes': 2}
+                choices = {'No': 0, 'Early only': 1, 'Yes': 2}
             Parameter:
                 name = 'snr'
                 label = 'SNR (dB)'

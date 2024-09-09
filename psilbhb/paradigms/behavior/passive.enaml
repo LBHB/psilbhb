@@ -22,7 +22,7 @@ from psi.data.sinks.api import BinaryStore
 from .passive_plugin import PassivePlugin
 
 
-def get_status(trial, trial_state, experiment_state):
+def get_status(trial, experiment_state):
     # Experiment not running
     if experiment_state == 'paused':
         return 'Experiment paused'
@@ -30,8 +30,7 @@ def get_status(trial, trial_state, experiment_state):
         return 'Waiting to start'
     elif experiment_state == 'stopped':
         return 'Experiment complete'
-    state = '' if trial_state is None else trial_state.value
-    return 'Trial {} - {}'.format(trial, state)
+    return 'Trial {}'.format(trial)
 
 
 def update_trial_log(event):
@@ -57,7 +56,6 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             Label:
                 text << get_status(
                     workbench.get_plugin('psi.controller').trial,
-                    workbench.get_plugin('psi.controller').trial_state,
                     workbench.get_plugin('psi.controller').experiment_state,
                 )
 
@@ -165,7 +163,10 @@ enamldef PassiveManifest(ControllerManifest): manifest:
         ContextGroup:
             name = 'trial'
             label = 'Trial'
-
+            Parameter:
+                name = 'trial_reps'
+                label = 'Number of repeats'
+                default = 10
             Parameter:
                 name = 'snr'
                 label = 'SNR (dB)'
