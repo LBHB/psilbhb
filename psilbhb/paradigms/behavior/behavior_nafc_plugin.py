@@ -376,8 +376,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             self.advance_state('iti', ts)
 
         self.wavset.score_response(score.value,
-                                   self.context.get_value('repeat_incorrect'),
-                                   self.trial)
+                                   repeat_incorrect=self.context.get_value('repeat_incorrect'),
+                                   trial_idx=self.trial)
 
         # Apply pending changes that way any parameters (such as repeat_FA or
         # go_probability) are reflected in determining the next trial type.

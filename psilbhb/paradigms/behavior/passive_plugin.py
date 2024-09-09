@@ -103,7 +103,7 @@ class PassivePlugin(BaseBehaviorPlugin):
             ts = self.get_ts()
             o1.start_waveform(ts + 0.1, False)
             o2.start_waveform(ts + 0.1, True)
-            st.trigger(ts + 0.1, 0.5)
+            st.trigger(ts + 0.1, 0.1)
 
         self.trial_info = {
             'trial_number': self.trial,
@@ -128,6 +128,9 @@ class PassivePlugin(BaseBehaviorPlugin):
         # go_probability) are reflected in determining the next trial type.
         if self._apply_requested:
             self._apply_changes(False)
+
+        if self.wavset.current_full_rep > self.context.get_value('trial_reps'):
+            self.invoke_actions('experiment_end')
 
     def advance_state(self, state, timestamp):
         log.info(f'Advancing to {state}')
