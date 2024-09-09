@@ -1147,6 +1147,8 @@ class AMFusion(WavSet):
         {'name': 'this_target_frequency', 'label': 'T', 'type': 'Result'},
         {'name': 'this_distractor_frequency', 'label': 'D', 'type': 'Result'},
         {'name': 'this_snr', 'label': 'SNR', 'type': 'Result'},
+        {'name': 'response_condition', 'label': 'T spout', 'type': 'Result'},
+        {'name': 'trial_is_repeat', 'label': 'rep', 'type': 'Result'},
     ]
 
     for d in default_parameters:
@@ -1328,7 +1330,7 @@ class AMFusion(WavSet):
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
              'primary_channel': self.primary_channel,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx],
+             'trial_is_repeat': self.trial_is_repeat[trial_idx-1],
         }
 
         return d
@@ -1367,12 +1369,12 @@ class AMFusion(WavSet):
             #self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
             #self.trial_is_repeat = np.concatenate((self.trial_is_repeat, [1]))
             log.info(f'Trial {trial_idx} outcome {outcome}: repeating immediately')
-            self.trial_wav_idx = np.concatenate((self.trial_wav_idx[:trial_idx],
-                                                 [self.trial_wav_idx[trial_idx]],
+            self.trial_wav_idx = np.concatenate((self.trial_wav_idx[:(trial_idx)],
+                                                 [self.trial_wav_idx[trial_idx-1]],
                                                  self.trial_wav_idx[trial_idx:]))
-            self.trial_is_repeat = np.concatenate((self.trial_is_repeat[:(trial_idx+1)],
+            self.trial_is_repeat = np.concatenate((self.trial_is_repeat[:(trial_idx)],
                                                  [1],
-                                                 self.trial_is_repeat[(trial_idx+1):]))
+                                                 self.trial_is_repeat[(trial_idx):]))
         else:
             log.info(f'Trial {trial_idx} outcome {outcome}: moving on')
 

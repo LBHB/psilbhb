@@ -1,5 +1,7 @@
 import datetime
 import json
+import logging
+
 import numpy as np
 import os
 import shutil
@@ -11,6 +13,8 @@ import pandas as pd
 from psi import get_config
 from psi.util import PSIJsonEncoder
 from psilbhb.util.celldb import celldb, readpsievents, readlogs
+
+log = logging.getLogger(__name__)
 
 c = celldb()
 
@@ -58,8 +62,9 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
             v = np.roll(d_['score'].values,1)
             v[0]=2
             d_['prev_score']=v
+            # only include trials where prev trial was correct
             d_ = d_.loc[d_['prev_score']==2]
-
+            print(f"Keeping {d_.shape[0]}/{df_trial.shape[0]} valid trials (not repeat or early np)")
         df_list.append(d_)
 
     d_ = pd.concat(df_list, ignore_index=True)
@@ -125,7 +130,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         savepath = remote_root / 'web' / 'behaviorcharts' / name / year
         savepath.mkdir(parents=True, exist_ok=True)
         figfile = savepath / f"{parmfile}.jpg"
-        print(f"saving to {figfile}")
+        log.info(f"saving to {figfile}")
         f.savefig(figfile)
 
     return df_trial
@@ -145,5 +150,5 @@ def fix_old_plots(sitemask="SQD"):
             rawids.append(rawid)
             plot_behavior(rawid=rawid)
         except:
-            print(f"error on rawid {rawid}")
+            log.info(f"error on rawid {rawid}")
     return rawids
