@@ -89,7 +89,11 @@ def timecourse_plot(df, column='this_snr', label=None, ax=None,
     for i, s in enumerate(unique_vals):
         d_ = df.loc[df[column] == s].copy()
         perf = d_['correct'].mean()
-        d_['smooth_correct'] = smooth(d_['correct'].astype(float), window_len=window_len)
+        if len(d_) > window_len:
+            d_['smooth_correct'] = smooth(d_['correct'].astype(float), window_len=window_len)
+        else:
+            d_['smooth_correct'] = d_['correct']
+
         ax.plot(d_['smooth_correct'], label=f"{label} {s}: {perf:.2f}")
 
     ax.axhline(0.5, linestyle='--', color='k')
@@ -213,12 +217,13 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
     ax[2].set_title('Bias')
     ax[2].set_ylabel('Frac. correct')
 
+    window_len = np.min([11, len(d_)-1])
     if 'this_snr' in d_.columns:
         timecourse_plot(d_, column='this_snr', label='SNR', ax=ax[3],
-                        window_len=11)
+                        window_len=window_len)
     else:
         timecourse_plot(d_, column='response_condition', label='Type', ax=ax[3],
-                        window_len=11)
+                        window_len=window_len)
 
     ax[3].set_xlabel('Trial')
     f.suptitle(parmfile)
