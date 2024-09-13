@@ -80,19 +80,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
     return df_trial
 
 
-rawid1 = 151074
-rawid2 = 151083
-rawid3 = 151127
-rawid4 = 151351
-
-# plot_perform_over_time(rawid1)
-# plot_perform_over_time(rawid2)
-# plot_perform_over_time(rawid3)
-# plot_reaction_over_time(rawid4)
-#plot_perform_over_time(rawid4)
-
-
-rawids = [151394,151396,151466,151467,151511,151545,151574]
+rawids = [151394,151396,151466,151467,151511,151545,151574,151586]
 c = celldb()
 
 dlist = []
@@ -113,19 +101,28 @@ d = d.loc[(d.score > 0) & (d['trial_is_repeat']==0)].reset_index()
 unique_snr = d['this_snr'].unique()
 unique_tar = d['this_target_frequency'].unique()
 
-f,ax = plt.subplots()
-ax.plot(d['correct'], color='lightgray', label="raw")
+f,ax = plt.subplots(2,1,figsize=(8,5))
+ax[0].plot(d['correct'], color='lightgray', label="raw")
 
 window_len = 12
 
-for i,(s,t) in enumerate(zip(unique_snr,unique_tar)):
+for i,s in enumerate(unique_snr):
     d_ = d.loc[d['this_snr']==s].copy()
-    #d_ = d.loc[d['this_target_frequency']==t].copy()
     perf = d_['correct'].mean()
     d_['smooth_correct'] = smooth(d_['correct'].astype(float), window_len=window_len)
-    ax.plot(d_['smooth_correct'], label=f"SNR {s}: {perf:.2f}")
-    #ax.plot(d_['smooth_correct'], label=f"Tar {t}: {perf:.2f}")
-ax.legend(frameon=False)
-ax.set_xlabel('Trial')
-ax.set_ylabel("Frac. correct")
+    ax[0].plot(d_['smooth_correct'], label=f"SNR {s}: {perf:.2f}")
+ax[0].axhline(0.5, linestyle='--', color='k')
+ax[0].legend(frameon=False)
+
+for i,t in enumerate(unique_tar):
+    d_ = d.loc[d['this_target_frequency']==t].copy()
+    perf = d_['correct'].mean()
+    d_['smooth_correct'] = smooth(d_['correct'].astype(float), window_len=window_len)
+    ax[1].plot(d_['smooth_correct'], label=f"Tar {t}: {perf:.2f}")
+ax[1].axhline(0.5, linestyle='--', color='k')
+ax[1].legend(frameon=False)
+
+ax[1].set_xlabel('Trial')
+ax[0].set_ylabel("Frac. correct")
+ax[1].set_ylabel("Frac. correct")
 f.suptitle(parmfile)
