@@ -89,7 +89,10 @@ def timecourse_plot(df, column='this_snr', label=None, ax=None,
     for i, s in enumerate(unique_vals):
         d_ = df.loc[df[column] == s].copy()
         perf = d_['correct'].mean()
-        d_['smooth_correct'] = smooth(d_['correct'].astype(float), window_len=window_len)
+        if len(d_) > window_len:
+            d_['smooth_correct'] = smooth(d_['correct'].astype(float), window_len=window_len)
+        else:
+            d_['smooth_correct'] = d_['correct']
         ax.plot(d_['smooth_correct'], label=f"{label} {s}: {perf:.2f}")
 
     ax.axhline(0.5, linestyle='--', color='k')
