@@ -89,7 +89,10 @@ def timecourse_plot(df, column='this_snr', label=None, ax=None,
     for i, s in enumerate(unique_vals):
         d_ = df.loc[df[column] == s].copy()
         perf = d_['correct'].mean()
-        d_['smooth_correct'] = smooth(d_['correct'].astype(float), window_len=window_len)
+        if len(d_) > window_len:
+            d_['smooth_correct'] = smooth(d_['correct'].astype(float), window_len=window_len)
+        else:
+            d_['smooth_correct'] = d_['correct']
         ax.plot(d_['smooth_correct'], label=f"{label} {s}: {perf:.2f}")
 
     ax.axhline(0.5, linestyle='--', color='k')
@@ -170,10 +173,8 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         dbias = dbias.unstack(-1)
         width=12
     elif runclass in ['NTD']:
-        perfsum = d_.groupby(['snr'])[['correct']].mean()
-        perfsum = perfsum.unstack(-1)
-        perfcount = d_.groupby(['snr'])[['correct']].count()
-        perfcount = perfcount.unstack(-1)
+        perfsum = d_.groupby('snr')[['correct']].mean()
+        perfcount = d_.groupby('snr')[['correct']].count()
 
         dbias = d_.groupby(['response', 'snr'])['correct'].mean()
         dbias = dbias.unstack(-1)
@@ -196,7 +197,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         dbias = dbias.unstack(-1)
         width = 8
 
-    f = plt.figure(figsize=(width, 5))
+    f = plt.figure(figsize=(width, 6))
     ax = [f.add_subplot(2,3,1), f.add_subplot(2,3,2), f.add_subplot(2,3,3),
           f.add_subplot(2,1,2)]
 
@@ -216,6 +217,9 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
     if 'this_snr' in d_.columns:
         timecourse_plot(d_, column='this_snr', label='SNR', ax=ax[3],
                         window_len=11)
+    elif 'snr' in d_.columns:
+        timecourse_plot(d_, column='snr', label='SNR', ax=ax[3],
+                        window_len=5)
     else:
         timecourse_plot(d_, column='response_condition', label='Type', ax=ax[3],
                         window_len=11)
