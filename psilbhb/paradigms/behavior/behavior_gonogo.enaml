@@ -425,6 +425,18 @@ class AutoBehaviorPlugin(BehaviorPlugin):
         if auto_start or not self.manual_control:
             self.start_trial()
 
+    def start_trial(self):
+        # This is broken into a separate method to allow the toolbar to call
+        # this method for training.
+        with self.get_output('target').engine.lock:
+            log.info('Starting next trial')
+            log.trace('Obtained lock for engine connected to target')
+            ts = self.get_ts()
+            self.invoke_actions(GoNogoEvent.trial_start.name, ts)
+            log.trace('Releasing lock for engine connected to target')
+
+        self.advance_state('hold', ts)
+        self.trial_info['trial_start'] = ts
 
 
 class InitiatedBehaviorPlugin(BehaviorPlugin):

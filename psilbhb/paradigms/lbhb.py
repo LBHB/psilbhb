@@ -31,6 +31,14 @@ COMMON_PLUGINS = [
 ]
 
 
+ParadigmDescription(
+    'NFB-passive', '(NFB) Passive FG in natural background',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'passive.PassiveManifest',},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True, 'attrs': {'stim_class_name': 'FgBgSet'}},
+    ],
+)
+
 
 ParadigmDescription(
     'NTD-gonogo-np', '(NTD) Go-nogo tone detection in natural background (initiated)',
@@ -44,12 +52,28 @@ ParadigmDescription(
     ],
 )
 
+
+
+ParadigmDescription(
+    'NTD-passive', '(NTD) Tone in natural background (passive)',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'behavior_mixins.BaseGoNogoMixin'},
+        {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
+         'attrs': {'output_name': 'water_dispense_1',
+                   'event_name': 'deliver_reward'}},
+        {'manifest': PATH + 'behavior_gonogo.AutoBehaviorManifest'},
+        {'manifest': PATH + 'stimuli.ToneInNaturalSoundsGoNogo'},
+    ],
+)
+
 ParadigmDescription(
     'NFB', '(NFB) Two AFC foreground detection in natural background',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
          'attrs': {'N_response': 2}},
-        {'manifest': PATH + 'wav_set_manifest.FgBgSetManifest', 'required': True},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'FgBgSet'}
+         },
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_1',
                    'event_name': 'deliver_reward_1'}},
@@ -65,7 +89,8 @@ ParadigmDescription(
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
          'attrs': {'N_response': 2}},
-        {'manifest': PATH + 'wav_set_manifest.VowelSetManifest', 'required': True},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'VowelSet'}},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_1',
                    'event_name': 'deliver_reward_1'}},
@@ -81,7 +106,8 @@ ParadigmDescription(
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
          'attrs': {'N_response': 1}},
-        {'manifest': PATH + 'wav_set_manifest.VowelSetManifest', 'required': True},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'VowelSet'}},
         {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
          'attrs': {'output_name': 'water_dispense_1',
                    'event_name': 'deliver_reward_1'}},
@@ -114,3 +140,36 @@ ParadigmDescription(
     ],
 )
 
+ParadigmDescription(
+    'AMF', '(AMF) Amplitude modulation/fusion 2AFC',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
+         'attrs': {'N_response': 2}},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'AMFusion'}
+         },
+        {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
+         'attrs': {'output_name': 'water_dispense_1',
+                   'event_name': 'deliver_reward_1'}},
+        {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
+         'attrs': {'output_name': 'water_dispense_2',
+                   'event_name': 'deliver_reward_2'}},
+    ],
+)
+
+ParadigmDescription(
+    'OLP', 'OLP - Overlapping Sounds Passive [Placeholder]',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'OverlappingSounds'}
+         },
+    ],
+)
+
+ParadigmDescription(
+    'BLT', '(BLT) Passive binaural level tuning',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'passive.PassiveManifest',},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True, 'attrs': {'stim_class_name': 'BinauralTone'}},
+    ],
+)

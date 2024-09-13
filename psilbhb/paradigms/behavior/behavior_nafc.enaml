@@ -10,16 +10,12 @@ from psi.context.api import (
     BoolParameter, EnumParameter, ContextGroup, ContextRow, Parameter, Result
 )
 from psi.controller.api import (
-    ContinuousInput, ControllerManifest, ControllerPlugin, EpochOutput,
-    ExperimentAction, ExperimentEvent, ExperimentState, SimpleOutput,
-    TimedTrigger, Trigger, Toggle
+    ContinuousInput, ControllerManifest, EpochOutput, ExperimentAction,
+    ExperimentEvent, ExperimentState, TimedTrigger
 )
 from psi.data.sinks.api import EventLog, TrialLog
 from psi.experiment.api import StatusItem
-from psi.data.plots import (
-    EventPlot, FFTContainer, FFTChannelPlot, TimeContainer, ChannelPlot,
-    ViewBox, TimeseriesPlot
-)
+from psi.data.plots import (TimeContainer, ChannelPlot, ViewBox)
 from psi.data.sinks.api import BinaryStore
 
 from .behavior_nafc_plugin import BehaviorPlugin, NAFCEvent
@@ -243,8 +239,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 label = 'Repeat incorrect/invalid trials?'
                 compact_label = 'repeat_incorrect'
                 default = 'Yes'
-                choices = {'No': 0, 'Early only': 1,
-                           'Yes': 2}
+                choices = {'No': 0, 'Early only': 1, 'Yes': 2}
             Parameter:
                 name = 'snr'
                 label = 'SNR (dB)'

@@ -42,10 +42,12 @@ def flush_training_old(prefix="LMD", local_folder="e:/data", dest_root='/auto/da
 
 c = celldb()
 #flush_training("LMD",c=c)
-flush_training("SQD",c=c)
-flush_training("SDS",c=c)
-flush_training("REI",c=c)
-flush_training("LGI",c=c)
+#flush_training("SQD", c=c, local_folder="d:/data")
+flush_training("SDS", c=c, local_folder="e:/data")
+#flush_training("REI", c=c, local_folder="d:/data")
+# flush_training("LGI", c=c, local_folder="d:/data")
+flush_training("CGL", c=c, local_folder="e:/data")
+flush_training("IKI", c=c, local_folder="e:/data")
 
 #flush_training("SLJ",c=c)
 # flush_training("tst",c=c)

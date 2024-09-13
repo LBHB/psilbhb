@@ -1,3 +1,5 @@
+import logging
+
 import datetime
 import json
 import numpy as np
@@ -16,14 +18,18 @@ import pandas.io.sql as psql
 from psi import get_config
 from psi.util import PSIJsonEncoder
 
+log = logging.getLogger(__name__)
+
 def readlogs(logpath=None, rawid=None, c=None):
     if c is None:
         c=celldb()
     if logpath is None:
         rawdata = c.pd_query(f"SELECT * FROM gDataRaw where id={rawid}")
         logpath=rawdata.loc[0,'resppath'] + rawdata.loc[0,'parmfile']
-        logpath=logpath.replace('/auto/data/daq','h:/daq')
-        logpath = logpath.replace('d:', 'e:')
+        if not(os.path.isdir(logpath)):
+            logpath = logpath.replace('d:', 'e:')
+        if not(os.path.isdir(logpath)):
+            logpath = logpath.replace('/auto/data/daq', 'h:/daq')
     eventlogfile = os.path.join(logpath, 'event_log.csv')
     triallogfile = os.path.join(logpath, 'trial_log.csv')
     df_trial = pd.read_csv(triallogfile)
@@ -31,17 +37,41 @@ def readlogs(logpath=None, rawid=None, c=None):
     return df_trial, df_event
 
 
-def readpsievents(logpath, runclass=None):
+def readpsievents(logpath=None, runclass=None, rawid=None, c=None):
+    """
+
+    Parameters
+    ----------
+    logpath
+    runclass
+    rawid
+    c: celldb instance
+
+    Returns
+    -------
+
+    """
     # make sure correct path separator is used.
+    if logpath is None:
+        d = c.pd_query(f"SELECT * FROM gDataRaw where id={rawid}")
+        logpath = os.path.join(d['resppath'].iloc[0],d['parmfile'].iloc[0])
+        runclass = d['runclass'].iloc[0]
+
     logpath = logpath.replace("/", os.path.sep)
     logpath = logpath.replace("\\", os.path.sep)
     eventlogfile = os.path.join(logpath, 'event_log.csv')
     triallogfile = os.path.join(logpath, 'trial_log.csv')
     print('triallogfile=', triallogfile)
     df = pd.read_csv(triallogfile)
-    rawdata = {'trials': df.shape[0],
-               'corrtrials': df.correct.sum(),
-               'reps': 1}
+    rawdata = {'trials': df.shape[0]}
+    if 'correct' in df.columns:
+        rawdata['corrtrials'] = df.correct.sum()
+    else:
+        rawdata['corrtrials'] = 0
+    if 'current_full_rep' in df.columns:
+        rawdata['reps'] = df['current_full_rep'].max()
+    else:
+        rawdata['reps'] = 1
     if runclass is None:
         runclass = logpath[-3:]
     if runclass=='NTD':
@@ -96,22 +126,44 @@ def readpsievents(logpath, runclass=None):
         row = df.iloc[-1]
         dataparm = {k: row[k] for k in parmnames if k in row.index}
 
-        correct_trials = (df['score']==2)
-        dataperf = {'trials': df.shape[0],
-                    'correct': (df['score']==2).sum(),
-                    'invalid': (df['score']==0).sum(),
-                    'incorrect': (df['score']==1).sum(),
-                    'repeat_trials': df['trial_is_repeat'].sum(),
-                    'rt': (df.loc[correct_trials,'response_ts']-
-                           df.loc[correct_trials,'response_start']).mean()
-                    }
-    elif runclass in ['VOW','VGN']:
+        if 'score' in df.columns:
+            correct_trials = (df['score'] == 2)
+
+            dataperf = {'trials': df.shape[0],
+                        'correct': (df['score']==2).sum(),
+                        'invalid': (df['score']==0).sum(),
+                        'incorrect': (df['score']==1).sum(),
+                        'repeat_trials': df['trial_is_repeat'].sum(),
+                        'rt': (df.loc[correct_trials,'response_ts']-
+                               df.loc[correct_trials,'response_start']).mean()
+                        }
+        else:
+            dataperf = {}
+
+    elif runclass in ['VOW', 'VGN']:
         parmnames = ['sound_path', 'target_set', 'non_target_set', 'catch_set',
-                   'switch_channels', 'repeat_count', 'repeat_isi', 'tar_to_cat_ratio',
-                   'level', 'fs', 'response_end', 'random_seed', 'repeat_incorrect', 'snr',
-                   'iti_duration', 'to_duration', 'response_duration', 'target_delay',
-                   'np_duration', 'hold_duration', 'training_mode', 'manual_control',
-                   'keep_lights_on', 'water_dispense_duration']
+                     'switch_channels', 'repeat_count', 'repeat_isi', 'tar_to_cat_ratio',
+                     'level', 'fs', 'response_end', 'random_seed', 'repeat_incorrect', 'snr',
+                     'iti_duration', 'to_duration', 'response_duration', 'target_delay',
+                     'np_duration', 'hold_duration', 'training_mode', 'manual_control',
+                     'keep_lights_on', 'water_dispense_duration']
+        row = df.iloc[-1]
+        dataparm = {k: row[k] for k in parmnames if k in row.index}
+
+        correct_trials = (df['score'] == 2)
+        dataperf = {'trials': df.shape[0],
+                    'correct': (df['score'] == 2).sum(),
+                    'invalid': (df['score'] == 0).sum(),
+                    'incorrect': (df['score'] == 1).sum(),
+                    'repeat_trials': df['trial_is_repeat'].sum(),
+                    'rt': (df.loc[correct_trials, 'response_ts'] -
+                           df.loc[correct_trials, 'np_start']).mean()
+                    }
+    elif runclass in ['AMF']:
+        parmnames = ['target_frequency', 'target_am_rate', 'target_bandwidth', 'modulation_depth',
+                     'target_level', 'distractor_frequency', 'distractor_level', 'duration',
+                     'primary_channel', 'switch_channels', 'reward_ambiguous_frac', 'fs', 'response_start', 'response_end',
+                     'random_seed']
         row = df.iloc[-1]
         dataparm = {k: row[k] for k in parmnames if k in row.index}
 
@@ -125,7 +177,14 @@ def readpsievents(logpath, runclass=None):
                            df.loc[correct_trials, 'np_start']).mean()
                     }
     else:
-        raise ValueError(f"readpsievents: runclass {runclass} not supported")
+        log.info(f"runclass {runclass}, assuming passive")
+        parmnames = list(df.columns)
+        parmnames = [c for c in parmnames if not c.startswith('this_')]
+        parmnames = [c for c in parmnames if not c.startswith('trial_')]
+        parmnames = [c for c in parmnames if not c in ['wav_set_idx','current_full_rep']]
+        row = df.iloc[-1]
+        dataparm = {k: row[k] for k in parmnames if k in row.index}
+        dataperf = {}
 
     return rawdata, dataparm, dataperf
 
@@ -633,6 +692,10 @@ class celldb():
 
     def save_data(self, rawid, datadict, parmtype=0, keep_existing=False):
 
+        if len(datadict) == 0:
+            log.info('dict={} not saving anything')
+            return
+
         if type(datadict) is not dict:
             raise ValueError(f"Parmeter datadict must be a dict")
 
@@ -670,7 +733,7 @@ class celldb():
 
         self.sqlinsert('gData', d)
 
-        print(f'Saved {len(d)} data items for rawid {rawid}')
+        log.info(f'Saved {len(d)} data items for rawid {rawid}')
 
     def read_data(self, rawid):
         sql = f"SELECT * FROM gData WHERE rawid={rawid} ORDER BY parmtype,id"

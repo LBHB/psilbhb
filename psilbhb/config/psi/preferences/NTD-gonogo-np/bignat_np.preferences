@@ -1,0 +1,198 @@
+IR_sensors:
+  y_max: 5.0
+  y_min: 0.0
+context:
+  meta:
+    sdt_analysis:
+    - snr
+    trial_log:
+    - snr
+    - trial_start
+    - trial_type
+    - response
+    - score
+    - correct
+    - water_dispense_duration
+  parameters:
+    .ContextRow:
+      max_nogo:
+        expression: '2'
+        rove: false
+      min_nogo:
+        expression: '0'
+        rove: false
+    background:
+      background_wav_sequence_duration:
+        expression: '18'
+        rove: false
+      background_wav_sequence_fit_range:
+        expression: slice(6,156)
+        rove: false
+      background_wav_sequence_fit_reps:
+        expression: '1'
+        rove: false
+      background_wav_sequence_level:
+        expression: '65'
+        rove: false
+      background_wav_sequence_norm_fixed_scale:
+        expression: '25'
+        rove: false
+      background_wav_sequence_normalization:
+        rove: false
+        selected: fixed
+      background_wav_sequence_path:
+        expression: r"H:\sounds\BigNat\v2"
+        rove: false
+      background_wav_sequence_test_range:
+        expression: slice(0,6)
+        rove: false
+      background_wav_sequence_test_reps:
+        expression: '5'
+        rove: false
+    results:
+      correct: {}
+      psivideo_frame_ts: {}
+      psivideo_frames_written: {}
+      response: {}
+      response_time: {}
+      response_ts: {}
+      score: {}
+      trial_start: {}
+      trial_type: {}
+    selector:
+      go_probability:
+        expression: '0.5'
+        rove: false
+      remind_trials:
+        expression: '0'
+        rove: false
+      repeat_fa:
+        expression: 'True'
+        rove: false
+      warmup_trials:
+        expression: '0'
+        rove: false
+    target:
+      target_tone_duration:
+        expression: '1'
+        rove: false
+      target_tone_frequency:
+        expression: '3875.0'
+        rove: false
+      target_tone_level:
+        expression: background_wav_sequence_level+snr
+        rove: false
+      target_tone_phase:
+        expression: '0'
+        rove: false
+      target_tone_polarity:
+        rove: false
+        selected: positive
+      target_tone_rise_time:
+        expression: 25e-3
+        rove: false
+      target_tone_start_time:
+        expression: '0.0'
+        rove: false
+    trial:
+      hold_duration:
+        expression: '0.25'
+        rove: false
+      iti_duration:
+        expression: '2'
+        rove: false
+      keep_lights_on:
+        expression: 'True'
+        rove: false
+      manual_control:
+        expression: 'False'
+        rove: false
+      np_duration:
+        expression: '0.1'
+        rove: false
+      response_duration:
+        expression: '4'
+        rove: false
+      snr:
+        expression: '10'
+        rove: true
+      target_delay:
+        expression: '0.5'
+        rove: false
+      to_duration:
+        expression: '1.0'
+        rove: false
+      training_mode:
+        expression: 'False'
+        rove: false
+      water_dispense_duration:
+        expression: '3'
+        rove: false
+  selectors:
+    go:
+      context_item_order:
+      - snr
+      order: ascending
+      settings:
+      - snr: '0'
+      - snr: '-5'
+      - snr: '-10'
+    nogo:
+      context_item_order:
+      - snr
+      order: ascending
+      settings:
+      - snr: '-400'
+        target_tone_level: '-400'
+        water_bolus_dispenser_duration: 0.1
+        water_bolus_dispenser_n_triggers: 1
+    remind:
+      context_item_order:
+      - snr
+      order: ascending
+      settings:
+      - snr: '15'
+event_log:
+  column_widths:
+    event: 100
+    info: 100
+    timestamp: 100
+    trial: 1167
+microphone:
+  y_max: 1.0
+  y_min: -1.0
+output.background:
+  token_name: wav_sequence
+output.target:
+  token_name: tone
+sdt_analysis:
+  column_config:
+    fraction_correct:
+      width: 39
+    n_correct:
+      width: 59
+    n_trials:
+      width: 45
+    snr:
+      width: 58
+    z_score:
+      width: 39
+sdt_analysis.sdt_plot.ViewBox:
+  y_max: 0.0
+  y_min: 0.0
+trial_log:
+  column_config:
+    correct:
+      width: 39
+    response:
+      width: 73
+    score:
+      width: 40
+    snr:
+      width: 58
+    trial_start:
+      width: 40
+    trial_type:
+      width: 73
+    water_dispense_duration:
+      width: 39

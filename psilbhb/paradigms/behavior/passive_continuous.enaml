@@ -1,0 +1,229 @@
+import logging
+log = logging.getLogger(__name__)
+
+from enaml.core.api import Looper
+from enaml.widgets.api import Action, Label, ToolBar
+from enaml.workbench.api import Extension
+from enaml.workbench.core.api import Command
+
+from psi.context.api import (
+    ContextGroup, Parameter, Result
+)
+from psi.controller.api import (
+    ContinuousInput, ControllerManifest, EpochOutput,
+    ExperimentAction, ExperimentEvent, ExperimentState,
+    TimedTrigger
+)
+from psi.data.sinks.api import EventLog, TrialLog
+from psi.experiment.api import StatusItem
+from psi.data.plots import (TimeContainer, ChannelPlot, ViewBox)
+from psi.data.sinks.api import BinaryStore
+
+from .passive_plugin import PassivePlugin
+
+
+def get_status(trial, trial_state, experiment_state):
+    # Experiment not running
+    if experiment_state == 'paused':
+        return 'Experiment paused'
+    elif experiment_state == 'initialized':
+        return 'Waiting to start'
+    elif experiment_state == 'stopped':
+        return 'Experiment complete'
+    state = '' if trial_state is None else trial_state.value
+    return 'Trial {} - {}'.format(trial, state)
+
+
+def update_trial_log(event):
+    core = event.workbench.get_plugin('enaml.workbench.core')
+    core.invoke_command('trial_log.save', {'data': event.parameters['result']})
+
+
+enamldef PassiveManifest(ControllerManifest): manifest:
+    '''
+    Defines the core settings that any behavior experiment may require. Does
+    not include timeout/reward settings as those are provided by plugins.
+    '''
+    # Number of speaker outputs
+    attr N_output = 2
+    factory = lambda: PassivePlugin()
+
+    Extension:
+        id = manifest.id + '.status'
+        point = 'psi.experiment.status'
+
+        StatusItem:
+            label = 'Experiment state'
+            Label:
+                text << get_status(
+                    workbench.get_plugin('psi.controller').trial,
+                    workbench.get_plugin('psi.controller').trial_state,
+                    workbench.get_plugin('psi.controller').experiment_state,
+                )
+
+    Extension:
+        id = manifest.id + '.behavior_commands'
+        point = 'enaml.workbench.core.commands'
+        Command:
+            id = 'psi.controller.update_trial_log'
+            handler = update_trial_log
+        Command:
+            id = 'psi.controller.prepare_trial'
+            handler = lambda x: controller.prepare_trial()
+        Command:
+            id = 'psi.controller.start_trial'
+            handler = lambda x: controller.start_trial
+
+    Extension:
+        id = manifest.id + '.events'
+        point = 'psi.controller.actions'
+
+        ExperimentState:
+            name = 'trial'
+
+        ExperimentState:
+            name = 'iti'
+        ExperimentEvent:
+            name = 'iti_duration_elapsed'
+        ExperimentEvent:
+            name = 'trial_ready'
+
+        ExperimentAction:
+            # This schedules a TTL pulse to be sent via the channel linked to
+            # the sync_trigger output. The TTL pulse will start at the exact
+            # same time as target_start and last for 0.5 sec. Whenever an
+            # ExperimentAction is triggered, kwargs will automatically include
+            # the event name (in this case, "target_start") and the timestamp
+            # the event occurred (this is how the sync_trigger.trigger command
+            # knows when to schedule the trigger to begin). If the event was
+            # hardware-timed, then the timestamp will be accurate down to the
+            # sample).
+            event = 'output_1_start'
+            command = 'sync_trigger.trigger'
+            kwargs = {'duration': 0.5}
+
+        ExperimentAction:
+            event = 'engines_configured'
+            command = 'psi.controller.prepare_trial'
+
+        # This action is mandatory and must be executed before any other
+        # commands that require some information from context. By default, an
+        # infinite number of cycles are specified.
+        ExperimentAction:
+            event = 'experiment_initialize'
+            command = 'psi.context.initialize'
+            kwargs = {'selector': None}
+        ExperimentAction:
+            event = 'trial_end'
+            command = 'psi.controller.update_trial_log'
+
+    Extension:
+        id = manifest.id + '.data'
+        point = 'psi.data.sinks'
+        BinaryStore:
+            # Make sure we save all the spout contact data
+            name = 'initiated_data'
+            continuous_inputs = ['microphone']
+        EventLog:
+            show_widget = True
+        TrialLog:
+            show_widget = True
+
+    Extension:
+        id = 'io'
+        point = 'psi.controller.io'
+
+        Looper:
+            iterable = range(N_output)
+
+            EpochOutput:
+                name = f'output_{loop_item+1}'
+                label = f'Output {loop_item+1}'
+                target_name = f'hw_ao::speaker_{loop_item+1}'
+                configurable = False
+
+        ContinuousInput:
+            name = 'microphone'
+            source_name = 'hw_ai::microphone_1'
+
+        ContinuousInput:
+            name = 'speaker_1_monitor'
+            source_name = 'hw_ai::speaker_1_monitor'
+
+        TimedTrigger:
+            # This is a hardware-timed trigger that allows us to schedule a
+            # trigger to occur at a very precise time (as opposed to Trigger,
+            # which is software-timed and accuracy of timing is not
+            # guaranteed).
+            name = 'sync_trigger'
+            target_name = 'hw_do::sync_trigger'
+
+    Extension:
+        id = manifest.id + '.items'
+        point = 'psi.context.items'
+
+        ContextGroup:
+            name = 'trial'
+            label = 'Trial'
+
+            Parameter:
+                name = 'snr'
+                label = 'SNR (dB)'
+                default = 10
+            Parameter:
+                name = 'iti_duration'
+                label = 'Intertrial interval (s)'
+                compact_label = 'ITI'
+                default = 0.1
+            Parameter:
+                name = 'target_delay'
+                label = 'Target delay (s)'
+                default = 0.5
+
+        ContextGroup:
+            name = 'results'
+            label = 'Trial results'
+
+            Result:
+                name = 'trial_start'
+                compact_label = 'T/'
+                dtype = 'float64'
+
+    Extension:
+        id = manifest.id + '.toolbar'
+        point = 'psi.experiment.toolbar'
+
+        ToolBar:
+            Action:
+                text = 'Pause'
+                enabled << controller.experiment_state not in ('initialized', 'stopped')
+                checkable = True
+                toggled ::
+                    if checked:
+                        log.info('Requesting pause')
+                        controller.request_pause()
+                    else:
+                        log.info('Requesting resume')
+                        controller.request_resume()
+
+    Extension:
+        id = 'plots'
+        point = 'psi.data.plots'
+
+        TimeContainer:
+            name = 'trial_plot_container'
+            label = 'Trial timing'
+            span = 10
+
+            ViewBox:
+                name = 'microphone'
+                y_min = -1
+                y_max = 1
+
+                ChannelPlot:
+                    source_name = 'microphone'
+                    pen_color = 'black'
+
+                ChannelPlot:
+                    source_name = 'speaker_1_monitor'
+                    pen_color = 'blue'
