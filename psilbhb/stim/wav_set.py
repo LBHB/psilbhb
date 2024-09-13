@@ -1226,6 +1226,8 @@ class AMFusion(WavSet):
         {'name': 'this_target_frequency', 'label': 'T', 'type': 'Result'},
         {'name': 'this_distractor_frequency', 'label': 'D', 'type': 'Result'},
         {'name': 'this_snr', 'label': 'SNR', 'type': 'Result'},
+        {'name': 'response_condition', 'label': 'T spout', 'type': 'Result'},
+        {'name': 'trial_is_repeat', 'label': 'rep', 'type': 'Result'},
     ]
 
     for d in default_parameters:
@@ -1291,7 +1293,8 @@ class AMFusion(WavSet):
             d2['tar_channel']=1-self.primary_channel
             stim = pd.concat([stim,d2], ignore_index=True)
 
-        self.stim_list = stim.copy()
+        self.stim_list = stim.copy().reset_index()
+        print(self.stim_list)
         total_wav_set = len(stim)
 
         # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
@@ -1338,7 +1341,7 @@ class AMFusion(WavSet):
             w = np.stack((wfg, wbg), axis=1)
         else:
             w = np.stack((wbg, wfg), axis=1)
-
+        print(row)
         log.info(f"fg level: {fg_level} bg level: {bg_level} FG RMS: {wfg.std():.3f} BG RMS: {wbg.std():.3f}")
         log.info(f"**** trial {trial_idx} wavidx {row['index']}  tar channel: {row['tar_channel']}")
 

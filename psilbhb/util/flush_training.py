@@ -47,6 +47,7 @@ flush_training("SDS", c=c, local_folder="e:/data")
 #flush_training("REI", c=c, local_folder="d:/data")
 # flush_training("LGI", c=c, local_folder="d:/data")
 flush_training("CGL", c=c, local_folder="e:/data")
+flush_training("IKI", c=c, local_folder="e:/data")
 
 #flush_training("SLJ",c=c)
 # flush_training("tst",c=c)
