@@ -341,6 +341,7 @@ class CellDbLauncher(SimpleLauncher):
 
         rawdata = self.db.create_rawfile(siteid=self.siteid, runclass=self.runclass,
                                filenum=int(self.runnumber), behavior=behavior,
+                                         note=self.note,
                                pupil=True, psi_format=True,
                                dataroot=dataroot, rawroot=oeroot)
         log.info('Created raw data entry')

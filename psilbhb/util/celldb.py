@@ -582,7 +582,7 @@ class celldb():
         return siteid
 
     def create_rawfile(self, siteid=None,
-                       runclass=None, filenum=0, behavior="passive", timejuice=0,
+                       runclass=None, filenum=0, behavior="passive", note="", timejuice=0,
                        pupil=False, psi_format=True,
                        dataroot='/auto/data/daq/',
                        rawroot=None):
@@ -673,6 +673,7 @@ class celldb():
                 'respfileevp': evpfilename,
                 'respfile': rawpath,
                 'task': task,
+                'comments': note,
                 'stimclass': stimclass,
                 'behavior': behavior,
                 'timejuice': timejuice,
