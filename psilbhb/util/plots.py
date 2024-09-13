@@ -110,11 +110,11 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
             v = np.roll(d_['score'].values,1)
             v[0]=2
             d_['prev_score']=v
-            d_ = d_.loc[d_['prev_score']>=2]
-
+            d_ = d_.loc[d_['prev_score'] >= 2]
         else:
+            # remove invalid (early np) trials
             d_=df_trial.loc[df_trial.score>0].copy()
-            v = np.roll(d_['score'].values,1)
+            v = np.roll(d_['score'].values, 1)
             v[0]=2
             d_['prev_score']=v
             d_ = d_.loc[d_['prev_score']==2]
