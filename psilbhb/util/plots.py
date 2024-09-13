@@ -77,6 +77,29 @@ def smooth(x,window_len=11,window='hanning', axis=-1):
 
     return y
 
+def timecourse_plot(df, column='this_snr', label=None, ax=None,
+                    window_len=11, legend=True):
+    if label is None:
+        label = column
+
+    unique_vals = df[column].unique()
+    if ax is None:
+        f, ax = plt.subplots(figsize=(10, 2))
+
+    for i, s in enumerate(unique_vals):
+        d_ = df.loc[df[column] == s].copy()
+        perf = d_['correct'].mean()
+        d_['smooth_correct'] = smooth(d_['correct'].astype(float), window_len=window_len)
+        ax.plot(d_['smooth_correct'], label=f"{label} {s}: {perf:.2f}")
+
+    ax.axhline(0.5, linestyle='--', color='k')
+    if legend:
+        ax.legend(frameon=False, fontsize=7)
+    ax.set_ylabel("Frac. correct")
+
+    return ax
+
+
 def plot_behavior(rawid=None, parmfile=None, save_fig=True):
 
     if rawid is None:
@@ -97,6 +120,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         runclass = rawdata.loc[0, 'runclass']
 
         df_trial, df_event = readlogs(rawid=rawid, c=c)
+        trial_count = df_trial.shape[0]
 
         # throw out invalid trials-- early NP or previous trial was error
         if df_trial.score.dtype == 'O':
@@ -109,6 +133,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
             df_trial.loc[df_trial['score_str']=='HIT','score']=2
             df_trial.loc[df_trial['score_str']=='CR','score']=3
             df_trial['correct'] = df_trial['score']>=2
+            early_np_count = (df_trial.score==0).sum()
 
             d_=df_trial.copy()
             v = np.roll(d_['score'].values,1)
@@ -117,6 +142,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
             d_ = d_.loc[d_['prev_score'] >= 2]
         else:
             # remove invalid (early np) trials
+            early_np_count = (df_trial.score==0).sum()
             d_=df_trial.loc[df_trial.score>0].copy()
             v = np.roll(d_['score'].values, 1)
             v[0]=2
@@ -129,14 +155,18 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
     d_ = pd.concat(df_list, ignore_index=True)
     if runclass=='NFB':
         d_['config'] = 'contra'
-        d_.loc[(d_['bg_channel']==d_['fg_channel']), 'config']='ipsi'
-        d_.loc[(d_['bg_channel']==-1), 'config']='diotic'
-        perfsum=d_.groupby(['snr','config'])[['correct']].mean()
+        d_.loc[(d_['bg_channel'] == d_['fg_channel']), 'config'] = 'ipsi'
+        d_.loc[(d_['bg_channel'] == -1), 'config'] = 'diotic'
+        grouplist=['config', 'this_snr']
+        if len(d_['config'].unique()) == 1:
+            grouplist[0] = 'fg_name'
+            d_['fg_name'] = d_['fg_name'].str.replace('.wav','')
+        perfsum=d_.groupby(grouplist)[['correct']].mean()
         perfsum=perfsum.unstack(-1)
-        perfcount=d_.groupby(['snr','config'])[['correct']].count()
+        perfcount=d_.groupby(grouplist)[['correct']].count()
         perfcount=perfcount.unstack(-1)
 
-        dbias = d_.groupby(['response','snr'])['correct'].mean()
+        dbias = d_.groupby(['response', 'snr'])['correct'].mean()
         dbias = dbias.unstack(-1)
         width=12
     elif runclass in ['NTD']:
@@ -166,16 +196,31 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         dbias = dbias.unstack(-1)
         width = 8
 
-    f, ax = plt.subplots(1,3, figsize=(width, 5))
+    f = plt.figure(figsize=(width, 5))
+    ax = [f.add_subplot(2,3,1), f.add_subplot(2,3,2), f.add_subplot(2,3,3),
+          f.add_subplot(2,1,2)]
+
     perfsum.plot.bar(ax=ax[0], legend=False)
     ax[0].axhline(y=0.5, color='b', linestyle=':')
     ax[0].axhline(y=0.5, color='b', linestyle=':')
     ax[0].set_ylabel('Frac. correct')
+    ax[0].set_title(f"n valid={trial_count-early_np_count}/{trial_count}")
+
     perfcount.plot.bar(ax=ax[1], legend=True)
-    ax[1].set_ylabel('n trials')
+    ax[1].set_ylabel('N trials')
+
     dbias.plot.bar(ax=ax[2])
     ax[2].set_title('Bias')
     ax[2].set_ylabel('Frac. correct')
+
+    if 'this_snr' in d_.columns:
+        timecourse_plot(d_, column='this_snr', label='SNR', ax=ax[3],
+                        window_len=11)
+    else:
+        timecourse_plot(d_, column='response_condition', label='Type', ax=ax[3],
+                        window_len=11)
+
+    ax[3].set_xlabel('Trial')
     f.suptitle(parmfile)
 
     plt.tight_layout()
