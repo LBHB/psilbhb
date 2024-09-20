@@ -28,7 +28,7 @@ context:
         expression: '18'
         rove: false
       background_wav_sequence_fit_range:
-        expression: slice(156, 256)
+        expression: slice(6, 51)
         rove: false
       background_wav_sequence_fit_reps:
         expression: '1'
@@ -62,7 +62,7 @@ context:
         expression: '18'
         rove: false
       background_1_wav_sequence_fit_range:
-        expression: slice(156, 256)
+        expression: slice(6, 51)
         rove: false
       background_1_wav_sequence_fit_reps:
         expression: '1'
@@ -114,7 +114,7 @@ context:
         expression: '1'
         rove: false
       target_tone_frequency:
-        expression: '440'
+        expression: '6000'
         rove: false
       target_tone_level:
         expression: background_1_wav_sequence_level+snr
@@ -133,7 +133,7 @@ context:
         rove: false
     trial:
       hold_duration:
-        expression: '0.1'
+        expression: '1'
         rove: false
       iti_duration:
         expression: '.5'
@@ -163,7 +163,7 @@ context:
         expression: 'False'
         rove: false
       water_dispense_1_duration:
-        expression: '0.5'
+        expression: '0.55'
         rove: false
   selectors:
     go:
@@ -171,7 +171,6 @@ context:
       - snr
       order: ascending
       settings:
-      - snr: -10
       - snr: -5
       - snr: 0
       - snr: 5
@@ -193,11 +192,11 @@ context:
 event_log:
   column_widths:
     event: 100
-    info: 1017
+    info: 345
     timestamp: 100
 microphone:
-  y_max: 0.5700429967927134
-  y_min: -0.15844304659348535
+  y_max: 6.022528848070045
+  y_min: -4.53213542529395
 output.background:
   token_name: wav_sequence
 output.background_1:
@@ -224,12 +223,12 @@ trial_log:
     correct:
       width: 39
     response:
-      width: 39
+      width: 63
     score:
       width: 40
     snr:
       width: 58
     trial_start:
-      width: 39
+      width: 40
     trial_type:
-      width: 39
+      width: 73

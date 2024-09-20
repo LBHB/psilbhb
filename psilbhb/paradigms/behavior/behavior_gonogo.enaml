@@ -110,6 +110,7 @@ class GoNogoResponse(enum.Enum):
     no_response = 'no_response'
     reward = 'reward'
     early_reward = 'early_reward'
+    nose_poke = 'nose_poke'
 
 
 class GoNogoEvent(enum.Enum):
@@ -303,7 +304,14 @@ class BehaviorPlugin(BaseBehaviorPlugin):
                 # delivered.
                 if not self.context.get_value('training_mode'):
                     self.invoke_actions('deliver_reward', timestamp)
+
             self.end_trial(GoNogoResponse.reward, score)
+        elif event in (GoNogoEvent.np_start, GoNogoEvent.digital_np_start):
+            if self.trial_type.value.startswith('nogo'):
+                score = GoNogoTrialScore.correct_reject
+            else:
+                score = GoNogoTrialScore.miss
+            self.end_trial(GoNogoResponse.nose_poke, score)
         elif event == GoNogoEvent.response_duration_elapsed:
             self.invoke_actions(GoNogoEvent.response_end.name, timestamp)
             self.trial_info['response_ts'] = np.nan
@@ -341,6 +349,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             # Animal will still be on the spout. Need to wait for animal to
             # withdraw.
             self.start_wait_for_reward_end(ts, 'iti')
+        elif score == GoNogoTrialScore.correct_reject and response == GoNogoResponse.nose_poke:
+            self.prepare_trial(np_start_time=self.trial_info['np_start'])
         else:
             # This is a correct reject or a miss, which indicates the animal is
             # not on the spout. No need to wait for lick spout withdrwawal.
@@ -402,7 +412,7 @@ class AutoBehaviorPlugin(BehaviorPlugin):
         ('rising', 'reward_contact'): GoNogoEvent.reward_start,
         ('falling', 'reward_contact'): GoNogoEvent.reward_end,
     }
-    def prepare_trial(self, trial_type=None, auto_start=False):
+    def prepare_trial(self, trial_type=None, auto_start=False, np_start_time=None):
         log.info('Preparing for next trial (trial_type %r, auto_start %r)',
                  trial_type, auto_start)
         # Figure out next trial and set up selector.
@@ -424,6 +434,12 @@ class AutoBehaviorPlugin(BehaviorPlugin):
         self.invoke_actions('trial_ready')
         if auto_start or not self.manual_control:
             self.start_trial()
+        if np_start_time is not None:
+            self.trial_state = GoNogoTrialState.waiting_for_np_duration
+            self.start_event_timer('np_duration', GoNogoEvent.np_duration_elapsed)
+            # If the animal does not maintain the nose-poke long enough,
+            # this value will be deleted.
+            self.trial_info['np_start'] = np_start_time
 
     def start_trial(self):
         # This is broken into a separate method to allow the toolbar to call
@@ -446,7 +462,7 @@ class InitiatedBehaviorPlugin(BehaviorPlugin):
     random_behavior_mode = Bool(False)
 
     # copied from Generic BehaviorPlugin (SVD 2023-01-03)
-    def prepare_trial(self, trial_type=None, auto_start=False):
+    def prepare_trial(self, trial_type=None, auto_start=False, np_start_time=None):
         log.info('Preparing for next trial (trial_type %r, auto_start %r)',
                  trial_type, auto_start)
         # Figure out next trial and set up selector.
@@ -468,6 +484,12 @@ class InitiatedBehaviorPlugin(BehaviorPlugin):
         self.invoke_actions('trial_ready')
         if auto_start:
             self.start_trial()
+        elif np_start_time is not None:
+            self.trial_state = GoNogoTrialState.waiting_for_np_duration
+            self.start_event_timer('np_duration', GoNogoEvent.np_duration_elapsed)
+            # If the animal does not maintain the nose-poke long enough,
+            # this value will be deleted.
+            self.trial_info['np_start'] = np_start_time
         else:
             self.trial_state = GoNogoTrialState.waiting_for_np_start
 
