@@ -217,12 +217,12 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
     if 'this_snr' in d_.columns:
         timecourse_plot(d_, column='this_snr', label='SNR', ax=ax[3],
                         window_len=11)
-    elif 'snr' in d_.columns:
-        timecourse_plot(d_, column='snr', label='SNR', ax=ax[3],
+    elif 'response_condition' in d_.columns:
+        timecourse_plot(d_, column='response_condition', label='g/ng', ax=ax[3],
                         window_len=5)
     else:
-        timecourse_plot(d_, column='response_condition', label='Type', ax=ax[3],
-                        window_len=11)
+        timecourse_plot(d_, column='snr', label='SNR', ax=ax[3],
+                        window_len=5)
 
     ax[3].set_xlabel('Trial')
     f.suptitle(parmfile)
