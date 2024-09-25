@@ -1,4 +1,4 @@
-from functools import partial
+from functools import partial, lru_cache
 import itertools
 from pathlib import Path
 
@@ -2124,36 +2124,49 @@ class BinauralTone(WavSet):
             self.current_full_rep += 1
             self.trial_is_repeat = np.concatenate((self.trial_is_repeat, np.zeros_like(new_trial_wav)))
 
-
-    def trial_waveform(self, trial_idx=None, wav_set_idx=None):
-
-        row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
-
-        wbins = int(row['duration']*self.fs)
+    @lru_cache(maxsize=None)
+    def generate_tone(self, duration, frequency, level):
+        wbins = int(duration*self.fs)
         t=np.arange(wbins)/self.fs
-        wfg = np.sin(t*2*np.pi*row['reference_frequency'])*5
-        wbg = np.sin(t*2*np.pi*row['probe_frequency'])*5
+        wfg = np.sin(t*2*np.pi*frequency)*5
 
         rampbins = int(self.ramp * self.fs / 1000)
         onramp = np.linspace(0,1,rampbins)
         offramp = np.linspace(1,0,rampbins)
         wfg[:rampbins] = wfg[:rampbins] * onramp
         wfg[-rampbins:] = wfg[-rampbins:] * offramp
-        wbg[:rampbins] = wbg[:rampbins] * onramp
-        wbg[-rampbins:] = wbg[-rampbins:] * offramp
 
-        fg_level = self.reference_level
-        bg_level = self.reference_level + row['probe_level']
-        if fg_level == 0:
+        if level == 0:
             fg_scaleby = 0
         else:
-            fg_scaleby = 10 ** ((fg_level - 80) / 20)
-        if bg_level == 0:
-            bg_scaleby = 0
-        else:
-            bg_scaleby = 10 ** ((bg_level - 80) / 20)
+            fg_scaleby = 10 ** ((level - 80) / 20)
+
         wfg *= fg_scaleby
-        wbg *= bg_scaleby
+
+        return wfg
+
+
+    def trial_waveform(self, trial_idx=None, wav_set_idx=None):
+
+        row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
+
+        # wbins = int(row['duration']*self.fs)
+        # t=np.arange(wbins)/self.fs
+        # wfg = np.sin(t*2*np.pi*row['reference_frequency'])*5
+        # wbg = np.sin(t*2*np.pi*row['probe_frequency'])*5
+        #
+        # rampbins = int(self.ramp * self.fs / 1000)
+        # onramp = np.linspace(0,1,rampbins)
+        # offramp = np.linspace(1,0,rampbins)
+        # wfg[:rampbins] = wfg[:rampbins] * onramp
+        # wfg[-rampbins:] = wfg[-rampbins:] * offramp
+        # wbg[:rampbins] = wbg[:rampbins] * onramp
+        # wbg[-rampbins:] = wbg[-rampbins:] * offramp
+        #
+        fg_level = self.reference_level
+        bg_level = self.reference_level + row['probe_level']
+        wfg = self.generate_tone(row['duration'], row['reference_frequency'], fg_level)
+        wbg = self.generate_tone(row['duration'], row['probe_frequency'], bg_level)
 
         # combine fg and bg waveforms
         if row['tar_channel'] == 0:
