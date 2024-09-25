@@ -14,9 +14,9 @@ from psi.util import PSIJsonEncoder
 from psilbhb.util.celldb import celldb, readpsievents, readlogs
 from psilbhb.util.plots import smooth, timecourse_plot
 
-
 rawids = [151467,151511,151545,151574,
-          151586, 151623, 151651, 151689, 151691]
+          151586, 151623, 151651, 151689, 151691,
+          151739]
 c = celldb()
 
 dlist = []

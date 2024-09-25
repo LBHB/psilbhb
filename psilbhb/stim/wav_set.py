@@ -653,7 +653,21 @@ class WavSet:
             n = trial_idx - len(self.trial_outcomes)
             self.trial_outcomes = np.concatenate((self.trial_outcomes, np.zeros(n, dtype=int)))
         self.trial_outcomes[trial_idx-1] = int(outcome)
-        if ((repeat_incorrect == 2) and (outcome in [0, 1])) or \
+        try:
+            stim_cat = self.stim_cat
+            log.info('Checking if probe trial')
+            trial_wav_idx=self.trial_wav_idx[trial_idx - 1]
+            log.info(f"{stim_cat[trial_wav_idx]}")
+            if stim_cat[trial_wav_idx]=='C':
+                force_no_repeat=True
+                log.info('Yes, probe trial, forcing not repeat')
+            else:
+                force_no_repeat=False
+        except:
+            force_no_repeat=False
+        if force_no_repeat:
+            log.info(f'Trial {trial_idx} outcome {outstr[outcome]}: probe trial, force no repeat')
+        elif ((repeat_incorrect == 2) and (outcome in [0, 1])) or \
                 ((repeat_incorrect == 1) and (outcome == 0)):
             log.info(f'Trial {trial_idx} outcome {outstr[outcome]}: repeating immediately')
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx[:trial_idx],
@@ -1431,6 +1445,7 @@ class VowelSet(WavSet):
          'int', 'scope': 'experiment'},
         {'name': 's1_name', 'label': 'S1', 'type': 'Result', 'type': 'Result'},
         {'name': 's2_name', 'label': 'S2', 'type': 'Result'},
+        {'name': 'stim_cat', 'label': 'Cat', 'type': 'Result'},
     ]
 
     for d in default_parameters:
@@ -1565,7 +1580,10 @@ class VowelSet(WavSet):
             elif stim_cat == 'N':
                 response_condition = 0
             elif stim_cat == 'C':
-                response_condition = 0
+                if np.random.rand()>=0.5:
+                    response_condition = 0
+                else:
+                    response_condition = 1
 
         response_window = self.response_window
 
@@ -1575,6 +1593,7 @@ class VowelSet(WavSet):
              's2idx': s2idx,
              's1_name': s1_name,
              's2_name': s2_name,
+             'stim_cat': stim_cat,
              'duration': self.duration,
              'response_condition': response_condition,
              'response_window': response_window,
@@ -1613,6 +1632,8 @@ class VowelSet(WavSet):
             n = trial_idx - len(self.trial_outcomes) + 1
             self.trial_outcomes = np.concatenate((self.trial_outcomes, np.zeros(n)-1))
         self.trial_outcomes[trial_idx] = int(outcome)
+        stim_cat = self.stim_cat[wav_set_idx]
+
         if repeat_incorrect and (outcome in [0, 1]):
             #log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
             #self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
