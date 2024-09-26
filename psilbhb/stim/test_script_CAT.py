@@ -159,7 +159,7 @@ def test_CategorySet():
                        fg_switch_channels=True, contra_n=1, ipsi_n=0, diotic_n=0, combinations='all',
                        fg_delay=0., fg_level=55, bg_level=55, random_seed=1, OAnoise_SNR=[np.inf]))
 
-    fb = CategorySet(n_response=1, **params)
+    fb = CategorySet(**params)
     fb.update()  # not necessary but illustrative of back-end processing
 
     # simulated_performance = [0, 2, 2, 1, 2, 2, 0, 2, 0, 0, 0, 2, 2, 2, 0, 1, 2, 2, 2, 2, 0, 0,
@@ -208,9 +208,10 @@ def test_CategorySet():
 
     # plot waveforms from an example trial
     # trial_idx = 0
-    for trial_idx in np.array([0, 1]):
+    for trial_idx_py in np.array([0, 1]):
+        trial_idx = trial_idx_py + 1
         w = fb.trial_waveform(trial_idx).T
-        wb = fb.BgSet.waveform(fb.bg_index[trial_idx])
+        wb = fb.BgSet.waveform(fb.stim_list.bg_index[trial_idx])
 
         f, ax = plt.subplots(2, 1, sharex='col', sharey='col')
         t = np.arange(w.shape[0]) / fb.FgSet.fs

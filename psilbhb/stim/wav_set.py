@@ -123,6 +123,7 @@ def get_stim_list_no_catch(FgSet, BgSet):
 
     #region get all regular (non-catch) trial stimuli: fgs and speech
     num_regular_trials = 100
+    # num_regular_trials = 10
 
     # taboo_ferret_ids = [1, 2, 7, catch_ferret_id]
     taboo_ferret_ids = [1, 2, 7]
@@ -149,7 +150,7 @@ def get_stim_list_no_catch(FgSet, BgSet):
 
     fgi = np.array([wav_set_fg.index(x) for x in session_fg_files])
     bgi = np.array([wav_set_bg.index(x) for x in session_bg_files])
-    fgg = np.ones(num_regular_trials)
+    fgg = np.ones(num_regular_trials).astype(int)
 
     if be_verbose:
         session_num_trials = num_regular_trials
@@ -551,7 +552,7 @@ class WavSet:
 
     def __init__(self, n_response):
         self.n_response = n_response
-        self.current_trial_idx = -1
+        self.current_trial_idx = 0
         self.trial_wav_idx = np.array([], dtype=int)
         self.trial_outcomes = np.array([], dtype=int)
         self.trial_is_repeat = np.array([], dtype=int)
@@ -598,8 +599,12 @@ class WavSet:
 
         if wav_set_idx < len(self.stim_list):
             r = self.stim_list.loc[[wav_set_idx]]
-            for i, row in r.iterrows():
-                pass
+            # for i, row in r.iterrows():
+            #     pass
+            for row_tup in r.itertuples(index=False):
+                row = row_tup._asdict()  # Convert named tuple to dictionary
+                print(row)
+
         else:
             row = pd.Series({'index': wav_set_idx})
 
@@ -1805,7 +1810,7 @@ class OldCategorySet(FgBgSet):
         else:
             self.response_window = response_window
 
-        self.current_trial_idx = -1
+        self.current_trial_idx = 0
 
         # trial management
         self.trial_wav_idx = np.array([], dtype=int)
@@ -2352,7 +2357,7 @@ class CategorySet(FgBgSet):
         d.setdefault('group_name', 'CategorySet')
 
 
-    def __init__(self, n_response, **parameter_dict):
+    def __init__(self, **parameter_dict):
         """
         Notes on running different modes:
             > Use CatchFgSet=None, CatchBgSet=None, OAnoiseSet=None (or omit these params) to run simple
@@ -2365,20 +2370,21 @@ class CategorySet(FgBgSet):
 
         # super().__init__(n_response=n_response)
         # internal object to handle wavs, don't need to specify independently
-        self.n_response = n_response
+        self.n_response = 2 # because two spouts (left vs right)
         log.info('N_response %r', self.n_response)
         self.duration = 0
 
         # left out params from OldCategorySet (maybe don't need these)
         # bg_switch_channels = False, fg_snr = 0.0
 
-        self.current_trial_idx = -1
+        self.current_trial_idx = 0
 
         # trial management
         self.trial_wav_idx = np.array([], dtype=int)
         self.trial_outcomes = np.array([], dtype=int)
         self.trial_is_repeat = np.array([], dtype=int)
         self.current_full_rep = 0
+        self.stim_list = pd.DataFrame()
 
         # trial management
         self.update_parameters(parameter_dict)
@@ -2453,7 +2459,7 @@ class CategorySet(FgBgSet):
 
     @property
     def wav_per_rep(self):
-        return np.min([len(self.bg_index), len(self.fg_index)])
+        return len(self.stim_list)
 
     # inherit from FgBgSet
     def update(self, trial_idx=None):
@@ -2509,25 +2515,41 @@ class CategorySet(FgBgSet):
         migrate_trial = np.zeros_like(fgi)
         total_wav_set = len(fgg)
 
-        # Important
-        self.bg_index = bgi
-        self.fg_index = fgi
-        self.fg_channel = fgc
-        self.bg_channel = bgc
-        self.fg_snr = fsnr
-        self.fg_go = fgg
-        self.migrate_trial = migrate_trial
-        self.overall_snr = overall_snr
-        # ------- Important
-
         if (type(self.fg_delay) is np.array) | (type(self.fg_delay) is list):
             self.fg_delay = np.array(self.fg_delay)
         else:
-            self.fg_delay = np.zeros(self.FgSet.max_index) + self.fg_delay
+            self.fg_delay = np.zeros_like(fgi) + self.fg_delay
+
+        # Important
+        # self.bg_index = bgi
+        # self.fg_index = fgi
+        # self.fg_channel = fgc
+        # self.bg_channel = bgc
+        # self.fg_snr = fsnr
+        # self.fg_go = fgg
+        # self.migrate_trial = migrate_trial
+        # self.overall_snr = overall_snr
+
+        data = {
+            'bg_index': bgi,
+            'fg_index': fgi,
+            'fg_channel': fgc,
+            'bg_channel': bgc,
+            'fg_snr': fsnr,
+            'fg_go': fgg,
+            'migrate_trial': migrate_trial,
+            'overall_snr': overall_snr,
+            'fg_delay': self.fg_delay,
+        }
+        self.stim_list = pd.DataFrame(data)
+
+        # ------- Important
+
 
         # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
         if trial_idx is None:
             trial_idx = self.current_trial_idx
+
         if trial_idx >= len(self.trial_wav_idx):
             new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))
@@ -2536,31 +2558,24 @@ class CategorySet(FgBgSet):
             self.trial_is_repeat = np.concatenate((self.trial_is_repeat, np.zeros_like(new_trial_wav)))
 
     def trial_waveform(self, trial_idx=None, wav_set_idx=None):
-        if wav_set_idx is None:
-            if trial_idx is None:
-                self.current_trial_idx += 1
-                trial_idx = self.current_trial_idx
-            if len(self.trial_wav_idx) <= trial_idx:
-                self.update(trial_idx=trial_idx)
-
-            wav_set_idx = self.trial_wav_idx[trial_idx]
-
-        wfg = self.FgSet.waveform(self.fg_index[wav_set_idx])
-        if self.fg_channel[wav_set_idx] == 1:
+        row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
+        wfg = self.FgSet.waveform(row['fg_index'])
+        if row['fg_channel'] == 1:
             wfg = np.concatenate((np.zeros_like(wfg), wfg), axis=1)
-        wbg = self.BgSet.waveform(self.bg_index[wav_set_idx])
-        log.info(f"wfg={wfg.shape},wbg={wbg.shape}, bfdur={self.BgSet.duration},fg level: {self.FgSet.level} bg level: {self.BgSet.level} FG RMS: {wfg.std():.3f} BG RMS: {wbg.std():.3f}")
+        wbg = self.BgSet.waveform(row['bg_index'])
+        log.info(f"wfg={wfg.shape},wbg={wbg.shape}, bfdur={self.BgSet.duration},fg level: {self.FgSet.level} "
+                 f"bg level: {self.BgSet.level} FG RMS: {wfg.std():.3f} BG RMS: {wbg.std():.3f}")
 
-        if self.bg_channel[wav_set_idx] == 1:
+        if row['bg_channel'] == 1:
             wbg = np.concatenate((np.zeros_like(wbg), wbg), axis=1)
-        elif self.bg_channel[wav_set_idx] == -1:
+        elif row['bg_channel'] == -1:
             wbg = np.concatenate((wbg, wbg), axis=1)
 
         if wbg.shape[1] < wfg.shape[1]:
             wbg = np.concatenate((wbg, np.zeros_like(wbg)), axis=1)
         if wfg.shape[1] < wbg.shape[1]:
             wfg = np.concatenate((wfg, np.zeros_like(wfg)), axis=1)
-        fg_snr = self.fg_snr[wav_set_idx]
+        fg_snr = row['fg_snr']
         if fg_snr == -100:
             fg_scale = 0
         elif fg_snr < 50:
@@ -2569,7 +2584,8 @@ class CategorySet(FgBgSet):
             # special case of effectively infinite SNR, don't actually amplify fg
             wbg[:] = 0
             fg_scale = 10**((fg_snr-100) / 20)
-        offsetbins = int(self.fg_delay[self.fg_index[wav_set_idx]] * self.FgSet.fs)
+
+        offsetbins = int(self.fg_delay[row['fg_index']] * self.FgSet.fs)
         log.info(f"flag::bg::: wbg={wbg.shape},offsetbins={offsetbins},fg_delay={self.fg_delay}")
 
         # combine fg and bg waveforms
@@ -2582,49 +2598,41 @@ class CategorySet(FgBgSet):
         if w.shape[1] < 2:
             w = np.concatenate((w, np.zeros_like(w)), axis=1)
 
-        if not np.isinf(self.overall_snr[wav_set_idx]):
-            cur_overall_snr = self.overall_snr[wav_set_idx]
+        if not np.isinf(row['overall_snr']):
+            cur_overall_snr = row['overall_snr']
             overall_noise_scale = 10 ** (-cur_overall_snr / 20)
             # noise and ferret vocal can be matched in index
-            ov_noise = self.OAnoiseSet.waveform(self.fg_index[wav_set_idx])
+            ov_noise = self.OAnoiseSet.waveform(row['fg_index'])
             ov_noise = np.concatenate((ov_noise, ov_noise), axis=1)
             sig_len = w.shape[0]
             ov_noise = ov_noise[:sig_len, :]
-            log.info(f"<flag><><><><><><>< {trial_idx}|{wav_set_idx}| snr = {cur_overall_snr}: w={w.shape}, ov_noise{ov_noise.shape}")
+            log.info(f"<flag><><><><><><>< {trial_idx}|{wav_set_idx}| "
+                     f"snr = {cur_overall_snr}: w={w.shape}, ov_noise{ov_noise.shape}")
             w = w/overall_noise_scale + ov_noise  # will be ~3 dB louder than clean
 
         return w.T
 
     def trial_parameters(self, trial_idx=None, wav_set_idx=None):
-        if wav_set_idx is None:
-            if trial_idx is None:
-                trial_idx = self.current_trial_idx
-            if len(self.trial_wav_idx) <= trial_idx:
-                self.update(trial_idx=trial_idx)
+        row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
+        fg_i = row['fg_index']
+        bg_i = row['bg_index']
 
-            wav_set_idx = self.trial_wav_idx[trial_idx]
-        else:
-            trial_idx = 0
-
-        fg_i = self.fg_index[wav_set_idx]
-        bg_i = self.bg_index[wav_set_idx]
-
-        is_go_trial = self.fg_go[wav_set_idx]
+        is_go_trial = row['fg_go']
         if is_go_trial == -1:
             # -1 means either port
             response_condition = -1
         elif is_go_trial == 1:
             # 1=spout 1, 2=spout 2
-            response_condition = int(self.fg_channel[wav_set_idx]+1)
+            response_condition = int(row['fg_channel']+1)
         else:
             response_condition = 0
 
         if type(self.response_window) is tuple:
-            response_window = (self.fg_delay[fg_i] + self.response_window[0],
-                               self.fg_delay[fg_i] + self.response_window[1])
+            response_window = (row['fg_delay'] + self.response_window[0],
+                               row['fg_delay'] + self.response_window[1])
         else:
-            response_window = (self.fg_delay[fg_i] + self.response_window[fg_i][0],
-                               self.fg_delay[fg_i] + self.response_window[fg_i][1])
+            response_window = (row['fg_delay'] + self.response_window[fg_i][0],
+                               row['fg_delay'] + self.response_window[fg_i][1])
 
         d = {'trial_idx': trial_idx,
              'wav_set_idx': wav_set_idx,
@@ -2634,13 +2642,13 @@ class CategorySet(FgBgSet):
              'bg_name': self.BgSet.names[bg_i],
              'fg_duration': self.FgSet.duration,
              'bg_duration': self.BgSet.duration,
-             'snr': self.fg_snr[wav_set_idx],
-             'this_snr': self.fg_snr[wav_set_idx],
-             'overall_snr': self.overall_snr[wav_set_idx],
-             'fg_delay': self.fg_delay[fg_i],
-             'fg_channel': self.fg_channel[wav_set_idx],
-             'bg_channel': self.bg_channel[wav_set_idx],
-             'migrate_trial': self.migrate_trial[wav_set_idx],
+             'snr': row['fg_snr'],
+             'this_snr': row['fg_snr'],
+             'overall_snr': row['overall_snr'],
+             'fg_delay': row['fg_delay'],
+             'fg_channel': row['fg_channel'],
+             'bg_channel': row['bg_channel'],
+             'migrate_trial': row['migrate_trial'],
              'response_condition': response_condition,
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
@@ -2648,4 +2656,5 @@ class CategorySet(FgBgSet):
              'trial_is_repeat': self.trial_is_repeat[trial_idx],
              }
         return d
+
         #def score_response(self, outcome, repeat_incorrect=2, trial_idx=None):
