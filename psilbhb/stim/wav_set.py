@@ -2282,28 +2282,30 @@ class CategorySet(FgBgSet):
         # Stim/paradigm params
         {'name': 'fg_path', 'label': 'FG path',
          'default': 'h:/sounds/Categories/v3_vocoding/', 'dtype': 'str'},
-        {'name': 'fg_range', 'label': 'FG wav indexes', 'expression': '[-1]'},
+        {'name': 'fg_range', 'label': 'FG wav indexes', 'expression': '[-1]', 'dtype': 'object'},
 
         {'name': 'bg_path', 'label': 'BG path',
          'default': 'h:/sounds/Categories/speech_stims/', 'dtype': 'str'},
-        {'name': 'bg_range', 'label': 'BG wav indexes', 'expression': '[-1]'},
+        {'name': 'bg_range', 'label': 'BG wav indexes', 'expression': '[-1]', 'dtype': 'object'},
 
         {'name': 'catch_fg_path', 'label': 'CatchFG path',
          'default': '', 'dtype': 'str'},
-        {'name': 'catch_fg_range', 'label': 'CatchFG wav indexes', 'expression': '[-1]'},
+        {'name': 'catch_fg_range', 'label': 'CatchFG wav indexes', 'expression': '[-1]', 'dtype': 'object'},
 
+        # {'name': 'catch_bg_path', 'label': 'CatchBG path',
+        #  'default': 'h:/sounds/Categories/chimeric_voc/', 'dtype': 'str'},
         {'name': 'catch_bg_path', 'label': 'CatchBG path',
-         'default': 'h:/sounds/Categories/chimeric_voc/', 'dtype': 'str'},
-        {'name': 'catch_bg_range', 'label': 'CatchBG wav indexes', 'expression': '[-1]'},
+         'default': '', 'dtype': 'str'},
+        {'name': 'catch_bg_range', 'label': 'CatchBG wav indexes', 'expression': '[-1]', 'dtype': 'object'},
 
-        {'name': 'catch_ferret_id', 'label': 'Catch ferret', 'expression': '[4]'},
-        {'name': 'n_env_bands', 'label': 'N-band(s) vocoding', 'expression': '[2, 8, 32]'},
+        {'name': 'catch_ferret_id', 'label': 'Catch ferret', 'expression': '[4]', 'dtype': 'object'},
+        {'name': 'n_env_bands', 'label': 'N-band(s) vocoding', 'expression': '[2, 8, 32]', 'dtype': 'object'},
         {'name': 'reg2catch_ratio', 'label': 'Ratio (Reg/Catch)', 'default': 6, 'dtype': 'int'},
 
+        # {'name': 'OAnoise_path', 'label': 'OAnoise path',
+        #  'default': 'h:/sounds/Categories/noise_vocPSDmatched/', 'dtype': 'str'},
         {'name': 'OAnoise_path', 'label': 'OAnoise path',
-         'default': 'h:/sounds/Categories/noise_vocPSDmatched/', 'dtype': 'str'},
-        {'name': 'OAnoise_range', 'label': 'OAnoise wav indexes', 'expression': '[-1]'},
-
+         'default': '', 'dtype': 'str'},
         {'name': 'normalization', 'label': 'Normalization', 'default': 'rms', 'type': 'EnumParameter',
          'choices': {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}},
         {'name': 'duration', 'label': 'FG/BG duration (s)', 'default': 3.0, 'dtype': 'float'},
@@ -2311,36 +2313,20 @@ class CategorySet(FgBgSet):
         {'name': 'fg_level', 'label': 'FG level(s) dBSPL', 'expression': '[55]', 'dtype': 'object'},
         {'name': 'bg_level', 'label': 'BG level(s) dBSPL', 'expression': '[55]', 'dtype': 'object'},
         {'name': 'OAnoise_SNR', 'label': 'OA noise SNR(s) dB', 'expression': '[np.inf]', 'dtype': 'object'},
-
+        #
         {'name': 'fg_delay', 'label': 'FG delay (s)', 'default': 0.0, 'dtype': 'float'},
         {'name': 'primary_channel', 'label': 'Primary FG channel', 'default': 0, 'dtype': 'int'},
         {'name': 'fg_switch_channels', 'label': 'Switch FG channel', 'type': 'BoolParameter', 'default': True},
         {'name': 'combinations', 'label': 'How to combine FG+BG', 'default': 'custom',
          'type': 'EnumParameter', 'choices': {'simple': "'simple'", 'all': "'all'", 'custom': "'custom'"}},
 
-        # {'name': 'contra_n', 'label': 'Contra BG portion (int)', 'default': 1, 'dtype': 'int'},
-        # {'name': 'diotic_n', 'label': 'Diotic BG portion (int)', 'default': 0, 'dtype': 'int'},
-        # {'name': 'ipsi_n', 'label': 'Ipsi BG portion (int)', 'default': 0, 'dtype': 'int'},
-
-        {'name': 'migrate_fraction', 'label': 'Percent migrate trials', 'default': '0',
-         'type': 'EnumParameter', 'choices': {'0': 0.0, '25': 0.25, '50': 0.5}},
-        {'name': 'migrate_start', 'label': "migrate_start (s)", 'default': 0.5, 'dtype': 'float'},
-        {'name': 'migrate_stop', 'label': "migrate_stop (s)", 'default': 1.0, 'dtype': 'float'},
-
-        {'name': 'response_window', 'label': 'Response start,stop (s)', 'expression': '(0, 1)'},
-        {'name': 'reward_durations', 'label': 'FG reward durations', 'expression': '()'},
+        {'name': 'response_window', 'label': 'Response start,stop (s)', 'expression': '(0, 1)', 'dtype': 'object'},
+        {'name': 'reward_durations', 'label': 'FG reward durations', 'expression': '()', 'dtype': 'object'},
 
         {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': 'int'},
-
-        # Unsure about the following
-        {'name': 'fg_choice_trials', 'label': 'FG choice portion (int)', 'default': 0, 'dtype': 'int'},
-        {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 'all',
-         'type': 'EnumParameter', 'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}},
         {'name': 'fs', 'label': 'Sampling rate (Hz)', 'default': 44000},
 
         # Results
-        # {'name': 'fs', 'label': 'Sampling rate (Hz)', 'default': 44000, 'group_name': 'Results'},
-
         {'name': 'fg_channel', 'label': 'FG chan', 'type': 'Result', 'group_name': 'Results'},
         {'name': 'bg_channel', 'label': 'BG chan', 'type': 'Result', 'group_name': 'Results'},
         {'name': 'fg_name', 'label': 'FG', 'type': 'Result', 'group_name': 'Results'},

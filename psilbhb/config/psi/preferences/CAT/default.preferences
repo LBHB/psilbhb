@@ -11,181 +11,112 @@ context:
     - fg_name
     - bg_name
   parameters:
-    Background wave file set:
-      bg_binaural_combinations:
+    CategorySet:
+      OAnoise_SNR:
+        expression: '[np.inf]'
         rove: false
-        selected: single_offset
-      bg_channel_count:
-        expression: '1'
+      OAnoise_path:
+        expression: h:/sounds/Categories/noise_vocPSDmatched/
         rove: false
-      bg_channel_offset:
-        expression: '1'
-        rove: false
-      bg_duration:
-        expression: '3'
-        rove: false
-      bg_fit_range:
-        expression: '-1'
-        rove: false
-      bg_fit_reps:
-        expression: '7'
+      OAnoise_range:
+        expression: '[-1]'
         rove: false
       bg_level:
         expression: '55'
         rove: false
-      bg_norm_fixed_scale:
-        expression: '1'
-        rove: false
-      bg_normalization:
-        rove: false
-        selected: RMS
       bg_path:
         expression: '"h:/sounds/Categories/speech_stims"'
         rove: false
-      bg_test_range:
-        expression: slice(0)
+      bg_range:
+        expression: '[-1]'
         rove: false
-      bg_test_reps:
-        expression: '1'
+      catch_bg_path:
+        expression: h:/sounds/Categories/chimeric_voc/
         rove: false
-    Catch background wave file set:
-      bgc_binaural_combinations:
+      catch_bg_range:
+        expression: '[-1]'
         rove: false
-        selected: single_offset
-      bgc_channel_count:
-        expression: '1'
-        rove: false
-      bgc_channel_offset:
-        expression: '1'
-        rove: false
-      bgc_duration:
-        expression: '3'
-        rove: false
-      bgc_fit_range:
-        expression: '-1'
-        rove: false
-      bgc_fit_reps:
-        expression: '1'
-        rove: false
-      bgc_level:
-        expression: '55'
-        rove: false
-      bgc_norm_fixed_scale:
-        expression: '1'
-        rove: false
-      bgc_normalization:
-        rove: false
-        selected: RMS
-      bgc_path:
-        expression: '"h:/sounds/Categories/chimeric_voc"'
-        rove: false
-      bgc_test_range:
-        expression: slice(0)
-        rove: false
-      bgc_test_reps:
-        expression: '1'
-        rove: false
-      oan_path:
-        expression: '"h:/sounds/Categories/noise_SpcVoc_matched_5s"'
-        rove: false
-    CategorySet:
-      CatchBG_frac:
-        expression: '0'
-        rove: false
-      CatchFG_frac:
-        expression: '0.0'
-        rove: false
-      bg_channel: {}
-      bg_name: {}
-      bg_switch_channels:
-        rove: false
-        selected: opposite
       catch_ferret_id:
         expression: '3'
+        rove: false
+      catch_fg_path:
+        expression: ''
+        rove: false
+      catch_fg_range:
+        expression: '[-1]'
         rove: false
       combinations:
         rove: false
         selected: custom
-      fg_channel: {}
+      duration:
+        expression: '3.0'
+        rove: false
+      fg_choice_trials:
+        expression: '0'
+        rove: false
       fg_delay:
         expression: '0'
         rove: false
-      fg_go_index:
-        expression: None
+      fg_level:
+        expression: '55'
         rove: false
-      fg_name: {}
-      fg_snr:
-        expression: '[0.0]'
+      fg_path:
+        expression: '"h:/sounds/Categories/v3_vocoding"'
+        rove: false
+      fg_range:
+        expression: '[-1]'
         rove: false
       fg_switch_channels:
+        expression: 'True'
         rove: false
-        selected: 'Yes'
+      fs:
+        expression: '44000'
+        rove: false
       migrate_fraction:
-        expression: '0.0'
         rove: false
+        selected: '0'
       migrate_start:
         expression: '0.5'
         rove: false
       migrate_stop:
         expression: '1.0'
         rove: false
-      migrate_trial: {}
       n_env_bands:
         expression: '[2, 8, 32]'
         rove: false
-      primary_channel:
+      norm_fixed_scale:
+        expression: '1'
         rove: false
-        selected: '0'
+      normalization:
+        rove: false
+        selected: RMS
+      primary_channel:
+        expression: '0'
+        rove: false
       random_seed:
         expression: '0'
         rove: false
       reg2catch_ratio:
-        expression: '25'
+        expression: '6'
         rove: false
       response_window:
         expression: (0.0, 1.0)
         rove: false
+      reward_ambiguous_frac:
+        rove: false
+        selected: all
+      reward_durations:
+        expression: ()
+        rove: false
+    Results:
+      bg_channel: {}
+      bg_name: {}
+      current_full_rep: {}
+      fg_channel: {}
+      fg_name: {}
+      migrate_trial: {}
       this_snr: {}
-      unique_overall_SNR:
-        expression: '[5]'
-        rove: false
-    Foreground wave file set:
-      fg_binaural_combinations:
-        rove: false
-        selected: single_offset
-      fg_channel_count:
-        expression: '1'
-        rove: false
-      fg_channel_offset:
-        expression: '1'
-        rove: false
-      fg_duration:
-        expression: '3'
-        rove: false
-      fg_fit_range:
-        expression: '-1'
-        rove: false
-      fg_fit_reps:
-        expression: '1'
-        rove: false
-      fg_level:
-        expression: '55'
-        rove: false
-      fg_norm_fixed_scale:
-        expression: '1'
-        rove: false
-      fg_normalization:
-        rove: false
-        selected: RMS
-      fg_path:
-        expression: '"h:/sounds/Categories/v3_vocoding"'
-        rove: false
-      fg_test_range:
-        expression: slice(0)
-        rove: false
-      fg_test_reps:
-        expression: '1'
-        rove: false
+      trial_cat: {}
     results:
       correct: {}
       response: {}
@@ -196,7 +127,7 @@ context:
       trial_type: {}
     trial:
       hold_duration:
-        expression: '0.45'
+        expression: '0.4'
         rove: false
       iti_duration:
         expression: '1'
@@ -208,7 +139,7 @@ context:
         expression: 'False'
         rove: false
       np_duration:
-        expression: '0.1'
+        expression: '0.3'
         rove: false
       repeat_incorrect:
         rove: false
@@ -229,16 +160,16 @@ context:
         expression: 'False'
         rove: false
       water_dispense_1_duration:
-        expression: '.65'
+        expression: '1'
         rove: false
       water_dispense_2_duration:
-        expression: '.65'
+        expression: '1'
         rove: false
   selectors: {}
 event_log:
   column_widths:
     event: 100
-    info: 278
+    info: 1095
     timestamp: 100
 microphone:
   y_max: 1.0
