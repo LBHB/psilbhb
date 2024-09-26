@@ -126,7 +126,7 @@ ParadigmDescription(
 
 
 ParadigmDescription(
-    'CAT', '(CAT) Natural category discrimination',
+    'old_CAT', '(old_CAT) Natural category discrimination',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
          'attrs': {'N_response': 2}},
