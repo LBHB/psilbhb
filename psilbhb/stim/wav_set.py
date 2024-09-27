@@ -1211,7 +1211,9 @@ class AMFusion(WavSet):
          'expression': '[100]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'target_level', 'label': 'Target dB SPL (list)',
          'expression': '[60]', 'dtype': 'object', 'scope': 'experiment'},
-        {'name': 'distractor_frequency', 'label': 'Distractor center frequenc(ies) (list)',
+        {'name': 'distractor_offset', 'label': 'Distractor offset octaves (list)',
+         'expression': '[-1, 1]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'distractor_frequency', 'label': 'Distractor frequenc(ies) (DEPRECATED)',
          'expression': '[4000]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'distractor_level', 'label': 'Distractor dB SPL (list)',
          'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
@@ -1238,6 +1240,7 @@ class AMFusion(WavSet):
         {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
          'int', 'scope': 'experiment'},
         {'name': 'this_target_frequency', 'label': 'T', 'type': 'Result'},
+        {'name': 'this_distractor_offset', 'label': 'Doct', 'type': 'Result'},
         {'name': 'this_distractor_frequency', 'label': 'D', 'type': 'Result'},
         {'name': 'this_snr', 'label': 'SNR', 'type': 'Result'},
         {'name': 'response_condition', 'label': 'T spout', 'type': 'Result'},
@@ -1277,7 +1280,7 @@ class AMFusion(WavSet):
         am_depth_ = np.array(self.modulation_depth, dtype=float)
         if len(am_depth_)==1:
             am_depth_ = np.zeros_like(tar_range_) + am_depth_
-        dis_range_ = np.array(self.distractor_frequency, dtype=float)
+        dis_range_ = np.array(self.distractor_offset, dtype=float)
 
         # combinations
         tar_count=len(tar_range_)
@@ -1290,7 +1293,7 @@ class AMFusion(WavSet):
                         'tar_depth': np.concatenate([am_depth_] * dis_count),
                         'tar_bandwidth': self.target_bandwidth,
                         'tar_level': tlevel,
-                        'dis_freq': np.concatenate([np.zeros(tar_count)+d for d in dis_range_]),
+                        'dis_offset': np.concatenate([np.zeros(tar_count)+d for d in dis_range_]),
                         'dis_level': dlevel,
                         'duration': self.duration,
                         'tar_channel': self.primary_channel,
@@ -1299,8 +1302,8 @@ class AMFusion(WavSet):
                 slist.append(pd.DataFrame(data))
 
         stim = pd.concat(slist, ignore_index=True)
+        stim['dis_freq'] = stim['tar_freq'] * 2**stim['dis_offset']
         stim['go_trial'] = stim['tar_freq']!=stim['dis_freq']
-
 
         if self.switch_channels:
             d2=stim.copy()
@@ -1391,6 +1394,7 @@ class AMFusion(WavSet):
              'distractor_name': dis_name,
              'this_target_frequency': row['tar_freq'],
              'this_target_am': row['tar_am'],
+             'this_distractor_offset': row['dis_offset'],
              'this_distractor_frequency': row['dis_freq'],
              'this_duration': row['duration'],
              'this_target_level': row['tar_level'],
