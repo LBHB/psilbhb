@@ -10,6 +10,6 @@ c = celldb()
 # flush_training("REI", c=c, local_folder="d:/data")
 flush_training("SDS", c=c, local_folder="e:/data")
 flush_training("CGL", c=c, local_folder="e:/data")
-# flush_training("IKI", c=c, local_folder="e:/data")
+flush_training("IKI", c=c, local_folder="e:/data")
 
 

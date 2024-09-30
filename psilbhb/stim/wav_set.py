@@ -655,17 +655,17 @@ class WavSet:
         self.trial_outcomes[trial_idx-1] = int(outcome)
         try:
             stim_cat = self.stim_cat
-            log.info('Checking if probe trial')
+            #log.info('Checking if probe trial')
             trial_wav_idx=self.trial_wav_idx[trial_idx - 1]
             log.info(f"{stim_cat[trial_wav_idx]}")
-            if stim_cat[trial_wav_idx]=='C':
-                force_no_repeat=True
-                log.info('Yes, probe trial, forcing not repeat')
+            if stim_cat[trial_wav_idx] == 'C':
+                force_no_repeat = True
+                #log.info('Yes, probe trial')
             else:
-                force_no_repeat=False
+                force_no_repeat = False
         except:
-            force_no_repeat=False
-        if force_no_repeat:
+            force_no_repeat = False
+        if force_no_repeat and (repeat_incorrect >= 1) and (outcome > 0):
             log.info(f'Trial {trial_idx} outcome {outstr[outcome]}: probe trial, force no repeat')
         elif ((repeat_incorrect == 2) and (outcome in [0, 1])) or \
                 ((repeat_incorrect == 1) and (outcome == 0)):
