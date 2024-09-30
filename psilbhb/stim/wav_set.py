@@ -1302,7 +1302,7 @@ class AMFusion(WavSet):
                 slist.append(pd.DataFrame(data))
 
         stim = pd.concat(slist, ignore_index=True)
-        stim['dis_freq'] = stim['tar_freq'] * 2**stim['dis_offset']
+        stim['dis_freq'] = np.round(stim['tar_freq'] * 2**stim['dis_offset'])
         stim['go_trial'] = stim['tar_freq']!=stim['dis_freq']
 
         if self.switch_channels:
