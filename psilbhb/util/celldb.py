@@ -836,7 +836,7 @@ def flush_training(prefix="LMD", local_folder="e:/data", dest_root='/auto/data/d
               f" respfileevp=replace(respfileevp, '{local_folder}', '{dest_root}')," + \
               f" respfile=replace(respfile, '{local_folder}', '{dest_root}')," +              \
               f" eyecalfile=replace(eyecalfile, '{local_folder}', '{dest_root}')," +              \
-              f" resppath=replace(resppath, 'd:/Data', '{dest_root}')" +\
+              f" resppath=replace(resppath, '{local_folder}', '{dest_root}')" +\
               f" WHERE id={r['id']}"
         c.sqlexec(sql)
 
