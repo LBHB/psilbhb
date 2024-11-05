@@ -161,7 +161,8 @@ def readpsievents(logpath=None, runclass=None, rawid=None, c=None):
                     }
     elif runclass in ['AMF']:
         parmnames = ['target_frequency', 'target_am_rate', 'target_bandwidth', 'modulation_depth',
-                     'target_level', 'distractor_frequency', 'distractor_level', 'duration',
+                     'target_level', 'distractor_frequency', 'distractor_offset',
+                     'distractor_am_rate', 'distractor_level', 'harmonics', 'duration',
                      'primary_channel', 'switch_channels', 'reward_ambiguous_frac', 'fs', 'response_start', 'response_end',
                      'random_seed']
         row = df.iloc[-1]

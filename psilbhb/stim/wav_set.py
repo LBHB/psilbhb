@@ -750,7 +750,7 @@ class FgBgSet(WavSet):
     default_parameters = [
         {'name': 'fg_path', 'label': 'FG path', 'default': 'h:/sounds/vocalizations/v4', 'dtype': 'str'},
         {'name': 'bg_path', 'label': 'BG path', 'default': 'h:/sounds/backgrounds/v3', 'dtype': 'str'},
-        {'name': 'prb_fg_path', 'label': 'Probe path', 'default': '', 'dtype': 'str'},
+        # {'name': 'prb_fg_path', 'label': 'Probe FG path', 'default': '', 'dtype': 'str'},
         {'name': 'prb_bg_path', 'label': 'Probe path', 'default': '', 'dtype': 'str'},
         {'name': 'fg_range', 'label': 'FG wav indexes', 'expression': '[0]'},
         {'name': 'bg_range', 'label': 'BG wav indexes', 'expression': '[0]'},
@@ -845,17 +845,18 @@ class FgBgSet(WavSet):
             fs=self.fs, path=self.bg_path, duration=self.duration,
             normalization=self.normalization, fit_range=self.bg_range,
             test_range=slice(0, ), test_reps=1, channel_count=1, level=65)
-        if len(self.prb_fg_path)>0:
-            print(f"probe path = {self.prb_fg_path}")
-            self.PrbFgSet = MCWavFileSet(
-                fs=self.fs, path=self.prb_fg_path, duration=self.duration,
-                normalization=self.normalization, fit_range=self.prb_fg_range,
-                test_range=slice(0, ), test_reps=1, channel_count=1, level=65)
-        else:
-            self.PrbFgSet = MCWavFileSet(
-                fs=self.fs, path=self.fg_path, duration=self.duration,
-                normalization=self.normalization, fit_range=[],
-                test_range=slice(0, ), test_reps=1, channel_count=1, level=65)
+
+        # if len(self.prb_fg_path)>0:
+        #     print(f"probe path = {self.prb_fg_path}")
+        #     self.PrbFgSet = MCWavFileSet(
+        #         fs=self.fs, path=self.prb_fg_path, duration=self.duration,
+        #         normalization=self.normalization, fit_range=self.prb_fg_range,
+        #         test_range=slice(0, ), test_reps=1, channel_count=1, level=65)
+        # else:
+        #     self.PrbFgSet = MCWavFileSet(
+        #         fs=self.fs, path=self.fg_path, duration=self.duration,
+        #         normalization=self.normalization, fit_range=[],
+        #         test_range=slice(0, ), test_reps=1, channel_count=1, level=65)
 
         if len(self.prb_bg_path)>0:
             print(f"probe path = {self.prb_bg_path}")
@@ -1321,6 +1322,8 @@ class AMFusion(WavSet):
          'expression': '[60]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'distractor_offset', 'label': 'Distractor offset octaves (list)',
          'expression': '[-1, 1]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'distractor_am_rate', 'label': 'Distractor AM rate (list)',
+         'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'distractor_level', 'label': 'Distractor dB SPL (list)',
          'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'harmonics', 'label': 'Harmonics (list)',
@@ -1389,6 +1392,9 @@ class AMFusion(WavSet):
         if len(am_depth_)==1:
             am_depth_ = np.zeros_like(tar_range_) + am_depth_
         dis_range_ = np.array(self.distractor_offset, dtype=float)
+        dis_am_rate_ = np.array(self.distractor_am_rate, dtype=float)
+        if len(dis_am_rate_)==1:
+            dis_am_rate_ = np.zeros_like(dis_range_) + dis_am_rate_
 
         # combinations
         tar_count=len(tar_range_)
@@ -1402,6 +1408,7 @@ class AMFusion(WavSet):
                         'tar_bandwidth': self.target_bandwidth,
                         'tar_level': tlevel,
                         'dis_offset': np.concatenate([np.zeros(tar_count)+d for d in dis_range_]),
+                        'dis_am': np.concatenate([np.zeros(tar_count)+d for d in dis_am_rate_]),
                         'dis_level': dlevel,
                         'duration': self.duration,
                         'tar_channel': self.primary_channel,
@@ -1457,8 +1464,13 @@ class AMFusion(WavSet):
             wfg += np.sin(t*2*np.pi*row['tar_freq'] * (h+1))*(5/hcount)
             wbg += np.sin(t*2*np.pi*row['dis_freq'] * (h+1))*(5/hcount)
 
-        env = 1 + np.sin(t*2*np.pi*row['tar_am'])
-        wfg *= env
+        if row['tar_am']>0:
+            env = 1 + np.sin(t*2*np.pi*row['tar_am'])
+            wfg *= env
+        if row['dis_am']>0:
+            env = 1 + np.sin(t*2*np.pi*row['dis_am'])
+            wbg *= env
+
 
         fg_level = row['tar_level']
         bg_level = row['dis_level']
