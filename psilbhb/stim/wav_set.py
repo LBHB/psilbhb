@@ -1330,6 +1330,10 @@ class AMFusion(WavSet):
          'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'duration', 'label': 'duration of each sample (s)',
          'default': 1.0, 'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'swap_carriers', 'label': 'Swap tar/dis carriers',
+         'compact_label': 'combinations', 'default': 'No',
+         'choices': {'No': "False", 'Yes': "True"},
+         'scope': 'experiment', 'type': 'EnumParameter'},
 
         {'name': 'primary_channel', 'label': 'Primary channel',
          'compact_label': 'primary_channel', 'default': '0',
@@ -1342,14 +1346,15 @@ class AMFusion(WavSet):
         {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 'all', 'type': 'EnumParameter',
          'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}},
 
-        {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
-         'dtype': 'double', 'scope': 'experiment'},
-        {'name': 'response_start', 'label': 'response win start (s)',
+       {'name': 'response_start', 'label': 'response win start (s)',
          'default': 0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'response_end', 'label': 'response win end (s)', 'default': 2,
          'dtype': 'double', 'scope': 'experiment'},
         {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
          'int', 'scope': 'experiment'},
+
+        {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
+         'dtype': 'double', 'scope': 'experiment'},
         {'name': 'this_target_frequency', 'label': 'T', 'type': 'Result'},
         {'name': 'this_distractor_offset', 'label': 'Doct', 'type': 'Result'},
         {'name': 'this_distractor_frequency', 'label': 'D', 'type': 'Result'},
@@ -1428,6 +1433,11 @@ class AMFusion(WavSet):
             d2=stim.copy()
             d2['tar_channel']=1-self.primary_channel
             stim = pd.concat([stim,d2], ignore_index=True)
+
+        if self.swap_carriers:
+            t_ = stim['tar_freq']
+            stim['tar_freq'] = stim['dis_freq']
+            stim['dis_freq'] = t_
 
         self.stim_list = stim.copy().reset_index()
         print(self.stim_list)
