@@ -678,6 +678,14 @@ class WavSet:
             # fg_go column doesn't exist
             pass
 
+        try:
+            trial_wav_idx=self.trial_wav_idx[trial_idx - 1]
+            if np.abs(self.stim_list.loc[trial_wav_idx,'dis_offset'])==0.05:
+                force_no_repeat = True
+        except:
+            # dis_offset column doesn't exist
+            pass
+
         if force_no_repeat and (repeat_incorrect >= 1) and (outcome > 0):
             log.info(f'Trial {trial_idx} outcome {outstr[outcome]}: probe trial, force no repeat')
         elif ((repeat_incorrect == 2) and (outcome in [0, 1])) or \

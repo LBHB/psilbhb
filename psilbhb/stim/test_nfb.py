@@ -9,7 +9,8 @@ pd.set_option('display.width',160)
 
 if os.path.exists('h:/sounds'):
     soundpath_fg = 'h:/sounds/vocalizations/v4'
-    soundpath_bg = 'h:/sounds/backgrounds/v3'
+    # soundpath_bg = 'h:/sounds/backgrounds/v3'
+    soundpath_bg = 'h:/sounds/Categories/temp_bgs'
     # soundpath_prb = 'h:/sounds/Categories/chimeric_voc'
     soundpath_prb_bg = 'h:/sounds/Categories/temp_probes'
     soundpath_prb_fg = 'h:/sounds/Categories/temp_probes'
@@ -36,10 +37,10 @@ else:
 
 params = FgBgSet.default_values()
 # Update probe trials indices based on the get_stim_list()
-params.update(dict(fg_path=soundpath_fg, fg_range=[4, 5],
-                   bg_path=soundpath_bg, bg_range=[0],
-                   prb_bg_path=soundpath_prb_bg, prb_bg_range=[6, 7],
-                   prb_fg_path=soundpath_prb_fg, prb_fg_range=[4, 5],
+params.update(dict(fg_path=soundpath_fg, fg_range=[6, 7],
+                   bg_path=soundpath_bg, bg_range=[3,4,5],
+                   prb_bg_path=soundpath_prb_bg, prb_bg_range=[2, 7, 10, 11, 14, 15],
+                   # prb_fg_path=soundpath_prb_fg, prb_fg_range=[4, 5],
                    prb_f=2,
                  fg_switch_channels=True, contra_n=1, ipsi_n=1, diotic_n=1,
                  combinations='all', migrate_fraction=0.0, fg_delay=0.5, duration=2.0,
@@ -56,9 +57,10 @@ params.update(dict(fg_path=soundpath_fg, fg_range=[4, 5],
 fb = FgBgSet(2, **params)
 fb.update()  # not necessary but illustrative of back-end processing
 
-simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0,
-                         2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 0,
-                         1, 1, 0, 1, 2, 0, 1, 2]
+# simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0,
+#                          2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 0,
+#                          1, 1, 0, 1, 2, 0, 1, 2]
+simulated_performance = [2] * 50
 
 N=50
 fg_chan = np.zeros(N)
