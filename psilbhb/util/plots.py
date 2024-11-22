@@ -195,7 +195,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         d_.loc[(d_['s1idx'] == 0) & (d_['s1_name'].astype(str) == 'nan'), 's1_name'] = "AE.828.1920.2500.106.wav"
         d_.loc[(d_['s2idx'] == 0) & (d_['s2_name'].astype(str) == 'nan'), 's2_name'] = "AE.828.1920.2500.106.wav"
 
-        d_['s'] = d_[['stim_cat','s1_name', 's2_name']].agg('+'.join, axis=1)
+        d_['s'] = d_[['stim_cat','s1_name', 's2_name']].astype(str).agg('+'.join, axis=1)
         def _cleanup(s):
             s=s.replace('.wav','')
             s = s.replace('151', 'm')

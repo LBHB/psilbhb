@@ -1342,6 +1342,8 @@ class AMFusion(WavSet):
          'compact_label': 'combinations', 'default': 'No',
          'choices': {'No': "False", 'Yes': "True"},
          'scope': 'experiment', 'type': 'EnumParameter'},
+        {'name': 'easy_ratio', 'label': 'High SNR mult',
+         'dtype': 'double', 'scope': 'experiment'},
 
         {'name': 'primary_channel', 'label': 'Primary channel',
          'compact_label': 'primary_channel', 'default': '0',
@@ -1446,6 +1448,10 @@ class AMFusion(WavSet):
             t_ = stim['tar_freq']
             stim['tar_freq'] = stim['dis_freq']
             stim['dis_freq'] = t_
+        if self.easy_ratio>1:
+            stim_easy = stim.loc[stim['tar_level']-stim['dis_level']>=60]
+            slist = [stim] + [stim_easy] * int(self.easy_ratio-1)
+            stim = pd.concat(slist, ignore_index=True)
 
         self.stim_list = stim.copy().reset_index()
         print(self.stim_list)
