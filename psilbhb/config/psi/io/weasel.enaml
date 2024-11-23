@@ -180,3 +180,48 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 name = 'spout_contact_2'
                 label = 'Spout IR 2'
                 channel = 'Dev1/ai2'
+
+			###############################################
+			# Starship A
+			###############################################
+            NIDAQHardwareAOChannel:
+                label = 'Starship A (primary)'
+                name = 'starship_A_primary'
+                channel = '/Dev1/ao2'
+                fs = ao_fs
+                expected_range = (-10, 10)
+                dtype = 'float64'
+                terminal_mode = 'RSE'
+                unit = 'V'
+
+            NIDAQHardwareAOChannel:
+                label = 'Starship A (secondary)'
+                name = 'starship_A_secondary'
+                channel = '/Dev1/ao2'
+                fs = ao_fs
+                expected_range = (-10, 10)
+                dtype = 'float64'
+                terminal_mode = 'RSE'
+                unit = 'V'
+
+            NIDAQHardwareAIChannel:
+                label = 'Starship A (microphone)'
+                name = 'starship_A_microphone'
+                channel = '/Dev1/ai22'
+                fs = ao_fs
+                expected_range = (-10, 10)
+                dtype = 'float64'
+                terminal_mode = 'RSE'
+                unit = 'V'
+                start_trigger = '/Dev1/ao/StartTrigger'
+
+            NIDAQHardwareAIChannel:
+                label = 'Calibration Microphone'
+                name = 'microphone_calibration'
+                channel = '/Dev1/ai23'
+                fs = ao_fs
+                expected_range = (-10, 10)
+                dtype = 'float64'
+                terminal_mode = 'RSE'
+                unit = 'V'
+                start_trigger = '/Dev1/ao/StartTrigger'

@@ -34,7 +34,7 @@ context:
         expression: '1'
         rove: false
       background_wav_sequence_level:
-        expression: '65'
+        expression: '60'
         rove: false
       background_wav_sequence_norm_fixed_scale:
         expression: '25'
@@ -68,7 +68,7 @@ context:
         expression: '1'
         rove: false
       background_1_wav_sequence_level:
-        expression: '65'
+        expression: '60'
         rove: false
       background_1_wav_sequence_norm_fixed_scale:
         expression: '25'
@@ -114,7 +114,7 @@ context:
         expression: '1'
         rove: false
       target_tone_frequency:
-        expression: '6000'
+        expression: '900'
         rove: false
       target_tone_level:
         expression: background_1_wav_sequence_level+snr
@@ -133,7 +133,7 @@ context:
         rove: false
     trial:
       hold_duration:
-        expression: '1'
+        expression: '1.0'
         rove: false
       iti_duration:
         expression: '.5'
@@ -169,11 +169,12 @@ context:
     go:
       context_item_order:
       - snr
-      order: ascending
+      order: shuffled_set
       settings:
       - snr: -5
       - snr: 0
       - snr: 5
+      - snr: -10
     nogo:
       context_item_order:
       - snr
@@ -192,7 +193,7 @@ context:
 event_log:
   column_widths:
     event: 100
-    info: 345
+    info: 100
     timestamp: 100
 microphone:
   y_max: 6.022528848070045
