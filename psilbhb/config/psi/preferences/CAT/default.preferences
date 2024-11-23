@@ -85,9 +85,12 @@ context:
       bgc_test_reps:
         expression: '1'
         rove: false
+      oan_path:
+        expression: '"h:/sounds/Categories/noise_SpcVoc_matched_5s"'
+        rove: false
     CategorySet:
       CatchBG_frac:
-        expression: '0.5'
+        expression: '0'
         rove: false
       CatchFG_frac:
         expression: '0.0'
@@ -105,7 +108,7 @@ context:
         selected: custom
       fg_channel: {}
       fg_delay:
-        expression: '0.01'
+        expression: '0'
         rove: false
       fg_go_index:
         expression: None
@@ -136,10 +139,16 @@ context:
       random_seed:
         expression: '0'
         rove: false
+      reg2catch_ratio:
+        expression: '25'
+        rove: false
       response_window:
         expression: (0.0, 1.0)
         rove: false
       this_snr: {}
+      unique_overall_SNR:
+        expression: '[5]'
+        rove: false
     Foreground wave file set:
       fg_binaural_combinations:
         rove: false
@@ -187,7 +196,7 @@ context:
       trial_type: {}
     trial:
       hold_duration:
-        expression: '0.4'
+        expression: '0.45'
         rove: false
       iti_duration:
         expression: '1'
@@ -199,7 +208,7 @@ context:
         expression: 'False'
         rove: false
       np_duration:
-        expression: '0.3'
+        expression: '0.1'
         rove: false
       repeat_incorrect:
         rove: false
@@ -219,12 +228,18 @@ context:
       training_mode:
         expression: 'False'
         rove: false
-      water_dispense_duration:
-        expression: '0.7'
+      water_dispense_1_duration:
+        expression: '.65'
+        rove: false
+      water_dispense_2_duration:
+        expression: '.65'
         rove: false
   selectors: {}
 event_log:
-  column_widths: {}
+  column_widths:
+    event: 100
+    info: 278
+    timestamp: 100
 microphone:
   y_max: 1.0
   y_min: -1.0

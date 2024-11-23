@@ -17,7 +17,7 @@ params = VowelSet.default_values()
 params.update(dict(sound_path=soundpath,
                    target_set= 	['01_AE106+03_AE106', '02_AE151+04_AE151', '13_EH106+15_EH106', '14_EH151+16_EH151'],
                    non_target_set=['17_OO106+19_OO106', '18_OO151+20_OO151'],
-                   catch_set=[],
+                   catch_set=['05_AW106+11_EE106'],
                    switch_channels=False, repeat_count=2,
                    random_seed=4234))
 

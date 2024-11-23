@@ -9,10 +9,15 @@ pd.set_option('display.width',160)
 
 if os.path.exists('h:/sounds'):
     soundpath_fg = 'h:/sounds/vocalizations/v4'
-    soundpath_bg = 'h:/sounds/backgrounds/v3'
+    # soundpath_bg = 'h:/sounds/backgrounds/v3'
+    soundpath_bg = 'h:/sounds/Categories/temp_bgs'
+    # soundpath_prb = 'h:/sounds/Categories/chimeric_voc'
+    soundpath_prb_bg = 'h:/sounds/Categories/temp_probes'
+    soundpath_prb_fg = 'h:/sounds/Categories/temp_probes'
 else:
     soundpath_fg = '/auto/data/sounds/vocalizations/v4'
     soundpath_bg = '/auto/data/sounds/backgrounds/v3'
+    soundpath_prb_bg = 'auto/data/sounds/Categories/chimeric_voc'
 
 # vv = MCWavFileSet(
 #     fs=44000, path=soundpath_fg, duration=3, normalization='rms',
@@ -31,17 +36,31 @@ else:
 # fg_snr = 100
 
 params = FgBgSet.default_values()
-params.update(dict(fg_path=soundpath_fg, bg_path=soundpath_bg,
-                 fg_range=[1,2], bg_range=[0],
+# Update probe trials indices based on the get_stim_list()
+params.update(dict(fg_path=soundpath_fg, fg_range=[6, 7],
+                   bg_path=soundpath_bg, bg_range=[3,4,5],
+                   prb_bg_path=soundpath_prb_bg, prb_bg_range=[2, 7, 10, 11, 14, 15],
+                   # prb_fg_path=soundpath_prb_fg, prb_fg_range=[4, 5],
+                   prb_f=2,
                  fg_switch_channels=True, contra_n=1, ipsi_n=1, diotic_n=1,
-                 fg_choice_trials=2,
                  combinations='all', migrate_fraction=0.0, fg_delay=0.5, duration=2.0,
-                 fg_level=[0, 55], bg_level=[0, 55], random_seed=4234))
+                 fg_level=[55, 63], bg_level=[55], random_seed=4234))
+
+# params.update(dict(fg_path=soundpath_fg, bg_path=soundpath_bg,
+#                    prb_path=soundpath_prb, fg_range=[1,2], bg_range=[0],
+#                    prb_range=[69, 70, 71, 73, 74, 99, 100, 101, 103, 104, 189, 190, 191, 193, 194],
+#                  fg_switch_channels=True, contra_n=1, ipsi_n=1, diotic_n=1,
+#                  fg_choice_trials=2,
+#                  combinations='all', migrate_fraction=0.0, fg_delay=0.5, duration=2.0,
+#                  fg_level=[0, 55], bg_level=[0, 55], random_seed=4234))
 
 fb = FgBgSet(2, **params)
 fb.update()  # not necessary but illustrative of back-end processing
 
-simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+# simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0,
+#                          2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 0,
+#                          1, 1, 0, 1, 2, 0, 1, 2]
+simulated_performance = [2] * 50
 
 N=50
 fg_chan = np.zeros(N)
@@ -52,8 +71,9 @@ for trial_idx in range(len(simulated_performance)):
     d = fb.trial_parameters(trial_idx+1)
     print(d['trial_idx'], d['wav_set_idx'], d['current_full_rep'],
           d['fg_name'], d['fg_channel'],
-          d['bg_name'], d['bg_channel'],
-          d['trial_type'], d['response_condition'], d['current_full_rep'], d['trial_is_repeat'])
+          d['bg_name'], d['bg_channel'], d['this_snr'],
+          d['trial_cat'], d['response_condition'], d['current_full_rep'], d['trial_is_repeat'],
+          simulated_performance[trial_idx])
     fg_chan[trial_idx] = d['fg_channel']
     bg_chan[trial_idx] = d['bg_channel']
 

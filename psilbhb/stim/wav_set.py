@@ -35,14 +35,15 @@ def get_stim_list(FgSet, BgSet, catch_ferret_id=3, n_env_bands=[2, 8, 32], reg2c
     taboo_ferret_files = ['ferretb3001R.wav', 'ferretb4004R.wav']
 
     all_ferret_files = [x for x in all_ferret_files if x not in taboo_ferret_files]
-    all_catch_files = [x for x in all_catch_files if x.split('_')[-1] not in taboo_ferret_files]
-
+    catch_bgs = [x for x in all_catch_files if x.split('_')[-1] not in taboo_ferret_files]
 
     #region get all catch trial files: fgs and env bgs
-    catch_bgs = [x for x in all_catch_files if
-                 any([x.startswith("ENV{}_ferretb{}".format(nb,catch_ferret_id)) for nb in n_env_bands]) ]
+    catch_bgs = [x for x in catch_bgs if
+                 any([x.startswith("ENV{}_ferretb{}".format(nb, catch_ferret_id)) for nb in n_env_bands]) ]
     catch_fgs = list(set([x.split('_')[-1] for x in catch_bgs]))
     catch_fgs.sort()
+
+    [all_catch_files.index(i) for i in catch_bgs]
 
     catch_pair_fg_inds = np.arange(4)
     catch_pair_bg_inds = np.array([1, 0, 3, 2])
@@ -653,7 +654,41 @@ class WavSet:
             n = trial_idx - len(self.trial_outcomes)
             self.trial_outcomes = np.concatenate((self.trial_outcomes, np.zeros(n, dtype=int)))
         self.trial_outcomes[trial_idx-1] = int(outcome)
-        if ((repeat_incorrect == 2) and (outcome in [0, 1])) or \
+
+        force_no_repeat = False
+
+        try:
+            stim_cat = self.stim_cat
+            #log.info('Checking if probe trial')
+            trial_wav_idx=self.trial_wav_idx[trial_idx - 1]
+            log.info(f"{stim_cat[trial_wav_idx]}")
+            if stim_cat[trial_wav_idx] == 'C':
+                force_no_repeat = True
+                #log.info('Yes, probe trial')
+            else:
+                force_no_repeat = False
+        except:
+            force_no_repeat = False
+
+        try:
+            trial_wav_idx=self.trial_wav_idx[trial_idx - 1]
+            if self.stim_list.loc[trial_wav_idx,'fg_go'] == -3:
+                force_no_repeat = True
+        except:
+            # fg_go column doesn't exist
+            pass
+
+        try:
+            trial_wav_idx=self.trial_wav_idx[trial_idx - 1]
+            if np.abs(self.stim_list.loc[trial_wav_idx,'dis_offset'])==0.05:
+                force_no_repeat = True
+        except:
+            # dis_offset column doesn't exist
+            pass
+
+        if force_no_repeat and (repeat_incorrect >= 1) and (outcome > 0):
+            log.info(f'Trial {trial_idx} outcome {outstr[outcome]}: probe trial, force no repeat')
+        elif ((repeat_incorrect == 2) and (outcome in [0, 1])) or \
                 ((repeat_incorrect == 1) and (outcome == 0)):
             log.info(f'Trial {trial_idx} outcome {outstr[outcome]}: repeating immediately')
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx[:trial_idx],
@@ -723,8 +758,11 @@ class FgBgSet(WavSet):
     default_parameters = [
         {'name': 'fg_path', 'label': 'FG path', 'default': 'h:/sounds/vocalizations/v4', 'dtype': 'str'},
         {'name': 'bg_path', 'label': 'BG path', 'default': 'h:/sounds/backgrounds/v3', 'dtype': 'str'},
+        # {'name': 'prb_fg_path', 'label': 'Probe FG path', 'default': '', 'dtype': 'str'},
+        {'name': 'prb_bg_path', 'label': 'Probe path', 'default': '', 'dtype': 'str'},
         {'name': 'fg_range', 'label': 'FG wav indexes', 'expression': '[0]'},
         {'name': 'bg_range', 'label': 'BG wav indexes', 'expression': '[0]'},
+        {'name': 'prb_bg_range', 'label': 'Probe wav indexes', 'expression': '[]'},
 
         {'name': 'normalization', 'label': 'Normalization', 'default': 'rms', 'type': 'EnumParameter',
          'choices': {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}},
@@ -743,13 +781,14 @@ class FgBgSet(WavSet):
         {'name': 'contra_n', 'label': 'Contra BG portion (int)', 'default': 1, 'dtype': 'int'},
         {'name': 'diotic_n', 'label': 'Diotic BG portion (int)', 'default': 0, 'dtype': 'int'},
         {'name': 'ipsi_n', 'label': 'Ipsi BG portion (int)', 'default': 0, 'dtype': 'int'},
+        {'name': 'prb_f', 'label': 'Regular to probe ratio', 'default': -1, 'dtype': 'int'},
 
         {'name': 'migrate_fraction', 'label': 'Percent migrate trials', 'default': '0', 'type': 'EnumParameter',
-         'choices': {'0': 0.0, '25': 0.25, '50': 0.5}},
-        {'name': 'migrate_start', 'label': "migrate_start (s)", 'default': 0.5, 'dtype': 'float'},
-        {'name': 'migrate_stop', 'label': "migrate_stop (s)", 'default': 1.0, 'dtype': 'float'},
+         'choices': {'0': 0.0, '25': 0.25, '50': 0.5}, 'group_name': 'Results'},
+        {'name': 'migrate_start', 'label': "migrate_start (s)", 'default': 0.5, 'dtype': 'float', 'group_name': 'Results'},
+        {'name': 'migrate_stop', 'label': "migrate_stop (s)", 'default': 1.0, 'dtype': 'float', 'group_name': 'Results'},
 
-        {'name': 'response_window', 'label': 'Response start,stop (s)', 'expression': '(0, 1)'},
+        {'name': 'response_window', 'label': 'Response start,stop (s)', 'expression': '(0, 1)', 'group_name': 'Results'},
         {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 'all', 'type': 'EnumParameter',
          'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}},
         {'name': 'reward_durations', 'label': 'FG reward durations', 'expression': '()'},
@@ -814,6 +853,31 @@ class FgBgSet(WavSet):
             fs=self.fs, path=self.bg_path, duration=self.duration,
             normalization=self.normalization, fit_range=self.bg_range,
             test_range=slice(0, ), test_reps=1, channel_count=1, level=65)
+
+        # if len(self.prb_fg_path)>0:
+        #     print(f"probe path = {self.prb_fg_path}")
+        #     self.PrbFgSet = MCWavFileSet(
+        #         fs=self.fs, path=self.prb_fg_path, duration=self.duration,
+        #         normalization=self.normalization, fit_range=self.prb_fg_range,
+        #         test_range=slice(0, ), test_reps=1, channel_count=1, level=65)
+        # else:
+        #     self.PrbFgSet = MCWavFileSet(
+        #         fs=self.fs, path=self.fg_path, duration=self.duration,
+        #         normalization=self.normalization, fit_range=[],
+        #         test_range=slice(0, ), test_reps=1, channel_count=1, level=65)
+
+        if len(self.prb_bg_path)>0:
+            print(f"probe path = {self.prb_bg_path}")
+            self.PrbBgSet = MCWavFileSet(
+                fs=self.fs, path=self.prb_bg_path, duration=self.duration,
+                normalization=self.normalization, fit_range=self.prb_bg_range,
+                test_range=slice(0, ), test_reps=1, channel_count=1, level=65)
+        else:
+            self.PrbBgSet = MCWavFileSet(
+                fs=self.fs, path=self.bg_path, duration=self.duration,
+                normalization=self.normalization, fit_range=[],
+                test_range=slice(0, ), test_reps=1, channel_count=1, level=65)
+
         self.update()
 
     def update(self, trial_idx=None):
@@ -821,32 +885,45 @@ class FgBgSet(WavSet):
         manage trials separately to allow for repeats, etc."""
         _rng = np.random.RandomState(self.random_seed)
 
+        # TODO - Incoroprate prb_fg and prb_bg
+        n_reg_reps = 1
+
         if self.combinations == 'simple':
-            bg_range = list(np.arange(self.BgSet.max_index, dtype=int))
+            bg_range = list(np.arange(self.BgSet.max_index, dtype=int)) + \
+                            list(np.arange(self.PrbBgSet.max_index, dtype=int))
             fg_range = list(np.arange(self.FgSet.max_index, dtype=int))
+
+            go_trials = [1] *self.BgSet.max_index + [-3] * self.PrbBgSet.max_index
 
             if len(fg_range)>len(bg_range):
                 while len(bg_range)<len(fg_range):
                     bg_range += bg_range
+                    go_trials += go_trials
                 bg_range=bg_range[:len(fg_range)]
+                go_trials=go_trials[:len(fg_range)]
             elif len(fg_range)<len(bg_range):
                 while len(fg_range)<len(bg_range):
                     fg_range += fg_range
                 fg_range=fg_range[:len(bg_range)]
+
         elif self.combinations == 'all':
-            bg_range_ = list(np.arange(self.BgSet.max_index, dtype=int))
+            bg_range_ = list(np.arange(self.BgSet.max_index, dtype=int)) + \
+                            list(np.arange(self.PrbBgSet.max_index, dtype=int))
             fg_range_ = list(np.arange(self.FgSet.max_index, dtype=int))
+            go_trials_ = [1] * self.BgSet.max_index + [-3] * self.PrbBgSet.max_index
 
             fg_range = fg_range_ * len(bg_range_)
             bg_range=[]
-            [bg_range.extend([b]*len(fg_range_)) for b in bg_range_];
+            [bg_range.extend([b]*len(fg_range_)) for b in bg_range_]
+            go_trials = []
+            [go_trials.extend([b]*len(fg_range_)) for b in go_trials_]
 
-        go_trials = [1] * len(fg_range)
+        #go_trials = [1] * len(fg_range)
 
         data = {'fg_index': fg_range, 'bg_index': bg_range, 'fg_go': go_trials, 'fg_delay': self.fg_delay}
+
         log.info(f"{pd.DataFrame(data)}")
-        stim = pd.DataFrame(data={'fg_index': fg_range, 'bg_index': bg_range, 'fg_go': go_trials,
-                                  'fg_delay': self.fg_delay},
+        stim = pd.DataFrame(data=data,
                             columns=['fg_index', 'bg_index', 'fg_channel', 'bg_channel', 'fg_level', 'bg_level',
                                      'fg_go', 'fg_delay', 'migrate_trial'])
 
@@ -861,7 +938,7 @@ class FgBgSet(WavSet):
             fg_channels += [1-self.primary_channel] * (self.ipsi_n + self.contra_n + self.diotic_n)
 
         dlist = []
-        for f,b in zip(fg_channels, bg_channels):
+        for f, b in zip(fg_channels, bg_channels):
             s = stim.copy()
             s['fg_channel']=f
             s['bg_channel']=b
@@ -872,15 +949,32 @@ class FgBgSet(WavSet):
             bgc_range = [1] * self.fg_choice_trials * 2
             fgc_channels = [0] * self.fg_choice_trials + [1] * self.fg_choice_trials
             bgc_channels = [1] * self.fg_choice_trials + [0] * self.fg_choice_trials
-
             stimc = pd.DataFrame(data={'fg_index': fgc_range, 'bg_index': bgc_range,
                                        'fg_channel': fgc_channels, 'bg_channel': bgc_channels,
                                        'fg_go': -2, 'fg_delay': self.fg_delay},
                                 columns=['fg_index', 'bg_index', 'fg_channel', 'bg_channel', 'fg_level', 'bg_level',
-                                         'fg_go', 'fg_delay', 'migrate_trial'])
+                                     'fg_go', 'fg_delay', 'migrate_trial'])
             dlist.append(stimc)
 
         stim = pd.concat(dlist, ignore_index=True)
+
+        # TODO - remove invalid Probe trials
+        iprb = stim['fg_go'] == -3
+        if iprb.sum()>0:
+            fg_names = stim.loc[iprb,'fg_index'].apply(lambda x: self.FgSet.names[x].replace('.wav',''))
+            prb_names = stim.loc[iprb,'bg_index'].apply(lambda x: self.PrbBgSet.names[x])
+            invalid_row = [fg_names.index[i] for i in range(len(fg_names)) if fg_names.iloc[i] in prb_names.iloc[i]]
+            stim = stim.drop(index=invalid_row)
+
+            # valid_row = [fg_names.index[i] for i in range(len(fg_names)) if fg_names.iloc[i] not in prb_names.iloc[i]]
+            # stim_trim = stim.loc[valid_row].reset_index()
+
+
+            # for i,r in fg_names.items():
+            #     print(f"{i}: {r}")
+            #
+            # dup = prb_names.apply(.str.contains(fg_names)
+            # invalid_row = (stim['fg_go']==-3)
 
         if type(self.fg_level) is int:
             stim['fg_level'] = self.fg_level
@@ -900,6 +994,8 @@ class FgBgSet(WavSet):
                 s['bg_level'] = f
                 dlist.append(s)
             stim = pd.concat(dlist, ignore_index=True)
+
+        # remove probe trials where either FG or BG has level 0
         stim = stim.loc[((stim['fg_level']>0) & (stim['fg_go']>-2)) |
                         ((stim['bg_level']>0) & (stim['fg_go']>-2)) |
                         ((stim['fg_level']>0) & (stim['bg_level']>0))]
@@ -915,6 +1011,24 @@ class FgBgSet(WavSet):
         zstim.loc[zstim['bg_level']==0, 'bg_channel']=-1
         zstim.loc[zstim['bg_level']==0, 'bg_index']=stim['bg_index'].min()
         stim = pd.concat([nzstim, zstim.drop_duplicates()], ignore_index=True)
+
+        # Couple of bookkeeping
+        # 1.  Remove probe trials with high SNR (high-SNR trials are to keep ferrets motivated,
+        # in regular trials)
+        # 2. After that, make sure regular to probe ratio matches prb_f
+        iprb = stim['fg_go'] == -3
+        if iprb.sum()>0:
+            max_fg_to_bg_snr = 5
+            stim = stim[(stim['fg_go'] != -3) |
+                        ((stim['fg_go'] == -3) & ((stim['fg_level'] - stim['bg_level']) < max_fg_to_bg_snr))]
+
+            iregular = stim['fg_go'] != -3
+            iprb = stim['fg_go'] == -3
+
+            stim_regular = stim.loc[iregular]
+            stim_prb = stim.loc[iprb]
+            n_reg_reps = int(self.prb_f * len(stim_prb) / len(stim_prb))
+            stim = pd.concat([pd.concat([stim_regular] * n_reg_reps), stim_prb], ignore_index=True)
 
         # check if any stims are labeled catch, and set fg_go accordingly:
         for b in set(stim.loc[(stim['fg_go']==1),'bg_index'].values):
@@ -984,6 +1098,8 @@ class FgBgSet(WavSet):
         if row['fg_go']==-2:
             # choice trial, FgSet for both channels
             wbg = self.FgSet.waveform(row['bg_index'])
+        elif row['fg_go']==-3:
+            wbg = self.PrbBgSet.waveform(row['bg_index'])
         else:
             wbg = self.BgSet.waveform(row['bg_index'])
         if row['bg_channel'] == 1:
@@ -1044,12 +1160,21 @@ class FgBgSet(WavSet):
         bg_i = row['bg_index']
 
         is_go_trial = row['fg_go']
-        if is_go_trial==-2:
+        if is_go_trial == -2:
             # choice trial - 2 fgs with different reward
             response_condition = -1
 
         elif is_go_trial == -1:
             # -1 means either port
+            if (self.reward_ambiguous_frac==0.5):
+                response_condition = int(np.ceil(np.random.uniform(0, 2)))
+            elif (self.reward_ambiguous_frac==0):
+                response_condition = 0
+            else:
+                response_condition = -1
+
+        elif is_go_trial == -3:
+            # -3 means either port, for probe trials
             if (self.reward_ambiguous_frac==0.5):
                 response_condition = int(np.ceil(np.random.uniform(0, 2)))
             elif (self.reward_ambiguous_frac==0):
@@ -1078,10 +1203,16 @@ class FgBgSet(WavSet):
             trial_cat='catch'
             fg_name = 'null'
             bg_name = self.BgSet.names[bg_i]
-        else:
+        elif is_go_trial == -2:
             trial_cat='choice'
             fg_name = self.FgSet.names[fg_i]
             bg_name = self.FgSet.names[bg_i]
+        elif is_go_trial == -3:
+            trial_cat='probe'
+            fg_name = self.FgSet.names[fg_i]
+            bg_name = self.PrbBgSet.names[bg_i]
+        else:
+            raise ValueError('unknown is_go_trial value')
 
         d = {'trial_idx': trial_idx,
              'wav_set_idx': row['index'],
@@ -1197,12 +1328,22 @@ class AMFusion(WavSet):
          'expression': '[100]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'target_level', 'label': 'Target dB SPL (list)',
          'expression': '[60]', 'dtype': 'object', 'scope': 'experiment'},
-        {'name': 'distractor_frequency', 'label': 'Distractor center frequenc(ies) (list)',
-         'expression': '[4000]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'distractor_offset', 'label': 'Distractor offset octaves (list)',
+         'expression': '[-1, 1]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'distractor_am_rate', 'label': 'Distractor AM rate (list)',
+         'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'distractor_level', 'label': 'Distractor dB SPL (list)',
+         'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'harmonics', 'label': 'Harmonics (list)',
          'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'duration', 'label': 'duration of each sample (s)',
          'default': 1.0, 'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'swap_carriers', 'label': 'Swap tar/dis carriers',
+         'compact_label': 'combinations', 'default': 'No',
+         'choices': {'No': "False", 'Yes': "True"},
+         'scope': 'experiment', 'type': 'EnumParameter'},
+        {'name': 'easy_ratio', 'label': 'High SNR mult',
+         'dtype': 'double', 'scope': 'experiment'},
 
         {'name': 'primary_channel', 'label': 'Primary channel',
          'compact_label': 'primary_channel', 'default': '0',
@@ -1215,15 +1356,17 @@ class AMFusion(WavSet):
         {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 'all', 'type': 'EnumParameter',
          'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}},
 
-        {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
-         'dtype': 'double', 'scope': 'experiment'},
-        {'name': 'response_start', 'label': 'response win start (s)',
+       {'name': 'response_start', 'label': 'response win start (s)',
          'default': 0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'response_end', 'label': 'response win end (s)', 'default': 2,
          'dtype': 'double', 'scope': 'experiment'},
         {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
          'int', 'scope': 'experiment'},
+
+        {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
+         'dtype': 'double', 'scope': 'experiment'},
         {'name': 'this_target_frequency', 'label': 'T', 'type': 'Result'},
+        {'name': 'this_distractor_offset', 'label': 'Doct', 'type': 'Result'},
         {'name': 'this_distractor_frequency', 'label': 'D', 'type': 'Result'},
         {'name': 'this_snr', 'label': 'SNR', 'type': 'Result'},
         {'name': 'response_condition', 'label': 'T spout', 'type': 'Result'},
@@ -1263,7 +1406,10 @@ class AMFusion(WavSet):
         am_depth_ = np.array(self.modulation_depth, dtype=float)
         if len(am_depth_)==1:
             am_depth_ = np.zeros_like(tar_range_) + am_depth_
-        dis_range_ = np.array(self.distractor_frequency, dtype=float)
+        dis_range_ = np.array(self.distractor_offset, dtype=float)
+        dis_am_rate_ = np.array(self.distractor_am_rate, dtype=float)
+        if len(dis_am_rate_)==1:
+            dis_am_rate_ = np.zeros_like(dis_range_) + dis_am_rate_
 
         # combinations
         tar_count=len(tar_range_)
@@ -1276,7 +1422,8 @@ class AMFusion(WavSet):
                         'tar_depth': np.concatenate([am_depth_] * dis_count),
                         'tar_bandwidth': self.target_bandwidth,
                         'tar_level': tlevel,
-                        'dis_freq': np.concatenate([np.zeros(tar_count)+d for d in dis_range_]),
+                        'dis_offset': np.concatenate([np.zeros(tar_count)+d for d in dis_range_]),
+                        'dis_am': np.concatenate([np.zeros(tar_count)+d for d in dis_am_rate_]),
                         'dis_level': dlevel,
                         'duration': self.duration,
                         'tar_channel': self.primary_channel,
@@ -1285,13 +1432,26 @@ class AMFusion(WavSet):
                 slist.append(pd.DataFrame(data))
 
         stim = pd.concat(slist, ignore_index=True)
-        stim['go_trial'] = stim['tar_freq']!=stim['dis_freq']
+        # remove duplicates of very easy ("inf snr") trials
+        stim.loc[stim['tar_level']-stim['dis_level']>=60, ['dis_offset']] = 0
 
+        stim['dis_freq'] = np.round(stim['tar_freq'] * 2**stim['dis_offset'])
+        stim = stim.drop_duplicates()
+        stim['go_trial'] = (stim['dis_offset']!=0) | (stim['tar_level']-stim['dis_level']>=60)
 
         if self.switch_channels:
             d2=stim.copy()
             d2['tar_channel']=1-self.primary_channel
             stim = pd.concat([stim,d2], ignore_index=True)
+
+        if self.swap_carriers:
+            t_ = stim['tar_freq']
+            stim['tar_freq'] = stim['dis_freq']
+            stim['dis_freq'] = t_
+        if self.easy_ratio>1:
+            stim_easy = stim.loc[stim['tar_level']-stim['dis_level']>=60]
+            slist = [stim] + [stim_easy] * int(self.easy_ratio-1)
+            stim = pd.concat(slist, ignore_index=True)
 
         self.stim_list = stim.copy().reset_index()
         print(self.stim_list)
@@ -1315,13 +1475,26 @@ class AMFusion(WavSet):
     def trial_waveform(self, trial_idx=None, wav_set_idx=None):
 
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
+        harmonics = self.harmonics
+        if len(harmonics)==0:
+            harmonics = [0]
+        hcount = len(harmonics)
 
         wbins = int(row['duration']*self.fs)
         t=np.arange(wbins)/self.fs
-        wfg = np.sin(t*2*np.pi*row['tar_freq'])*5
-        env = np.abs(np.sin(t*2*np.pi*row['tar_am']/2))*2
-        wfg *= env
-        wbg = np.sin(t*2*np.pi*row['dis_freq'])*5
+        wfg = np.zeros(wbins)
+        wbg = np.zeros(wbins)
+        for h in harmonics:
+            wfg += np.sin(t*2*np.pi*row['tar_freq'] * (h+1))*(5/hcount)
+            wbg += np.sin(t*2*np.pi*row['dis_freq'] * (h+1))*(5/hcount)
+
+        if row['tar_am']>0:
+            env = 1 + np.sin(t*2*np.pi*row['tar_am'])
+            wfg *= env
+        if row['dis_am']>0:
+            env = 1 + np.sin(t*2*np.pi*row['dis_am'])
+            wbg *= env
+
 
         fg_level = row['tar_level']
         bg_level = row['dis_level']
@@ -1377,6 +1550,7 @@ class AMFusion(WavSet):
              'distractor_name': dis_name,
              'this_target_frequency': row['tar_freq'],
              'this_target_am': row['tar_am'],
+             'this_distractor_offset': row['dis_offset'],
              'this_distractor_frequency': row['dis_freq'],
              'this_duration': row['duration'],
              'this_target_level': row['tar_level'],
@@ -1431,6 +1605,7 @@ class VowelSet(WavSet):
          'int', 'scope': 'experiment'},
         {'name': 's1_name', 'label': 'S1', 'type': 'Result', 'type': 'Result'},
         {'name': 's2_name', 'label': 'S2', 'type': 'Result'},
+        {'name': 'stim_cat', 'label': 'Cat', 'type': 'Result'},
     ]
 
     for d in default_parameters:
@@ -1565,7 +1740,10 @@ class VowelSet(WavSet):
             elif stim_cat == 'N':
                 response_condition = 0
             elif stim_cat == 'C':
-                response_condition = 0
+                if np.random.rand()>=0.5:
+                    response_condition = 0
+                else:
+                    response_condition = 1
 
         response_window = self.response_window
 
@@ -1575,6 +1753,7 @@ class VowelSet(WavSet):
              's2idx': s2idx,
              's1_name': s1_name,
              's2_name': s2_name,
+             'stim_cat': stim_cat,
              'duration': self.duration,
              'response_condition': response_condition,
              'response_window': response_window,
@@ -1613,6 +1792,8 @@ class VowelSet(WavSet):
             n = trial_idx - len(self.trial_outcomes) + 1
             self.trial_outcomes = np.concatenate((self.trial_outcomes, np.zeros(n)-1))
         self.trial_outcomes[trial_idx] = int(outcome)
+        stim_cat = self.stim_cat[wav_set_idx]
+
         if repeat_incorrect and (outcome in [0, 1]):
             #log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
             #self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))

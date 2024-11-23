@@ -161,7 +161,8 @@ def readpsievents(logpath=None, runclass=None, rawid=None, c=None):
                     }
     elif runclass in ['AMF']:
         parmnames = ['target_frequency', 'target_am_rate', 'target_bandwidth', 'modulation_depth',
-                     'target_level', 'distractor_frequency', 'distractor_level', 'duration',
+                     'target_level', 'distractor_frequency', 'distractor_offset',
+                     'distractor_am_rate', 'distractor_level', 'harmonics', 'duration',
                      'primary_channel', 'switch_channels', 'reward_ambiguous_frac', 'fs', 'response_start', 'response_end',
                      'random_seed']
         row = df.iloc[-1]
@@ -836,7 +837,7 @@ def flush_training(prefix="LMD", local_folder="e:/data", dest_root='/auto/data/d
               f" respfileevp=replace(respfileevp, '{local_folder}', '{dest_root}')," + \
               f" respfile=replace(respfile, '{local_folder}', '{dest_root}')," +              \
               f" eyecalfile=replace(eyecalfile, '{local_folder}', '{dest_root}')," +              \
-              f" resppath=replace(resppath, 'd:/Data', '{dest_root}')" +\
+              f" resppath=replace(resppath, '{local_folder}', '{dest_root}')" +\
               f" WHERE id={r['id']}"
         c.sqlexec(sql)
 

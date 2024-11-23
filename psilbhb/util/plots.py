@@ -156,6 +156,8 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         df_list.append(d_)
 
     d_ = pd.concat(df_list, ignore_index=True)
+    ylabel = "Frac. correct"
+
     if runclass=='NFB':
         d_['config'] = 'contra'
         d_.loc[(d_['bg_channel'] == d_['fg_channel']), 'config'] = 'ipsi'
@@ -180,10 +182,11 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         dbias = dbias.unstack(-1)
         width = 12
     elif runclass in ['AMF']:
-        perfsum = d_.groupby(['this_snr', 'this_distractor_frequency'])[['correct']].mean()
+        #parmlist = ['this_snr', 'this_distractor_offset', 'this_distractor_frequency']
+        parmlist=['this_distractor_frequency', 'this_distractor_offset']
+        perfsum = d_.groupby(parmlist)[['correct']].mean()
         perfsum = perfsum.unstack(-1)
-        perfcount = d_.groupby(['this_snr', 'this_distractor_frequency'])[['correct']].count()
-        perfcount = perfcount.unstack(-1)
+        perfcount = d_.groupby(parmlist)[['correct']].count().unstack(-1)
 
         dbias = d_.groupby(['response', 'snr'])['correct'].mean()
         dbias = dbias.unstack(-1)
@@ -191,11 +194,25 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
     else:
         d_.loc[(d_['s1idx'] == 0) & (d_['s1_name'].astype(str) == 'nan'), 's1_name'] = "AE.828.1920.2500.106.wav"
         d_.loc[(d_['s2idx'] == 0) & (d_['s2_name'].astype(str) == 'nan'), 's2_name'] = "AE.828.1920.2500.106.wav"
-        perfsum = d_.groupby(['s1_name'])[['correct']].mean()
-        perfcount = d_.groupby(['s1_name'])[['correct']].count()
+
+        d_['s'] = d_[['stim_cat','s1_name', 's2_name']].astype(str).agg('+'.join, axis=1)
+        def _cleanup(s):
+            s=s.replace('.wav','')
+            s = s.replace('151', 'm')
+            s = s.replace('106', 'l')
+            s = s.replace('_', '')
+            return s
+        d_['s'] = d_['s'].apply(_cleanup)
+        d_['go'] = d_['response'] == 'spout_1'
+
+        perfsum = d_.groupby(['s'])[['go']].mean()
+        #perfsum = perfsum.reset_index().set_index('s')
+        perfcount = d_.groupby(['s'])[['correct']].count()
+        #perfcount = perfcount.reset_index().set_index('s')
         dbias = d_.groupby(['response','snr'])['correct'].mean()
         dbias = dbias.unstack(-1)
         width = 8
+        ylabel="Go probability"
 
     f = plt.figure(figsize=(width, 6))
     ax = [f.add_subplot(2,3,1), f.add_subplot(2,3,2), f.add_subplot(2,3,3),
@@ -204,7 +221,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
     perfsum.plot.bar(ax=ax[0], legend=False)
     ax[0].axhline(y=0.5, color='b', linestyle=':')
     ax[0].axhline(y=0.5, color='b', linestyle=':')
-    ax[0].set_ylabel('Frac. correct')
+    ax[0].set_ylabel(ylabel)
     ax[0].set_title(f"n valid={trial_count-early_np_count}/{trial_count}")
 
     perfcount.plot.bar(ax=ax[1], legend=True)
