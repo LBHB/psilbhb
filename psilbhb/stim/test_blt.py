@@ -3,7 +3,7 @@ import numpy as np
 import os
 import pandas as pd
 
-from psilbhb.stim.wav_set_passive import BinauralTone
+from psilbhb.stim.wav_set import BinauralTone
 
 pd.set_option('display.width',160)
 
