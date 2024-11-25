@@ -3,15 +3,15 @@ import numpy as np
 import os
 import pandas as pd
 
-from psilbhb.stim.wav_set_passive import BinauralTone
+from psilbhb.stim.wav_set import BinauralTone, BinauralAM
 
-pd.set_option('display.width',160)
+pd.set_option('display.width', 160)
 
-params = BinauralTone.default_values()
+params = BinauralAM.default_values()
 params.update(primary_channel=0, switch_channels=False, random_seed=4234,
-              probe_level=[-100, 0], probe_delay=[0,10], include_mono=True)
+              reference_level=[60], modulation_depth=[10], probe_level=[0], probe_delay=[0], include_mono=True)
 
-bt = BinauralTone(**params)
+bt = BinauralAM(**params)
 bt.update()  # not necessary but illustrative of back-end processing
 
 N = 50
