@@ -219,7 +219,7 @@ def remove_clicks(w, max_threshold=10, verbose=False):
 
 
 def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_scale=1,
-             force_duration=None):
+             force_duration=None, max_correction=20):
     '''
     Load wav file, scale, and resample
     Parameters
@@ -279,7 +279,23 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
     else:
         raise ValueError(f'Unrecognized normalization: {normalization}')
 
-    if calibration is not None:
+    # TODO: hijack calibration to call equalizer function from BNB's notebook.from
+    if calibration.__name__ is 'InterpCalibration':
+        # apply fir filter using in ear calibration code provided by BB
+        from psiaudio.stim import apply_max_correction
+        fl, fh = 500, 45000
+        window = 'hann'
+        ntaps = 1001
+        freq = np.arange(fl, fh + 1)
+        sf = calibration.get_sf(freq, level)
+        sf = apply_max_correction(sf, max_correction)
+        freq = np.concatenate(([0, fl / 1.1], freq, [fh * 1.1, fs / 2]))
+        sf = np.pad(sf, 2)
+        taps = signal.firwin2(ntaps, freq=freq, gain=sf, window=window, fs=fs)
+        zi = signal.lfilter_zi(taps, [1])
+        waveform, zi = signal.lfilter(taps, [1], waveform, zi=zi)
+
+    elif calibration is not None:
         sf = calibration.get_sf(1e3, level)
         waveform *= sf
     elif level is not None:
