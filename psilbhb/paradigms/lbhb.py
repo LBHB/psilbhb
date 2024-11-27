@@ -181,3 +181,21 @@ ParadigmDescription(
         {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True, 'attrs': {'stim_class_name': 'BinauralAM'}},
     ],
 )
+
+ParadigmDescription(
+    'BVP', '(BVP) Vowel passive',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'passive.PassiveManifest', },
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'VowelSet'}},
+    ],
+)
+
+ParadigmDescription(
+    'BNT', '(BNT) Big natural sound set',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'passive.PassiveManifest', },
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'BigNat'}},
+    ],
+)

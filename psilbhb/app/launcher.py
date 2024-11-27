@@ -327,14 +327,25 @@ class CellDbLauncher(SimpleLauncher):
     def launch_subprocess(self):
         if self.training == 'Yes':
             behavior = 'active'
+            ephys=False
             dataroot = get_config('DATA_ROOT')
             #dataroot = get_config('TRAINING_ROOT')
         elif self.training == 'Physiology+behavior':
             behavior = 'active'
+            ephys=True
             dataroot = get_config('DATA_ROOT')
         else:
             behavior = 'passive'
+            ephys=True
             dataroot = get_config('DATA_ROOT')
+
+        # moved this up from other psi stuff so that OE check will happen before
+        # celldb is advanced.
+        plugins = [p.id for p in self.experiment.plugins if p.selected]
+        if ephys & ('openephys' not in plugins):
+            log.error('Need to turn on openephy plugin!!!')
+            #plugins.append('openephys')
+            return
 
         oeroot = get_config('OPENEPHYS_ROOT')
         oeroot2 = get_config('OPENEPHYS_ROOT2')
@@ -357,7 +368,8 @@ class CellDbLauncher(SimpleLauncher):
             print(error)
 
         args = ['psi', self.experiment.name]
-        plugins = [p.id for p in self.experiment.plugins if p.selected]
+
+
         if self.save_data:
             args.append(str(self.base_folder))
         if self.preferences:

@@ -226,6 +226,7 @@ class BigNaturalSequenceFactory(WavSequenceFactory):
         self.reset()
 
     def reset(self):
-        self.queue = queue.BlockedRandomSignalQueue(self.fs, self.random_seed)
+        self.queue = queue.BlockedRandomSignalQueue(fs=self.fs, seed=self.random_seed)
+        #self.queue = queue.BlockedRandomSignalQueue(self.fs, self.random_seed)
         metadata = [{'filename': w.filename.stem} for w in self.wav_files]
         self.queue.extend(self.wav_files, np.inf, duration=self.duration, metadata=metadata)

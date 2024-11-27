@@ -90,6 +90,10 @@ context:
         rove: false
     results:
       correct: {}
+      psivideo_frame_ts: {}
+      psivideo_frames_written: {}
+      psivideo_side_frame_ts: {}
+      psivideo_side_frames_written: {}
       response: {}
       response_time: {}
       response_ts: {}
@@ -114,7 +118,7 @@ context:
         expression: '1'
         rove: false
       target_tone_frequency:
-        expression: '900'
+        expression: '3000'
         rove: false
       target_tone_level:
         expression: background_1_wav_sequence_level+snr
@@ -193,7 +197,7 @@ context:
 event_log:
   column_widths:
     event: 100
-    info: 100
+    info: 3948
     timestamp: 100
 microphone:
   y_max: 6.022528848070045

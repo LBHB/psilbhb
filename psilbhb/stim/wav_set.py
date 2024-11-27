@@ -6,6 +6,7 @@ from fractions import Fraction
 from copy import deepcopy
 from random import choices
 import os
+import glob
 import logging
 
 import numpy as np
@@ -281,26 +282,7 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
     else:
         raise ValueError(f'Unrecognized normalization: {normalization}')
 
-    # TODO: hijack calibration to call equalizer function from BNB's notebook.from
-    if calibration.__name__ is 'InterpCalibration':
-        # apply fir filter using in ear calibration code provided by BB
-        from psiaudio.stim import apply_max_correction
-        fl, fh = 500, 45000
-        window = 'hann'
-        ntaps = 1001
-        freq = np.arange(fl, fh + 1)
-        sf = calibration.get_sf(freq, level)
-        sf = apply_max_correction(sf, max_correction)
-        freq = np.concatenate(([0, fl / 1.1], freq, [fh * 1.1, fs / 2]))
-        sf = np.pad(sf, 2)
-        taps = signal.firwin2(ntaps, freq=freq, gain=sf, window=window, fs=fs)
-        zi = signal.lfilter_zi(taps, [1])
-        waveform, zi = signal.lfilter(taps, [1], waveform, zi=zi)
-
-    elif calibration is not None:
-        sf = calibration.get_sf(1e3, level)
-        waveform *= sf
-    elif level is not None:
+    if level is not None:
         attenuatedB = 80-level
         sf = 10 ** (-attenuatedB/20)
         waveform *= sf
@@ -310,7 +292,7 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
     waveform[waveform<-5]=-5
     #if np.max(np.abs(waveform)) > 5:
     #    raise ValueError('waveform value too large')
-
+    #log.info(f'load_wav: wstd: {waveform.std()} {normalization} scale {norm_fixed_scale}')
 
     return waveform
 
@@ -564,7 +546,11 @@ class MCWavFileSet(WavFileSet):
 class WavSet:
 
     default_parameters = [
-        {'name': 'fg_path', 'label': 'FG path', 'default': 'h:/sounds/vocalizations/v4', 'dtype': 'str'},
+        {'name': 'equalize', 'label': 'Apply equalizer?',
+         'choices': {'No': "False", 'Yes': "True"}, 'default': 'No',
+         'scope': 'experiment', 'type': 'EnumParameter', 'group_name': 'WavSet'},
+        {'name': 'calfile1', 'label': 'Cal file 1', 'default': '"D:\cfts\<-2>"', 'dtype': 'str', 'group_name': 'WavSet'},
+        {'name': 'calfile2', 'label': 'Cal file 2', 'default': '"D:\cfts\<-1>"', 'dtype': 'str', 'group_name': 'WavSet'},
     ]
 
     def __init__(self, n_response):
@@ -574,9 +560,14 @@ class WavSet:
         self.trial_outcomes = np.array([], dtype=int)
         self.trial_is_repeat = np.array([], dtype=int)
         self.current_full_rep = 0
-        self.calibration = None
 
+        self.equalize = False
+        self.calfile1 = False
+        self.calfile2 = False
+        self.calibration1 = None
+        self.calibration2 = None
         self.stim_list = pd.DataFrame()
+
 
     @property
     def wav_per_rep(self):
@@ -613,7 +604,7 @@ class WavSet:
                 self.update(trial_idx=trial_idx)
 
             wav_set_idx = self.trial_wav_idx[trial_idx-1]
-            #print(f"trial_idx={trial_idx} wav_set_idx={wav_set_idx}")
+            #log.info(f"{wav_set_idx} from {self.trial_wav_idx}")
 
         if wav_set_idx < len(self.stim_list):
             r = self.stim_list.loc[[wav_set_idx]]
@@ -626,24 +617,112 @@ class WavSet:
 
     @property
     def user_parameters(self):
-        return self.default_parameters
+        d = self.default_parameters
+        return d
 
     def update_parameters(self, parameter_dict):
         for k, v in parameter_dict.items():
             setattr(self, k, v)
+        self.update_calibration()
         self.update()
+
+    def load_cal(self, calfile):
+        from psiaudio.calibration import InterpCalibration
+
+        if '<' in calfile:
+            ss = calfile.split("<")
+            filenumber = int(ss[1].replace(">", ""))
+            filelist = glob.glob(ss[0] + "*")
+            c = filelist[filenumber]
+            log.info(f"calfile set to: {c}")
+        else:
+            c = calfile
+        experiment_folder1 = Path(c)
+        sens_file = experiment_folder1 / 'chirp_sens.csv'
+        sens = pd.read_csv(sens_file, index_col=['hw_ao_chirp_level', 'frequency'])
+        try:
+            calibration = InterpCalibration(
+                sens.loc[-20].index.get_level_values('frequency'),
+                sens.loc[-20, 'norm_spl'].values,
+            )
+        except:
+            calibration = InterpCalibration(
+                sens.loc[-40].index.get_level_values('frequency'),
+                sens.loc[-40, 'norm_spl'].values,
+            )
+
+        return c, sens, calibration
+
+    def update_calibration(self):
+        # hard code to load a calibration file.
+
+        if self.equalize:
+            # for each ear....
+            if len(self.calfile1) > 0:
+                file, df, self.calibration1 = self.load_cal(self.calfile1)
+                self.calfile1 = file
+            if len(self.calfile2) > 0:
+                file, df, self.calibration2 = self.load_cal(self.calfile2)
+                self.calfile2 = file
+
 
     def update(self):
         pass
 
-    def trial_waveform(self, **kwargs):
+    def trial_waveform(self, trial_idx=None, wav_set_idx=None, **kwargs):
 
-        w = self._trial_waveform(**kwargs)
+        w = self._trial_waveform(trial_idx=trial_idx, wav_set_idx=wav_set_idx, **kwargs)
 
-        if self.calibration is not None:
-            log.info("TODO: apply equalizer")
-        else:
-            log.info("No equalizer")
+        if self.equalize & (self.calibration1 is not None):
+            level = 80
+            max_correction = 20
+            # TODO: hijack calibration to call equalizer function from BNB's notebook.from
+            if 'InterpCalibration' in str(type(self.calibration1)):
+                # apply fir filter using in ear calibration code provided by BB
+                from psiaudio.stim import apply_max_correction
+                fl, fh = 200, 19000 # np.min([int(self.fs/2), 45000])
+                window = 'hann'
+                ntaps = 1001
+                freq = np.arange(fl, fh + 1)
+                sf = self.calibration1.get_sf(freq, level)
+                sf = apply_max_correction(sf, max_correction)
+                freq = np.concatenate(([0, fl / 1.1], freq, [fh * 1.1, self.fs / 2]))
+                sf = np.pad(sf, 2)
+                taps = signal.firwin2(ntaps, freq=freq, gain=sf, window=window, fs=self.fs)
+                zi = signal.lfilter_zi(taps, [1])
+
+                waveform = w[0, :] / 5
+                waveform = np.pad(waveform, (1000, 0))
+                waveform, zi = signal.lfilter(taps, [1], waveform, zi=zi)
+                w[0, :] = waveform[1000:] * 5
+
+
+        if self.equalize & (self.calibration2 is not None):
+            level = 80
+            max_correction = 20
+            # TODO: hijack calibration to call equalizer function from BNB's notebook.from
+            if 'InterpCalibration' in str(type(self.calibration1)):
+                # apply fir filter using in ear calibration code provided by BB
+                from psiaudio.stim import apply_max_correction
+                fl, fh = 200, 19000 # np.min([int(self.fs/2), 45000])
+                window = 'hann'
+                ntaps = 1001
+                freq = np.arange(fl, fh + 1)
+                sf = self.calibration1.get_sf(freq, level)
+                sf = apply_max_correction(sf, max_correction)
+                freq = np.concatenate(([0, fl / 1.1], freq, [fh * 1.1, self.fs / 2]))
+                sf = np.pad(sf, 2)
+                taps = signal.firwin2(ntaps, freq=freq, gain=sf, window=window, fs=self.fs)
+                zi = signal.lfilter_zi(taps, [1])
+
+                waveform = w[1, :]/5
+                waveform = np.pad(waveform, (1000,0))
+                waveform, zi = signal.lfilter(taps, [1], waveform, zi=zi)
+                w[1, :] = waveform[1000:]*5
+
+        # elif calibration is not None:
+        #    sf = calibration.get_sf(1e3, level)
+        #    waveform *= sf
 
         return w
 
@@ -793,7 +872,7 @@ class FgBgSet(WavSet):
 
         {'name': 'normalization', 'label': 'Normalization', 'default': 'rms', 'type': 'EnumParameter',
          'choices': {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}},
-        {'name': 'norm_fixed_scale', 'label': 'fixed norm value', 'default': 1, 'dtype': 'float'},
+        {'name': 'norm_fixed_scale', 'label': 'fixed norm value', 'default': 250, 'dtype': 'float'},
         {'name': 'fg_level', 'label': 'FG level(s) dB SNR', 'expression': '[55]', 'dtype': 'object'},
         {'name': 'bg_level', 'label': 'BG level(s) dB SNR', 'expression': '[55]', 'dtype': 'object'},
         {'name': 'duration', 'label': 'FG/BG duration (s)', 'default': 3.0, 'dtype': 'float'},
@@ -949,7 +1028,7 @@ class FgBgSet(WavSet):
 
         data = {'fg_index': fg_range, 'bg_index': bg_range, 'fg_go': go_trials, 'fg_delay': self.fg_delay}
 
-        log.info(f"{pd.DataFrame(data)}")
+        #log.info(f"{pd.DataFrame(data)}")
         stim = pd.DataFrame(data=data,
                             columns=['fg_index', 'bg_index', 'fg_channel', 'bg_channel', 'fg_level', 'bg_level',
                                      'fg_go', 'fg_delay', 'migrate_trial'])
@@ -1290,57 +1369,6 @@ class FgBgSet(WavSet):
 
         return d
 
-    def score_response_old(self, outcome, repeat_incorrect=2, trial_idx=None):
-        """
-        current logic: if invalid or incorrect, trial should be repeated
-        :param outcome: int
-            -1 trial not scored (yet?) - happens if score_response skips a trial_idx
-            0 invalid
-            1 incorrect
-            2 correct
-        :param repeat_incorrect: no/early/all
-            If all -- repeat all incorrect, if early, repeat only early withdraws
-        :param trial_idx: int
-            must be less than len(trial_wav_idx) to be valid. by default, updates score for
-            current_trial_idx and increments current_trial_idx by 1.
-        :return:
-        """
-        if trial_idx is None:
-            trial_idx = self.current_trial_idx
-            # Only incrementing current trial index if trial_idx is None. Do we always
-            # want to do this???
-            self.current_trial_idx = trial_idx + 1
-
-        if trial_idx >= len(self.trial_wav_idx):
-            raise ValueError(f"attempting to score response for trial_idx out of range")
-
-        if trial_idx>=len(self.trial_outcomes):
-            n = trial_idx - len(self.trial_outcomes) + 1
-            self.trial_outcomes = np.concatenate((self.trial_outcomes, np.zeros(n)-1))
-        self.trial_outcomes[trial_idx] = int(outcome)
-
-        wav_set_idx = self.trial_wav_idx[trial_idx]
-        row = self.stim_list.loc[wav_set_idx]
-        if (row['fg_go'] > -1) & (repeat_incorrect == 2 and (outcome in [0, 1])) \
-                or (repeat_incorrect == 1 and (outcome in [0])):
-            #log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
-            #self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
-            #self.trial_is_repeat = np.concatenate((self.trial_is_repeat, [1]))
-            # log.info('Trial {trial_idx} outcome {outcome}: appending repeat to trial_wav_idx')
-            # self.trial_wav_idx = np.concatenate((self.trial_wav_idx, [self.trial_wav_idx[trial_idx]]))
-            # self.trial_is_repeat = np.concatenate((self.trial_is_repeat, [1]))
-            log.info(f'Trial {trial_idx} outcome {outcome}: repeating immediately')
-            self.trial_wav_idx = np.concatenate((self.trial_wav_idx[:trial_idx],
-                                                 [self.trial_wav_idx[trial_idx]],
-                                                 self.trial_wav_idx[trial_idx:]))
-            self.trial_is_repeat = np.concatenate((self.trial_is_repeat[:(trial_idx + 1)],
-                                                   [1],
-                                                   self.trial_is_repeat[(trial_idx + 1):]))
-        elif row['fg_go']==-1:
-            log.info(f'Trial {trial_idx} bg-only trial: moving on')
-        else:
-            log.info(f'Trial {trial_idx} outcome {outcome}: moving on')
-
 
 class AMFusion(WavSet):
 
@@ -1481,7 +1509,7 @@ class AMFusion(WavSet):
             stim = pd.concat(slist, ignore_index=True)
 
         self.stim_list = stim.copy().reset_index()
-        print(self.stim_list)
+        #print(self.stim_list)
         total_wav_set = len(stim)
 
         # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
@@ -1633,7 +1661,7 @@ class VowelSet(WavSet):
         {'name': 's1_name', 'label': 'S1', 'type': 'Result', 'type': 'Result'},
         {'name': 's2_name', 'label': 'S2', 'type': 'Result'},
         {'name': 'stim_cat', 'label': 'Cat', 'type': 'Result'},
-    ]
+    ] + WavSet.default_parameters.copy()
 
     for d in default_parameters:
         # Use `setdefault` so we don't accidentally override a parameter that
@@ -1707,7 +1735,7 @@ class VowelSet(WavSet):
             self.current_full_rep += 1
             self.trial_is_repeat = np.concatenate((self.trial_is_repeat, np.zeros_like(new_trial_wav)))
 
-    def trial_waveform(self, trial_idx=None, wav_set_idx=None):
+    def _trial_waveform(self, trial_idx=None, wav_set_idx=None):
 
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
         wav_set_idx = row['index']
@@ -2256,7 +2284,8 @@ class BinauralTone(WavSet):
         {'name': 'this_probe_frequency', 'label': 'P', 'type': 'Result'},
         {'name': 'this_snr', 'label': 'level', 'type': 'Result'},
         {'name': 'current_full_rep', 'label': 'rep', 'type': 'Result'},
-    ]
+    ] + WavSet.default_parameters.copy()
+
     #'this_ref_channel': row['ref_channel'],
     #'this_probe_channel': row['prb_channel'],
 
@@ -2316,13 +2345,16 @@ class BinauralTone(WavSet):
 
         for i, r in stim.iterrows():
             # <refhz>-<chan>:<prbhz>-<chan>:<prblevel dB>:<prbdelay ms>
-            name = f"{r['ref_frequency']:.0f}-{r['ref_channel']}:{r['prb_frequency']:.0f}-{r['prb_channel']}:{r['prb_level']}:{r['prb_delay']}"
+            name = f"{r['ref_frequency']:.0f}:{r['ref_channel']}+{r['prb_frequency']:.0f}:{r['prb_channel']}:{r['prb_level']}:{r['prb_delay']}"
             stim.loc[i, 'name'] = name
 
+        stim=stim.reset_index()
         stim['index'] = stim.index
+        #log.info(f"{stim}")
         self.stim_list = stim.copy()
 
         total_wav_set = len(stim)
+        #log.info(f"len {total_wav_set} shape {stim.shape}")
 
         # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
         if trial_idx is None:
@@ -2338,10 +2370,13 @@ class BinauralTone(WavSet):
             self.current_full_rep += 1
             self.trial_is_repeat = np.concatenate((self.trial_is_repeat, np.zeros_like(new_trial_wav)))
 
-
     def _trial_waveform(self, trial_idx=None, wav_set_idx=None):
 
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
+
+        log.info(f"**** trial {trial_idx} {row}")
+        log.info(f"****   wavidx {row['index']}")
+        log.info(f"****   ref channel: {row['ref_channel']}")
 
         fg_level = self.reference_level
         bg_level = self.reference_level + row['prb_level']
@@ -2366,8 +2401,6 @@ class BinauralTone(WavSet):
         wpre, wpost = np.zeros((prebins, 2)), np.zeros((postbins, 2))
         w = np.concatenate([wpre,w,wpost], axis=0)
 
-        log.info(f"fg level: {fg_level} bg level: {bg_level} FG RMS: {wfg.std():.3f} BG RMS: {wbg.std():.3f}")
-        log.info(f"**** trial {trial_idx} wavidx {row['index']}  ref channel: {row['ref_channel']}")
 
         return w.T
 
@@ -2453,7 +2486,7 @@ class BinauralAM(WavSet):
         {'name': 'this_probe_frequency', 'label': 'P', 'type': 'Result'},
         {'name': 'this_snr', 'label': 'level', 'type': 'Result'},
         {'name': 'current_full_rep', 'label': 'rep', 'type': 'Result'},
-    ]
+    ] + WavSet.default_parameters.copy()
 
     for d in default_parameters:
         # Use `setdefault` so we don't accidentally override a parameter that
@@ -2464,6 +2497,11 @@ class BinauralAM(WavSet):
         super().__init__(n_response=n_response)
         self.update_parameters(parameter_dict)
 
+    def update_parameters(self, parameter_dict):
+        for k, v in parameter_dict.items():
+            setattr(self, k, v)
+        self.update_calibration()
+        self.update()
 
     def update(self, trial_idx=None):
         """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.
@@ -2516,9 +2554,10 @@ class BinauralAM(WavSet):
 
         for i, r in stim.iterrows():
             # <refhz>-<chan>:<prbhz>-<chan>:<prblevel dB>:<prbdelay ms>
-            name = f"{r['ref_frequency']:.0f}-{r['ref_channel']}-{r['ref_level']}-{r['ref_am']}-{r['ref_moddepth']}:{r['prb_frequency']:.0f}-{r['prb_channel']}-{r['prb_level']}:{r['prb_delay']}"
+            name = f"{r['ref_frequency']:.0f}:{r['ref_channel']}:{r['ref_level']}:{r['ref_am']}:{r['ref_moddepth']}+{r['prb_frequency']:.0f}:{r['prb_channel']}:{r['prb_level']}:{r['prb_delay']}"
             stim.loc[i, 'name'] = name
 
+        stim=stim.reset_index()
         stim['index'] = stim.index
         self.stim_list = stim.copy()
 
@@ -2616,3 +2655,160 @@ class BinauralAM(WavSet):
 
         return d
 
+class BigNat(WavSet):
+    """
+    Replica of baphy bignat (runclass BNT)
+
+    """
+    default_parameters = [
+        {'name': 'sound_path', 'label': 'Sound path', 'default': "'h:/sounds/BigNat/v2'", 'dtype': 'str'},
+        {'name': 'fit_range', 'label': 'Fit wav indexes', 'expression': 'slice(6,56)', 'dtype': 'object'},
+        {'name': 'test_range', 'label': 'Test wav indexes', 'expression': 'slice(0,6)', 'dtype': 'object'},
+        {'name': 'test_reps', 'label': 'Test reps per Fit', 'default': 10, 'dtype': 'int'},
+
+        {'name': 'normalization', 'label': 'Normalization', 'default': 'rms', 'type': 'EnumParameter',
+         'choices': {'max': "'pe'", 'RMS': "'rms'", 'fixed': "'fixed'"}},
+        {'name': 'norm_fixed_scale', 'label': 'fixed norm value', 'default': 250, 'dtype': 'float'},
+        {'name': 'level', 'label': 'Level(s) dB SNR', 'default': 60, 'dtype': 'float'},
+        {'name': 'duration', 'label': 'duration of each sample (s)',
+         'default': 18, 'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'pre_silence', 'label': 'pre-stim silence (s)',
+         'default': 1, 'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'post_silence', 'label': 'post-stim silence (s)',
+         'default': 1, 'dtype': 'double', 'scope': 'experiment'},
+
+        {'name': 'primary_channel', 'label': 'Primary (contra) channel',
+         'compact_label': 'primary_channel', 'default': '0',
+         'choices': {'0': 0, '1': 1},
+         'scope': 'experiment', 'type': 'EnumParameter'},
+        {'name': 'fit_binaural', 'label': 'Fit binaural config', 'default': 'none', 'type': 'EnumParameter',
+         'choices': {'None': "'none'", 'One offset': "'oneoffset'", 'Two offset': "'twooffset'",
+                     'Diotic': "'diotic'", 'Diotic+1off': "'diotic1off"}},
+        {'name': 'test_binaural', 'label': 'Test binaural config', 'default': 'none', 'type': 'EnumParameter',
+         'choices': {'None': "'none'", 'One offset': "'oneoffset'", 'Two offset': "'twooffset'",
+                     'Diotic': "'diotic'", 'Diotic+1off': "'diotic1off"}},
+
+        {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': 'int'},
+        {'name': 'ramp', 'label': 'on/off ramp (ms)', 'default': 10,
+         'dtype': 'double'},
+        {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, 'group_name': 'Results' },
+
+        {'name': 's1_name', 'label': 'S1', 'type': 'Result', 'group_name': 'Results'},
+        {'name': 's2_name', 'label': 'S2', 'type': 'Result', 'group_name': 'Results'},
+        {'name': 'current_full_rep', 'label': 'Rep', 'type': 'Result', 'group_name': 'Results'},
+        {'name': 'trial_cat', 'label': 'Type', 'type': 'Result', 'group_name': 'Results'},
+    ] + WavSet.default_parameters.copy()
+
+    # mynames = [p['name'] for p in default_parameters]
+    # log.info(f"{mynames}")
+    # for p in WavSet.default_parameters:
+    #     if p['name'] not in mynames:
+    #         default_parameters.append(p.copy)
+    # mynames = [p['name'] for p in default_parameters]
+    # log.info(f"{mynames}")
+
+    for d in default_parameters:
+        # Use `setdefault` so we don't accidentally override a parameter that
+        # wants to use a different group.
+        d.setdefault('group_name', 'BigNat')
+
+    def __init__(self, n_response=0, **parameter_dict):
+        """
+        Parameters
+        ----------
+        n_response
+        parameter_dict
+        """
+        super().__init__(n_response=n_response)
+        self.update_parameters(parameter_dict)
+
+    def update_parameters(self, parameter_dict):
+        for k, v in parameter_dict.items():
+            setattr(self, k, v)
+        self.update_calibration()
+
+        self.SoundSet = MCWavFileSet(
+            fs=self.fs, path=self.sound_path, duration=self.duration,
+            normalization=self.normalization, norm_fixed_scale=self.norm_fixed_scale,
+            fit_range=self.fit_range,
+            test_range=self.test_range, test_reps=self.test_reps, channel_count=1, level=self.level)
+
+        self.update()
+
+    def update(self, trial_idx=None):
+        """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.
+        manage trials separately to allow for repeats, etc."""
+        _rng = np.random.RandomState(self.random_seed)
+
+        # TODO - s2idx
+        s1_range = np.arange(self.SoundSet.max_index)
+        data = {'s1idx': s1_range, 's1_channel': self.primary_channel,
+                's2idx': -1, 's2_channel': 1-self.primary_channel}
+
+        stim = pd.DataFrame(data=data)
+
+        self.stim_list = stim.reset_index()
+
+        total_wav_set = len(stim)
+
+        # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
+        if trial_idx is None:
+            trial_idx = self.current_trial_idx
+
+        if trial_idx >= len(self.trial_wav_idx):
+            # hack to prevent identical sequences from repeating
+            for t in range(trial_idx):
+                _ = _rng.permutation(np.arange(total_wav_set, dtype=int))
+            new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
+            self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))
+            log.info(f'Added {len(new_trial_wav)}/{len(self.trial_wav_idx)} trials to trial_wav_idx')
+            self.current_full_rep += 1
+            self.trial_is_repeat = np.concatenate((self.trial_is_repeat, np.zeros_like(new_trial_wav)))
+
+
+    def _trial_waveform(self, trial_idx=None, wav_set_idx=None):
+        row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
+
+        log.info(f"**** trial {trial_idx} wavidx {row['index']} chan {row['s1_channel']} s1idx: {row['s1idx']}")
+        s1_name = self.SoundSet.names[row['s1idx']]
+        log.info(f"**** {s1_name}")
+
+        w = self.SoundSet.waveform(row['s1idx'])
+
+        if row['s1_channel'] == 1:
+            w = np.concatenate((np.zeros_like(w), w), axis=1)
+        else:
+            w = np.concatenate((w, np.zeros_like(w)), axis=1)
+
+        log.info(f"**** {w.std()}")
+
+        prebins, postbins = int(self.fs*self.pre_silence), int(self.fs*self.post_silence)
+        wpre, wpost = np.zeros((prebins, 2)), np.zeros((postbins, 2))
+        w = np.concatenate([wpre,w,wpost], axis=0)
+        return w.T
+
+    def trial_parameters(self, trial_idx=None, wav_set_idx=None):
+        row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
+
+        s1 = row['s1idx']
+        s2 = row['s2idx']
+
+        s1_name = self.SoundSet.names[s1]
+        if s2>=0:
+            s2_name = self.SoundSet.names[s2]
+        else:
+            s2_name = 'null'
+
+        d = {'trial_idx': trial_idx,
+             'wav_set_idx': row['index'],
+             's1idx': s1,
+             's2idx': s2,
+             's1_name': s1_name,
+             's2_name': s2_name,
+             's1_channel': row['s1_channel'],
+             's2_channel': row['s2_channel'],
+             'current_full_rep': self.current_full_rep,
+             'trial_is_repeat': self.trial_is_repeat[trial_idx-1],
+             }
+
+        return d

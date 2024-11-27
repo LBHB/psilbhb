@@ -51,7 +51,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
             NIDAQHardwareAIChannel:
                 label = 'Speaker 1 monitor'
                 name = 'speaker_1_monitor'
-                channel = 'Dev1/ai3'
+                channel = 'Dev1/ai23'
                 start_trigger = '/Dev1/ao/StartTrigger'
                 fs = ai_fs
                 expected_range = (-10, 10)
@@ -63,7 +63,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
             NIDAQHardwareAIChannel:
                 label = 'Microphone 1'
                 name = 'microphone_1'
-                channel = 'Dev1/ai22'
+                channel = 'Dev1/ai21'
                 start_trigger = '/Dev1/ao/StartTrigger'
                 fs = ai_fs
                 expected_range = (-10, 10)
@@ -75,7 +75,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
             NIDAQHardwareAIChannel:
                 label = 'Microphone 2'
                 name = 'microphone_2'
-                channel = 'Dev1/ai23'
+                channel = 'Dev1/ai22'
                 start_trigger = '/Dev1/ao/StartTrigger'
                 fs = ai_fs
                 expected_range = (-10, 10)
@@ -84,17 +84,17 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 unit = 'V'
                 calibration_user_editable = True
 
-            NIDAQHardwareAIChannel:
-                label = 'Sync Monitor'
-                name = 'sync_monitor'
-                channel = 'Dev1/ai4'
-                start_trigger = '/Dev1/ao/StartTrigger'
-                fs = ai_fs
-                expected_range = (-10, 10)
-                dtype = 'float64'
-                terminal_mode = 'RSE'
-                unit = 'V'
-                calibration = FlatCalibration.from_mv_pa(2.38)
+            #NIDAQHardwareAIChannel:
+            #    label = 'Sync Monitor'
+            #    name = 'sync_monitor'
+            #    channel = 'Dev1/ai4'
+            #    start_trigger = '/Dev1/ao/StartTrigger'
+            #    fs = ai_fs
+            #    expected_range = (-10, 10)
+            #    dtype = 'float64'
+            #    terminal_mode = 'RSE'
+            #    unit = 'V'
+            #    calibration = FlatCalibration.from_mv_pa(2.38)
 
             NIDAQHardwareAOChannel:
                 label = 'Speaker 1'
@@ -105,7 +105,6 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 dtype = 'float64'
                 terminal_mode = 'RSE'
                 unit = 'V'
-                calibration = FlatCalibration.from_spl(80, vrms=5/(2**.5))
 
             NIDAQHardwareAOChannel:
                 label = 'Speaker 2'
@@ -116,7 +115,6 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 dtype = 'float64'
                 terminal_mode = 'RSE'
                 unit = 'V'
-                calibration = FlatCalibration.from_spl(80, vrms=5/(2**.5))
 
             NIDAQHardwareDOChannel:
                 label = 'Sync Trigger'
@@ -226,6 +224,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 terminal_mode = 'RSE'
                 unit = 'V'
                 start_trigger = '/Dev1/ao/StartTrigger'
+
 
             NIDAQHardwareAIChannel:
                 label = 'Calibration Microphone'

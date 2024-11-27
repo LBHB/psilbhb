@@ -207,6 +207,40 @@ enamldef IOManifest(ExperimentManifest): manifest:
             NIDAQHardwareAIChannel:
                 label = 'Starship A (microphone)'
                 name = 'starship_A_microphone'
+                channel = '/Dev1/ai21'
+                fs = ao_fs
+                expected_range = (-10, 10)
+                dtype = 'float64'
+                terminal_mode = 'RSE'
+                unit = 'V'
+                start_trigger = '/Dev1/ao/StartTrigger'
+
+			###############################################
+			# Starship B
+			###############################################
+            NIDAQHardwareAOChannel:
+                label = 'Starship B (primary)'
+                name = 'starship_B_primary'
+                channel = '/Dev1/ao3'
+                fs = ao_fs
+                expected_range = (-10, 10)
+                dtype = 'float64'
+                terminal_mode = 'RSE'
+                unit = 'V'
+
+            NIDAQHardwareAOChannel:
+                label = 'Starship B (secondary)'
+                name = 'starship_B_secondary'
+                channel = '/Dev1/ao3'
+                fs = ao_fs
+                expected_range = (-10, 10)
+                dtype = 'float64'
+                terminal_mode = 'RSE'
+                unit = 'V'
+
+            NIDAQHardwareAIChannel:
+                label = 'Starship B (microphone)'
+                name = 'starship_B_microphone'
                 channel = '/Dev1/ai22'
                 fs = ao_fs
                 expected_range = (-10, 10)
