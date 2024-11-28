@@ -17,6 +17,7 @@ import pandas as pd
 from psiaudio import queue
 from psiaudio import util
 from .basic_sounds import generate_tone
+from psiaudio.stim import apply_max_correction
 
 log = logging.getLogger(__name__)
 
@@ -566,6 +567,8 @@ class WavSet:
         self.calfile2 = False
         self.calibration1 = None
         self.calibration2 = None
+        self.calfilt1 = None
+        self.calfilt2 = None
         self.stim_list = pd.DataFrame()
 
 
@@ -658,66 +661,62 @@ class WavSet:
 
         if self.equalize:
             # for each ear....
+            level = 80
+            max_correction = 20
+
             if len(self.calfile1) > 0:
                 file, df, self.calibration1 = self.load_cal(self.calfile1)
                 self.calfile1 = file
+                # TODO: hijack calibration to call equalizer function from BNB's notebook.from
+                if 'InterpCalibration' in str(type(self.calibration1)):
+                    # apply fir filter using in ear calibration code provided by BB
+                    fl, fh = 200, 19000  # np.min([int(self.fs/2), 45000])
+                    window = 'hann'
+                    ntaps = 1001
+                    freq = np.arange(fl, fh + 1)
+                    sf = self.calibration1.get_sf(freq, level)
+                    sf = apply_max_correction(sf, max_correction)
+                    freq = np.concatenate(([0, fl / 1.1], freq, [fh * 1.1, self.fs / 2]))
+                    sf = np.pad(sf, 2)
+                    self.calfilt1 = signal.firwin2(ntaps, freq=freq, gain=sf, window=window, fs=self.fs)
+                    self.zi1 = signal.lfilter_zi(self.calfilt1, [1])
+
             if len(self.calfile2) > 0:
                 file, df, self.calibration2 = self.load_cal(self.calfile2)
                 self.calfile2 = file
-
+                fl, fh = 200, 19000 # np.min([int(self.fs/2), 45000])
+                window = 'hann'
+                ntaps = 1001
+                freq = np.arange(fl, fh + 1)
+                sf = self.calibration2.get_sf(freq, level)
+                sf = apply_max_correction(sf, max_correction)
+                freq = np.concatenate(([0, fl / 1.1], freq, [fh * 1.1, self.fs / 2]))
+                sf = np.pad(sf, 2)
+                self.calfilt2 = signal.firwin2(ntaps, freq=freq, gain=sf, window=window, fs=self.fs)
+                self.zi2 = signal.lfilter_zi(self.calfilt2, [1])
 
     def update(self):
         pass
+
 
     def trial_waveform(self, trial_idx=None, wav_set_idx=None, **kwargs):
 
         w = self._trial_waveform(trial_idx=trial_idx, wav_set_idx=wav_set_idx, **kwargs)
 
         if self.equalize & (self.calibration1 is not None):
-            level = 80
-            max_correction = 20
-            # TODO: hijack calibration to call equalizer function from BNB's notebook.from
             if 'InterpCalibration' in str(type(self.calibration1)):
                 # apply fir filter using in ear calibration code provided by BB
-                from psiaudio.stim import apply_max_correction
-                fl, fh = 200, 19000 # np.min([int(self.fs/2), 45000])
-                window = 'hann'
-                ntaps = 1001
-                freq = np.arange(fl, fh + 1)
-                sf = self.calibration1.get_sf(freq, level)
-                sf = apply_max_correction(sf, max_correction)
-                freq = np.concatenate(([0, fl / 1.1], freq, [fh * 1.1, self.fs / 2]))
-                sf = np.pad(sf, 2)
-                taps = signal.firwin2(ntaps, freq=freq, gain=sf, window=window, fs=self.fs)
-                zi = signal.lfilter_zi(taps, [1])
-
                 waveform = w[0, :] / 5
                 waveform = np.pad(waveform, (1000, 0))
-                waveform, zi = signal.lfilter(taps, [1], waveform, zi=zi)
+                waveform, zi = signal.lfilter(self.calfilt1, [1], waveform, zi=self.zi1)
                 w[0, :] = waveform[1000:] * 5
 
-
         if self.equalize & (self.calibration2 is not None):
-            level = 80
-            max_correction = 20
-            # TODO: hijack calibration to call equalizer function from BNB's notebook.from
             if 'InterpCalibration' in str(type(self.calibration1)):
                 # apply fir filter using in ear calibration code provided by BB
-                from psiaudio.stim import apply_max_correction
-                fl, fh = 200, 19000 # np.min([int(self.fs/2), 45000])
-                window = 'hann'
-                ntaps = 1001
-                freq = np.arange(fl, fh + 1)
-                sf = self.calibration1.get_sf(freq, level)
-                sf = apply_max_correction(sf, max_correction)
-                freq = np.concatenate(([0, fl / 1.1], freq, [fh * 1.1, self.fs / 2]))
-                sf = np.pad(sf, 2)
-                taps = signal.firwin2(ntaps, freq=freq, gain=sf, window=window, fs=self.fs)
-                zi = signal.lfilter_zi(taps, [1])
-
                 waveform = w[1, :]/5
                 waveform = np.pad(waveform, (1000,0))
-                waveform, zi = signal.lfilter(taps, [1], waveform, zi=zi)
+                waveform, zi = signal.lfilter(self.calfilt2, [1], waveform, zi=self.zi2)
                 w[1, :] = waveform[1000:]*5
 
         # elif calibration is not None:
@@ -1483,7 +1482,7 @@ class AMFusion(WavSet):
                         'duration': self.duration,
                         'tar_channel': self.primary_channel,
                         }
-                log.info(f"{data}")
+                #log.info(f"{data}")
                 slist.append(pd.DataFrame(data))
 
         stim = pd.concat(slist, ignore_index=True)
@@ -2374,9 +2373,9 @@ class BinauralTone(WavSet):
 
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
 
-        log.info(f"**** trial {trial_idx} {row}")
-        log.info(f"****   wavidx {row['index']}")
-        log.info(f"****   ref channel: {row['ref_channel']}")
+        #log.info(f"**** trial {trial_idx} {row}")
+        #log.info(f"****   wavidx {row['index']}")
+        #log.info(f"****   ref channel: {row['ref_channel']}")
 
         fg_level = self.reference_level
         bg_level = self.reference_level + row['prb_level']
@@ -2764,7 +2763,6 @@ class BigNat(WavSet):
             log.info(f'Added {len(new_trial_wav)}/{len(self.trial_wav_idx)} trials to trial_wav_idx')
             self.current_full_rep += 1
             self.trial_is_repeat = np.concatenate((self.trial_is_repeat, np.zeros_like(new_trial_wav)))
-
 
     def _trial_waveform(self, trial_idx=None, wav_set_idx=None):
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
