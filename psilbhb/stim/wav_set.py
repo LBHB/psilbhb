@@ -2361,9 +2361,13 @@ class BinauralTone(WavSet):
             d2['prb_channel'] = 1 - d2['prb_channel']
             stim = pd.concat([stim, d2], ignore_index=True)
 
+        single_tone_only = (stim['prb_level'].max()<=-100)
         for i, r in stim.iterrows():
-            # <refhz>-<chan>:<prbhz>-<chan>:<prblevel dB>:<prbdelay ms>
-            name = f"{r['ref_frequency']:.0f}:{r['ref_channel']}+{r['prb_frequency']:.0f}:{r['prb_channel']}:{r['prb_level']}:{r['prb_delay']}"
+            if single_tone_only:
+                name = f"{r['ref_frequency']:.0f}:{r['ref_channel']}"
+            else:
+                # <refhz>-<chan>:<prbhz>-<chan>:<prblevel dB>:<prbdelay ms>
+                name = f"{r['ref_frequency']:.0f}:{r['ref_channel']}+{r['prb_frequency']:.0f}:{r['prb_channel']}:{r['prb_level']}:{r['prb_delay']}"
             stim.loc[i, 'name'] = name
 
         stim=stim.reset_index()
