@@ -13,7 +13,9 @@ pd.set_option('display.width', 160)
 plt.ion()
 
 params = BigNat.default_values()
-params.update(primary_channel=0, level=60)
+params.update(primary_channel=0, level=60, sound_path='e:/sounds/BigNat/v2',
+              fit_binaural='twooffset', test_binaural='oneoffset', include_silence=False,
+              fit_range=range(6,51), test_range=range(3,5), test_reps=8)
 
 bt = BigNat(**params)
 bt.update()  # not necessary but illustrative of back-end processing

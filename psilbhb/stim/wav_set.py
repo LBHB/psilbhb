@@ -2740,6 +2740,8 @@ class BigNat(WavSet):
         {'name': 'sound_path', 'label': 'Sound path', 'default': "'h:/sounds/BigNat/v2'", 'dtype': 'str'},
         {'name': 'fit_range', 'label': 'Fit wav indexes', 'expression': 'slice(6,56)', 'dtype': 'object'},
         {'name': 'test_range', 'label': 'Test wav indexes', 'expression': 'slice(0,6)', 'dtype': 'object'},
+        {'name': 'include_silence', 'label': 'Silent trial?', 'default': 'No', 'type': 'EnumParameter',
+         'choices': {'Yes': "True", 'No': "False"}},
         {'name': 'test_reps', 'label': 'Test reps per Fit', 'default': 10, 'dtype': 'int'},
 
         {'name': 'normalization', 'label': 'Normalization', 'default': 'rms', 'type': 'EnumParameter',
@@ -2763,6 +2765,8 @@ class BigNat(WavSet):
         {'name': 'test_binaural', 'label': 'Test binaural config', 'default': 'none', 'type': 'EnumParameter',
          'choices': {'None': "'none'", 'One offset': "'oneoffset'", 'Two offset': "'twooffset'",
                      'Diotic': "'diotic'", 'Diotic+1off': "'diotic1off"}},
+        {'name': 'binaural_index_offset', 'label': 'Binaural index offset',
+         'default': 3, 'dtype': 'int', 'scope': 'experiment'},
 
         {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': 'int'},
         {'name': 'ramp', 'label': 'on/off ramp (ms)', 'default': 10,
@@ -2806,7 +2810,7 @@ class BigNat(WavSet):
         self.SoundSet = MCWavFileSet(
             fs=self.fs, path=self.sound_path, duration=self.duration,
             normalization=self.normalization, norm_fixed_scale=self.norm_fixed_scale,
-            fit_range=self.fit_range,
+            fit_range=self.fit_range, include_silence=self.include_silence,
             test_range=self.test_range, test_reps=self.test_reps, channel_count=1, level=self.level)
 
         self.update()
@@ -2817,9 +2821,52 @@ class BigNat(WavSet):
         _rng = np.random.RandomState(self.random_seed)
 
         # TODO - s2idx
-        s1_range = np.arange(self.SoundSet.max_index)
+        fit_idx = np.arange(len(self.SoundSet.fit_names), dtype=int)
+        test_idx = np.arange(len(self.SoundSet.test_names), dtype=int)+len(fit_idx)
+        offset = self.binaural_index_offset
+        Nfit = len(fit_idx)
+        Ntest = len(test_idx)
+
+        # self.fit_binaural : ['none', 'oneoffset', 'twooffset', 'diotic', 'diotic1off']
+        # self.test_binaural : ['none', 'oneoffset', 'twooffset', 'diotic', 'diotic1off']
+        if self.fit_binaural =='none':
+            fit_s1_range=fit_idx
+            fit_s2_range= -np.ones_like(fit_idx, dtype=int)
+        elif self.fit_binaural == 'oneoffset':
+            raise NotImplementedError('fit oneoffset not implented yet')
+            test_s1_range = np.concatenate([fit_idx] * 2 + [-np.ones_like(fit_idx)])
+            test_s2_range = np.concatenate([(fit_idx + offset) % Nfit,
+                                            -np.ones_like(fit_idx), fit_idx])
+        elif self.fit_binaural == 'twooffset':
+            fit_s1_range = np.concatenate([fit_idx]*3 + [-np.ones_like(fit_idx)])
+            fit_s2_range = np.concatenate([(fit_idx + offset + 1) % Nfit,
+                                           (fit_idx + offset + 2) % Nfit,
+                                           -np.ones_like(fit_idx), fit_idx])
+        else:
+            raise NotImplementedError(f"fit_binaural={self.fit_binaural} not implemented")
+
+        if self.test_binaural =='none':
+            test_s1_range=test_idx
+            test_s2_range=np.zeros_like(test_idx, dtype=int)
+        elif self.test_binaural == 'oneoffset':
+            test_s1_range = np.concatenate([test_idx] * 2 + [-np.ones_like(test_idx)])
+            trange = np.arange(len(test_idx))
+            test_s2_range = np.concatenate([test_idx[(trange + offset) % Ntest],
+                                            -np.ones_like(test_idx), test_idx])
+        elif self.test_binaural == 'twooffset':
+            test_s1_range = np.concatenate([test_idx]*3 + [-np.ones_like(test_idx)])
+            trange = np.arange(len(test_idx))
+            test_s2_range = np.concatenate([test_idx[(trange + offset + 1) % Ntest],
+                                            test_idx[(trange + offset + 2) % Ntest],
+                                           -np.ones_like(test_idx), test_idx])
+        else:
+            raise NotImplementedError(f"test_binaural={self.test_binaural} not implemented")
+
+        s1_range = np.concatenate([fit_s1_range, test_s1_range])
+        s2_range = np.concatenate([fit_s2_range, test_s2_range])
+
         data = {'s1idx': s1_range, 's1_channel': self.primary_channel,
-                's2idx': -1, 's2_channel': 1-self.primary_channel}
+                's2idx': s2_range, 's2_channel': 1-self.primary_channel}
 
         stim = pd.DataFrame(data=data)
 
@@ -2844,16 +2891,28 @@ class BigNat(WavSet):
     def _trial_waveform(self, trial_idx=None, wav_set_idx=None):
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
 
-        log.info(f"**** trial {trial_idx} wavidx {row['index']} chan {row['s1_channel']} s1idx: {row['s1idx']}")
-        s1_name = self.SoundSet.names[row['s1idx']]
-        log.info(f"**** {s1_name}")
-
-        w = self.SoundSet.waveform(row['s1idx'])
+        if row['s1idx']>=0:
+            log.info(f"**** trial {trial_idx} wavidx {row['index']} chan {row['s1_channel']} s1idx: {row['s1idx']}")
+            s1_name = self.SoundSet.names[row['s1idx']]
+            log.info(f"**** S1: {s1_name}")
+            w1 = self.SoundSet.waveform(row['s1idx'])
+        else:
+            w1 = None
+        if row['s2idx']>=0:
+            s2_name = self.SoundSet.names[row['s2idx']]
+            log.info(f"**** S2: {s2_name}")
+            w2 = self.SoundSet.waveform(row['s2idx'])
+        else:
+            w2 = None
+        if w1 is None:
+            w1=np.zeros_like(w2)
+        if w2 is None:
+            w2=np.zeros_like(w1)
 
         if row['s1_channel'] == 1:
-            w = np.concatenate((np.zeros_like(w), w), axis=1)
+            w = np.concatenate((w2, w1), axis=1)
         else:
-            w = np.concatenate((w, np.zeros_like(w)), axis=1)
+            w = np.concatenate((w1, w2), axis=1)
 
         log.info(f"**** {w.std()}")
 
@@ -2868,7 +2927,10 @@ class BigNat(WavSet):
         s1 = row['s1idx']
         s2 = row['s2idx']
 
-        s1_name = self.SoundSet.names[s1]
+        if s1>=0:
+            s1_name = self.SoundSet.names[s1]
+        else:
+            s1_name = 'null'
         if s2>=0:
             s2_name = self.SoundSet.names[s2]
         else:
