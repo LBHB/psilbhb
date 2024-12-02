@@ -678,8 +678,10 @@ class WavSet:
 
     def update_calibration(self):
         # hard code to load a calibration file.
+        if self.equalize == 'No':
+            self.equalize = False
 
-        if (self.equalize!=False) & (self.equalize!='No'):
+        if self.equalize:
             # for each ear....
             level = 80
             max_correction = 20
@@ -2444,6 +2446,8 @@ class RandomTone(BinauralTone):
     default_parameters = [
         {'name': 'reference_center', 'label': 'Reference frequency',
          'expression': '1000', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'reference_level', 'label': 'Reference dB SPL',
+         'expression': '50', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'probe_octaves', 'label': 'Tone octaves (above/below ref)',
          'expression': '[1]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'probe_count', 'label': 'Tone count (tiled over octaves)',
@@ -2483,14 +2487,14 @@ class RandomTone(BinauralTone):
     for d in default_parameters:
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
-        d.setdefault('group_name', 'BinauralTone')
+        d.setdefault('group_name', 'RandomTone')
 
     def __init__(self, n_response=0, **parameter_dict):
-        super().__init__(n_response=n_response, **parameter_dict)
 
-        self.reference_level=-100
-        self.probe_delay=[0]
-        self.include_mono = False
+        parameter_dict['probe_level'] = [-100]
+        parameter_dict['probe_delay'] = [0]
+        parameter_dict['include_mono'] = False
+        super().__init__(n_response=n_response, **parameter_dict)
 
         self.update_parameters(parameter_dict)
 
