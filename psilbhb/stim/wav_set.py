@@ -18,6 +18,26 @@ from psiaudio import queue
 from psiaudio import util
 from .basic_sounds import generate_tone
 from psiaudio.stim import apply_max_correction
+from functools import partial, lru_cache
+import itertools
+from pathlib import Path
+
+from fractions import Fraction
+from copy import deepcopy
+from random import choices
+import os
+import glob
+import logging
+
+import numpy as np
+from scipy import signal
+from scipy.io import wavfile
+import pandas as pd
+
+from psiaudio import queue
+from psiaudio import util
+from .basic_sounds import generate_tone
+from psiaudio.stim import apply_max_correction
 
 log = logging.getLogger(__name__)
 
@@ -659,7 +679,7 @@ class WavSet:
     def update_calibration(self):
         # hard code to load a calibration file.
 
-        if self.equalize:
+        if (self.equalize!=False) & (self.equalize!='No'):
             # for each ear....
             level = 80
             max_correction = 20
@@ -1439,14 +1459,12 @@ class AMFusion(WavSet):
 
         self.update_parameters(parameter_dict)
 
-
     def update_parameters(self, parameter_dict):
         for k, v in parameter_dict.items():
             setattr(self, k, v)
         self.response_window = (parameter_dict['response_start'], parameter_dict['response_end'])
 
         self.update()
-
 
     def update(self, trial_idx=None):
         """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.
@@ -1524,7 +1542,6 @@ class AMFusion(WavSet):
             log.info(f'Added {len(new_trial_wav)}/{len(self.trial_wav_idx)} trials to trial_wav_idx')
             self.current_full_rep += 1
             self.trial_is_repeat = np.concatenate((self.trial_is_repeat, np.zeros_like(new_trial_wav)))
-
 
     def trial_waveform(self, trial_idx=None, wav_set_idx=None):
 
@@ -2420,6 +2437,62 @@ class BinauralTone(WavSet):
         }
 
         return d
+
+
+class RandomTone(BinauralTone):
+    """ Passive runclass = FTC """
+    default_parameters = [
+        {'name': 'reference_center', 'label': 'Reference frequency',
+         'expression': '1000', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'probe_octaves', 'label': 'Tone octaves (above/below ref)',
+         'expression': '[1]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'probe_count', 'label': 'Tone count (tiled over octaves)',
+         'expression': '9', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'probe_level', 'label': 'Probe level(s) (list, dB RE ref)',
+         'expression': '[-20,-10,0,10,20]', 'dtype': 'object', 'scope': 'experiment'},
+
+        {'name': 'duration', 'label': 'duration of each sample (s)',
+         'default': 0.1, 'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'pre_silence', 'label': 'pre-stim silence (s)',
+         'default': 0.05, 'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'post_silence', 'label': 'post-stim silence (s)',
+         'default': 0.05, 'dtype': 'double', 'scope': 'experiment'},
+
+        {'name': 'primary_channel', 'label': 'Primary (contra) channel',
+         'compact_label': 'primary_channel', 'default': '0',
+         'choices': {'0': 0, '1': 1},
+         'scope': 'experiment', 'type': 'EnumParameter'},
+        {'name': 'switch_channels', 'label': 'Switch ref channel?',
+         'compact_label': 'combinations', 'default': 'No',
+         'choices': {'No': "False", 'Yes': "True"},
+         'scope': 'experiment', 'type': 'EnumParameter'},
+
+        {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
+         'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'ramp', 'label': 'on/off ramp (ms)', 'default': 10,
+         'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
+         'int', 'scope': 'experiment'},
+        {'name': 'this_name', 'label': 'N', 'type': 'Result'},
+        {'name': 'this_reference_frequency', 'label': 'R', 'type': 'Result'},
+        {'name': 'this_probe_frequency', 'label': 'P', 'type': 'Result'},
+        {'name': 'this_snr', 'label': 'level', 'type': 'Result'},
+        {'name': 'current_full_rep', 'label': 'rep', 'type': 'Result'},
+    ] + WavSet.default_parameters.copy()
+
+    for d in default_parameters:
+        # Use `setdefault` so we don't accidentally override a parameter that
+        # wants to use a different group.
+        d.setdefault('group_name', 'BinauralTone')
+
+    def __init__(self, n_response=0, **parameter_dict):
+        super().__init__(n_response=n_response, **parameter_dict)
+
+        self.reference_level=-100
+        self.probe_delay=[0]
+        self.include_mono = False
+
+        self.update_parameters(parameter_dict)
 
 
 class BinauralAM(WavSet):
