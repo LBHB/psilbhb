@@ -167,6 +167,14 @@ ParadigmDescription(
 )
 
 ParadigmDescription(
+    'FTC', '(FTC) Passive random tone',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'passive.PassiveManifest',},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True, 'attrs': {'stim_class_name': 'RandomTone'}},
+    ],
+)
+
+ParadigmDescription(
     'BLT', '(BLT) Passive binaural level tuning',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'passive.PassiveManifest',},

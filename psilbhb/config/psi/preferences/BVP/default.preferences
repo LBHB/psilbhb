@@ -1,0 +1,97 @@
+context:
+  meta:
+    trial_log:
+    - s1_name
+    - s2_name
+  parameters:
+    VowelSet:
+      catch_set:
+        expression: '[''04_AW_106+07_EE_106'',''05_AW_151+08_EE_151'',''04_AW_106+08_EE_151'',''05_AW_151+07_EE_106'',''07_EE_106+10_OO_106'',''11_OO_151+08_EE_151'',''07_EE_106+11_OO_151'',''08_EE_151+10_OO_106'',''04_AW_106+10_OO_106'',''05_AW_151+11_OO_151'',''04_AW_106+11_OO_151'',''05_AW_151+10_OO_106'']'
+        rove: false
+      duration:
+        expression: '0.24'
+        rove: false
+      fs:
+        expression: '44000'
+        rove: false
+      level:
+        expression: '60'
+        rove: false
+      non_target_set:
+        expression: '[''04_AW_106+04_AW_106'', ''05_AW_151+05_AW_151'', ''07_EE_106+07_EE_106'',
+          ''08_EE_151+08_EE_151'', ''11_OO_151+11_OO_151'', ''10_OO_106+10_OO_106'',
+          ''04_AW_106'', ''05_AW_151'', ''07_EE_106'', ''08_EE_151'', ''11_OO_151'',
+          ''10_OO_106'']'
+        rove: false
+      primary_channel:
+        rove: false
+        selected: '1'
+      random_seed:
+        expression: '0'
+        rove: false
+      repeat_count:
+        expression: '1'
+        rove: false
+      repeat_isi:
+        expression: '0.2'
+        rove: false
+      response_end:
+        expression: '2'
+        rove: false
+      response_start:
+        expression: '0'
+        rove: false
+      s1_name: {}
+      s2_name: {}
+      sound_path:
+        expression: '''e:/sounds/vowels/v5'''
+        rove: false
+      stim_cat: {}
+      switch_channels:
+        rove: false
+        selected: 'Yes'
+      tar_to_cat_ratio:
+        expression: '1'
+        rove: false
+      target_set:
+        expression: '[''01_AE_106+01_AE_106'', ''02_AE_151+02_AE_151'', ''13_EH_106+13_EH_106'',
+          ''14_EH_151+14_EH_151'', ''01_AE_106+01_AE_106'', ''02_AE_151+02_AE_151'',
+          ''13_EH_106+13_EH_106'', ''14_EH_151+14_EH_151'', ''01_AE_106'', ''02_AE_151'',
+          ''13_EH_106'', ''14_EH_151'', ''01_AE_106'', ''02_AE_151'', ''13_EH_106'',
+          ''14_EH_151'']'
+        rove: false
+    WavSet:
+      calfile1:
+        expression: '"D:\cfts\<-1>"'
+        rove: false
+      calfile2:
+        expression: '"D:\cfts\<-2>"'
+        rove: false
+      equalize:
+        rove: false
+        selected: 'Yes'
+    results:
+      trial_start: {}
+    trial:
+      iti_duration:
+        expression: '0.1'
+        rove: false
+      snr:
+        expression: '0'
+        rove: false
+      target_delay:
+        expression: '0.5'
+        rove: false
+      trial_reps:
+        expression: '10'
+        rove: false
+  selectors: {}
+microphone:
+  y_max: 1.0
+  y_min: -1.0
+trial_log:
+  column_config:
+    s1_name:
+      width: 39
+    s2_name:
+      width: 39

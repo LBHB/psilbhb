@@ -678,8 +678,10 @@ class WavSet:
 
     def update_calibration(self):
         # hard code to load a calibration file.
+        if self.equalize == 'No':
+            self.equalize = False
 
-        if (self.equalize!=False) & (self.equalize!='No'):
+        if self.equalize:
             # for each ear....
             level = 80
             max_correction = 20
@@ -1198,7 +1200,7 @@ class FgBgSet(WavSet):
         if trial_idx is None:
             trial_idx = self.current_trial_idx
 
-        if trial_idx >= len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             dd = 10
             ii = 0
             # fix to prevent identical sequences from repeating
@@ -1533,7 +1535,7 @@ class AMFusion(WavSet):
         if trial_idx is None:
             trial_idx = self.current_trial_idx
 
-        if trial_idx >= len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             # hack to prevent identical sequences from repeating
             for t in range(trial_idx):
                 _ = _rng.permutation(np.arange(total_wav_set, dtype=int))
@@ -1640,7 +1642,7 @@ class AMFusion(WavSet):
 class VowelSet(WavSet):
 
     default_parameters = [
-        {'name': 'sound_path', 'label': 'folder', 'default': 'h:/sounds/vowels/v2',
+        {'name': 'sound_path', 'label': 'folder', 'default': 'e:/sounds/vowels/v5',
          'dtype': 'str', 'scope': 'experiment'},
         {'name': 'target_set', 'label': 'Target names (list)',
          'expression': '["EH_106"]', 'dtype': 'object', 'scope': 'experiment'},
@@ -1672,11 +1674,17 @@ class VowelSet(WavSet):
          'default': 0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'response_end', 'label': 'response win end (s)', 'default': 2,
          'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'pre_silence', 'label': 'pre-stim silence (s)',
+         'default': 0.0, 'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'post_silence', 'label': 'post-stim silence (s)',
+         'default': 0.0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
          'int', 'scope': 'experiment'},
+        {'name': 'this_name', 'label': 'N', 'type': 'Result', 'type': 'Result'},
         {'name': 's1_name', 'label': 'S1', 'type': 'Result', 'type': 'Result'},
         {'name': 's2_name', 'label': 'S2', 'type': 'Result'},
         {'name': 'stim_cat', 'label': 'Cat', 'type': 'Result'},
+        {'name': 'current_full_rep', 'label': 'R', 'type': 'Result'},
     ] + WavSet.default_parameters.copy()
 
     for d in default_parameters:
@@ -1702,6 +1710,7 @@ class VowelSet(WavSet):
             normalization='rms', fit_range=slice(0, None), test_range=None,
             test_reps=2, channel_count=1, level=self.level)
 
+        self.update_calibration()
         self.update()
 
     @property
@@ -1743,7 +1752,7 @@ class VowelSet(WavSet):
         # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
         if trial_idx is None:
             trial_idx = self.current_trial_idx
-        if trial_idx >= len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             for rep in np.arange(self.current_full_rep+1):
                 new_trial_wav = _rng.permutation(np.arange(len(self.stim1idx), dtype=int))
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))
@@ -1773,6 +1782,11 @@ class VowelSet(WavSet):
             w_all = [w] + [w_silence, w] * (self.repeat_count-1)
             w = np.concatenate(w_all, axis=0)
 
+        log.info(f"RMS w1: {np.mean(w1**2)**0.5} w2: {np.mean(w2**2)**0.5}")
+
+        prebins, postbins = int(self.fs*self.pre_silence), int(self.fs*self.post_silence)
+        wpre, wpost = np.zeros((prebins, 2)), np.zeros((postbins, 2))
+        w = np.concatenate([wpre,w,wpost], axis=0)
         return w.T
 
     def trial_parameters(self, trial_idx=None, wav_set_idx=None):
@@ -1817,11 +1831,13 @@ class VowelSet(WavSet):
                     response_condition = 1
 
         response_window = self.response_window
+        name = s1_name+"+"+s2_name+"+"+stim_cat
 
         d = {'trial_idx': trial_idx,
              'wav_set_idx': wav_set_idx,
              's1idx': s1idx,
              's2idx': s2idx,
+             'this_name': name,
              's1_name': s1_name,
              's2_name': s2_name,
              'stim_cat': stim_cat,
@@ -2103,7 +2119,7 @@ class CategorySet(FgBgSet):
         # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
         if trial_idx is None:
             trial_idx = self.current_trial_idx
-        if trial_idx >= len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))
             log.info(f'Added {len(new_trial_wav)}/{len(self.trial_wav_idx)} trials to trial_wav_idx')
@@ -2359,9 +2375,13 @@ class BinauralTone(WavSet):
             d2['prb_channel'] = 1 - d2['prb_channel']
             stim = pd.concat([stim, d2], ignore_index=True)
 
+        single_tone_only = (stim['prb_level'].max()<=-100)
         for i, r in stim.iterrows():
-            # <refhz>-<chan>:<prbhz>-<chan>:<prblevel dB>:<prbdelay ms>
-            name = f"{r['ref_frequency']:.0f}:{r['ref_channel']}+{r['prb_frequency']:.0f}:{r['prb_channel']}:{r['prb_level']}:{r['prb_delay']}"
+            if single_tone_only:
+                name = f"{r['ref_frequency']:.0f}:{r['ref_channel']}"
+            else:
+                # <refhz>-<chan>:<prbhz>-<chan>:<prblevel dB>:<prbdelay ms>
+                name = f"{r['ref_frequency']:.0f}:{r['ref_channel']}+{r['prb_frequency']:.0f}:{r['prb_channel']}:{r['prb_level']}:{r['prb_delay']}"
             stim.loc[i, 'name'] = name
 
         stim=stim.reset_index()
@@ -2376,7 +2396,7 @@ class BinauralTone(WavSet):
         if trial_idx is None:
             trial_idx = self.current_trial_idx
 
-        if trial_idx >= len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             # hack to prevent identical sequences from repeating
             for t in range(trial_idx):
                 _ = _rng.permutation(np.arange(total_wav_set, dtype=int))
@@ -2444,12 +2464,12 @@ class RandomTone(BinauralTone):
     default_parameters = [
         {'name': 'reference_center', 'label': 'Reference frequency',
          'expression': '1000', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'reference_level', 'label': 'Reference dB SPL',
+         'expression': '50', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'probe_octaves', 'label': 'Tone octaves (above/below ref)',
          'expression': '[1]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'probe_count', 'label': 'Tone count (tiled over octaves)',
          'expression': '9', 'dtype': 'object', 'scope': 'experiment'},
-        {'name': 'probe_level', 'label': 'Probe level(s) (list, dB RE ref)',
-         'expression': '[-20,-10,0,10,20]', 'dtype': 'object', 'scope': 'experiment'},
 
         {'name': 'duration', 'label': 'duration of each sample (s)',
          'default': 0.1, 'dtype': 'double', 'scope': 'experiment'},
@@ -2483,14 +2503,14 @@ class RandomTone(BinauralTone):
     for d in default_parameters:
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
-        d.setdefault('group_name', 'BinauralTone')
+        d.setdefault('group_name', 'RandomTone')
 
     def __init__(self, n_response=0, **parameter_dict):
-        super().__init__(n_response=n_response, **parameter_dict)
 
-        self.reference_level=-100
-        self.probe_delay=[0]
-        self.include_mono = False
+        parameter_dict['probe_level'] = [-100]
+        parameter_dict['probe_delay'] = [0]
+        parameter_dict['include_mono'] = False
+        super().__init__(n_response=n_response, **parameter_dict)
 
         self.update_parameters(parameter_dict)
 
@@ -2639,7 +2659,7 @@ class BinauralAM(WavSet):
         if trial_idx is None:
             trial_idx = self.current_trial_idx
 
-        if trial_idx >= len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             # hack to prevent identical sequences from repeating
             for t in range(trial_idx):
                 _ = _rng.permutation(np.arange(total_wav_set, dtype=int))
@@ -2736,6 +2756,8 @@ class BigNat(WavSet):
         {'name': 'sound_path', 'label': 'Sound path', 'default': "'h:/sounds/BigNat/v2'", 'dtype': 'str'},
         {'name': 'fit_range', 'label': 'Fit wav indexes', 'expression': 'slice(6,56)', 'dtype': 'object'},
         {'name': 'test_range', 'label': 'Test wav indexes', 'expression': 'slice(0,6)', 'dtype': 'object'},
+        {'name': 'include_silence', 'label': 'Silent trial?', 'default': 'No', 'type': 'EnumParameter',
+         'choices': {'Yes': "True", 'No': "False"}},
         {'name': 'test_reps', 'label': 'Test reps per Fit', 'default': 10, 'dtype': 'int'},
 
         {'name': 'normalization', 'label': 'Normalization', 'default': 'rms', 'type': 'EnumParameter',
@@ -2759,6 +2781,8 @@ class BigNat(WavSet):
         {'name': 'test_binaural', 'label': 'Test binaural config', 'default': 'none', 'type': 'EnumParameter',
          'choices': {'None': "'none'", 'One offset': "'oneoffset'", 'Two offset': "'twooffset'",
                      'Diotic': "'diotic'", 'Diotic+1off': "'diotic1off"}},
+        {'name': 'binaural_index_offset', 'label': 'Binaural index offset',
+         'default': 3, 'dtype': 'int', 'scope': 'experiment'},
 
         {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': 'int'},
         {'name': 'ramp', 'label': 'on/off ramp (ms)', 'default': 10,
@@ -2802,7 +2826,7 @@ class BigNat(WavSet):
         self.SoundSet = MCWavFileSet(
             fs=self.fs, path=self.sound_path, duration=self.duration,
             normalization=self.normalization, norm_fixed_scale=self.norm_fixed_scale,
-            fit_range=self.fit_range,
+            fit_range=self.fit_range, include_silence=self.include_silence,
             test_range=self.test_range, test_reps=self.test_reps, channel_count=1, level=self.level)
 
         self.update()
@@ -2813,9 +2837,52 @@ class BigNat(WavSet):
         _rng = np.random.RandomState(self.random_seed)
 
         # TODO - s2idx
-        s1_range = np.arange(self.SoundSet.max_index)
+        fit_idx = np.arange(len(self.SoundSet.fit_names), dtype=int)
+        test_idx = np.arange(len(self.SoundSet.test_names), dtype=int)+len(fit_idx)
+        offset = self.binaural_index_offset
+        Nfit = len(fit_idx)
+        Ntest = len(test_idx)
+
+        # self.fit_binaural : ['none', 'oneoffset', 'twooffset', 'diotic', 'diotic1off']
+        # self.test_binaural : ['none', 'oneoffset', 'twooffset', 'diotic', 'diotic1off']
+        if self.fit_binaural =='none':
+            fit_s1_range=fit_idx
+            fit_s2_range= -np.ones_like(fit_idx, dtype=int)
+        elif self.fit_binaural == 'oneoffset':
+            raise NotImplementedError('fit oneoffset not implented yet')
+            test_s1_range = np.concatenate([fit_idx] * 2 + [-np.ones_like(fit_idx)])
+            test_s2_range = np.concatenate([(fit_idx + offset) % Nfit,
+                                            -np.ones_like(fit_idx), fit_idx])
+        elif self.fit_binaural == 'twooffset':
+            fit_s1_range = np.concatenate([fit_idx]*3 + [-np.ones_like(fit_idx)])
+            fit_s2_range = np.concatenate([(fit_idx + offset + 1) % Nfit,
+                                           (fit_idx + offset + 2) % Nfit,
+                                           -np.ones_like(fit_idx), fit_idx])
+        else:
+            raise NotImplementedError(f"fit_binaural={self.fit_binaural} not implemented")
+
+        if self.test_binaural =='none':
+            test_s1_range=test_idx
+            test_s2_range=np.zeros_like(test_idx, dtype=int)
+        elif self.test_binaural == 'oneoffset':
+            test_s1_range = np.concatenate([test_idx] * 2 + [-np.ones_like(test_idx)])
+            trange = np.arange(len(test_idx))
+            test_s2_range = np.concatenate([test_idx[(trange + offset) % Ntest],
+                                            -np.ones_like(test_idx), test_idx])
+        elif self.test_binaural == 'twooffset':
+            test_s1_range = np.concatenate([test_idx]*3 + [-np.ones_like(test_idx)])
+            trange = np.arange(len(test_idx))
+            test_s2_range = np.concatenate([test_idx[(trange + offset + 1) % Ntest],
+                                            test_idx[(trange + offset + 2) % Ntest],
+                                           -np.ones_like(test_idx), test_idx])
+        else:
+            raise NotImplementedError(f"test_binaural={self.test_binaural} not implemented")
+
+        s1_range = np.concatenate([fit_s1_range, test_s1_range])
+        s2_range = np.concatenate([fit_s2_range, test_s2_range])
+
         data = {'s1idx': s1_range, 's1_channel': self.primary_channel,
-                's2idx': -1, 's2_channel': 1-self.primary_channel}
+                's2idx': s2_range, 's2_channel': 1-self.primary_channel}
 
         stim = pd.DataFrame(data=data)
 
@@ -2827,7 +2894,7 @@ class BigNat(WavSet):
         if trial_idx is None:
             trial_idx = self.current_trial_idx
 
-        if trial_idx >= len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             # hack to prevent identical sequences from repeating
             for t in range(trial_idx):
                 _ = _rng.permutation(np.arange(total_wav_set, dtype=int))
@@ -2840,16 +2907,28 @@ class BigNat(WavSet):
     def _trial_waveform(self, trial_idx=None, wav_set_idx=None):
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
 
-        log.info(f"**** trial {trial_idx} wavidx {row['index']} chan {row['s1_channel']} s1idx: {row['s1idx']}")
-        s1_name = self.SoundSet.names[row['s1idx']]
-        log.info(f"**** {s1_name}")
-
-        w = self.SoundSet.waveform(row['s1idx'])
+        if row['s1idx']>=0:
+            log.info(f"**** trial {trial_idx} wavidx {row['index']} chan {row['s1_channel']} s1idx: {row['s1idx']}")
+            s1_name = self.SoundSet.names[row['s1idx']]
+            log.info(f"**** S1: {s1_name}")
+            w1 = self.SoundSet.waveform(row['s1idx'])
+        else:
+            w1 = None
+        if row['s2idx']>=0:
+            s2_name = self.SoundSet.names[row['s2idx']]
+            log.info(f"**** S2: {s2_name}")
+            w2 = self.SoundSet.waveform(row['s2idx'])
+        else:
+            w2 = None
+        if w1 is None:
+            w1=np.zeros_like(w2)
+        if w2 is None:
+            w2=np.zeros_like(w1)
 
         if row['s1_channel'] == 1:
-            w = np.concatenate((np.zeros_like(w), w), axis=1)
+            w = np.concatenate((w2, w1), axis=1)
         else:
-            w = np.concatenate((w, np.zeros_like(w)), axis=1)
+            w = np.concatenate((w1, w2), axis=1)
 
         log.info(f"**** {w.std()}")
 
@@ -2864,7 +2943,10 @@ class BigNat(WavSet):
         s1 = row['s1idx']
         s2 = row['s2idx']
 
-        s1_name = self.SoundSet.names[s1]
+        if s1>=0:
+            s1_name = self.SoundSet.names[s1]
+        else:
+            s1_name = 'null'
         if s2>=0:
             s2_name = self.SoundSet.names[s2]
         else:

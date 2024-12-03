@@ -1,0 +1,74 @@
+cal_epoch_view:
+  y_max: 0.01
+  y_min: -0.01
+cal_fft:
+  y_max: -50.0
+  y_min: -160.0
+context:
+  meta: {}
+  parameters:
+    averaging:
+      discard:
+        expression: '2'
+        rove: false
+      fft_averages:
+        expression: '4'
+        rove: false
+      waveform_averages:
+        expression: '2'
+        rove: false
+    delay:
+      ab_delay:
+        expression: '1'
+        rove: false
+      iti:
+        expression: 1e-05
+        rove: false
+    golay:
+      n_bits:
+        expression: '14'
+        rove: false
+      output_gain:
+        expression: '-20'
+        rove: true
+      smoothing_window:
+        expression: '10'
+        rove: false
+    system_starship_settings:
+      system_output:
+        rove: false
+        selected: primary
+    val_level_gain:
+      safe_gain:
+        expression: '0'
+        rove: false
+      validation_level:
+        expression: '80.0'
+        rove: false
+    val_start_end:
+      validation_end:
+        expression: '50000.0'
+        rove: false
+      validation_octaves:
+        expression: '0.125'
+        rove: false
+      validation_start:
+        expression: '500.0'
+        rove: false
+  selectors:
+    default:
+      context_item_order:
+      - output_gain
+      order: ascending
+      settings:
+      - output_gain: -400
+      - output_gain: -20
+pt_epoch_view:
+  y_max: 0.1
+  y_min: -0.1
+pt_fft:
+  y_max: -50.0
+  y_min: -160.0
+sens:
+  y_max: 0.5
+  y_min: -0.5

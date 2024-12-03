@@ -8,7 +8,7 @@ from psilbhb.stim.wav_set import BinauralTone, RandomTone
 pd.set_option('display.width',160)
 
 params = RandomTone.default_values()
-params.update(primary_channel=0, switch_channels=True, random_seed=4234)
+params.update(primary_channel=1, reference_frequency=2000, switch_channels=False, random_seed=4234)
 
 bt = RandomTone(**params)
 bt.update()  # not necessary but illustrative of back-end processing
