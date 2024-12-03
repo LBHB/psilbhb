@@ -84,3 +84,8 @@ sandbox/
 
 # local config
 celldblauncher.json
+*/config/psi/preferences/
+*/config/psi/layout/
+!default.layout
+!default.preferences
+

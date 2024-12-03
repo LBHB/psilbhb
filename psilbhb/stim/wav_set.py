@@ -1200,7 +1200,7 @@ class FgBgSet(WavSet):
         if trial_idx is None:
             trial_idx = self.current_trial_idx
 
-        if trial_idx >= len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             dd = 10
             ii = 0
             # fix to prevent identical sequences from repeating
@@ -1535,7 +1535,7 @@ class AMFusion(WavSet):
         if trial_idx is None:
             trial_idx = self.current_trial_idx
 
-        if trial_idx >= len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             # hack to prevent identical sequences from repeating
             for t in range(trial_idx):
                 _ = _rng.permutation(np.arange(total_wav_set, dtype=int))
@@ -1642,7 +1642,7 @@ class AMFusion(WavSet):
 class VowelSet(WavSet):
 
     default_parameters = [
-        {'name': 'sound_path', 'label': 'folder', 'default': 'h:/sounds/vowels/v2',
+        {'name': 'sound_path', 'label': 'folder', 'default': 'e:/sounds/vowels/v5',
          'dtype': 'str', 'scope': 'experiment'},
         {'name': 'target_set', 'label': 'Target names (list)',
          'expression': '["EH_106"]', 'dtype': 'object', 'scope': 'experiment'},
@@ -1674,11 +1674,17 @@ class VowelSet(WavSet):
          'default': 0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'response_end', 'label': 'response win end (s)', 'default': 2,
          'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'pre_silence', 'label': 'pre-stim silence (s)',
+         'default': 0.0, 'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'post_silence', 'label': 'post-stim silence (s)',
+         'default': 0.0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
          'int', 'scope': 'experiment'},
+        {'name': 'this_name', 'label': 'N', 'type': 'Result', 'type': 'Result'},
         {'name': 's1_name', 'label': 'S1', 'type': 'Result', 'type': 'Result'},
         {'name': 's2_name', 'label': 'S2', 'type': 'Result'},
         {'name': 'stim_cat', 'label': 'Cat', 'type': 'Result'},
+        {'name': 'current_full_rep', 'label': 'R', 'type': 'Result'},
     ] + WavSet.default_parameters.copy()
 
     for d in default_parameters:
@@ -1704,6 +1710,7 @@ class VowelSet(WavSet):
             normalization='rms', fit_range=slice(0, None), test_range=None,
             test_reps=2, channel_count=1, level=self.level)
 
+        self.update_calibration()
         self.update()
 
     @property
@@ -1745,7 +1752,7 @@ class VowelSet(WavSet):
         # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
         if trial_idx is None:
             trial_idx = self.current_trial_idx
-        if trial_idx >= len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             for rep in np.arange(self.current_full_rep+1):
                 new_trial_wav = _rng.permutation(np.arange(len(self.stim1idx), dtype=int))
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))
@@ -1775,6 +1782,11 @@ class VowelSet(WavSet):
             w_all = [w] + [w_silence, w] * (self.repeat_count-1)
             w = np.concatenate(w_all, axis=0)
 
+        log.info(f"RMS w1: {np.mean(w1**2)**0.5} w2: {np.mean(w2**2)**0.5}")
+
+        prebins, postbins = int(self.fs*self.pre_silence), int(self.fs*self.post_silence)
+        wpre, wpost = np.zeros((prebins, 2)), np.zeros((postbins, 2))
+        w = np.concatenate([wpre,w,wpost], axis=0)
         return w.T
 
     def trial_parameters(self, trial_idx=None, wav_set_idx=None):
@@ -1819,11 +1831,13 @@ class VowelSet(WavSet):
                     response_condition = 1
 
         response_window = self.response_window
+        name = s1_name+"+"+s2_name+"+"+stim_cat
 
         d = {'trial_idx': trial_idx,
              'wav_set_idx': wav_set_idx,
              's1idx': s1idx,
              's2idx': s2idx,
+             'this_name': name,
              's1_name': s1_name,
              's2_name': s2_name,
              'stim_cat': stim_cat,
@@ -2105,7 +2119,7 @@ class CategorySet(FgBgSet):
         # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
         if trial_idx is None:
             trial_idx = self.current_trial_idx
-        if trial_idx >= len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))
             log.info(f'Added {len(new_trial_wav)}/{len(self.trial_wav_idx)} trials to trial_wav_idx')
@@ -2382,7 +2396,7 @@ class BinauralTone(WavSet):
         if trial_idx is None:
             trial_idx = self.current_trial_idx
 
-        if trial_idx >= len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             # hack to prevent identical sequences from repeating
             for t in range(trial_idx):
                 _ = _rng.permutation(np.arange(total_wav_set, dtype=int))
@@ -2456,8 +2470,6 @@ class RandomTone(BinauralTone):
          'expression': '[1]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'probe_count', 'label': 'Tone count (tiled over octaves)',
          'expression': '9', 'dtype': 'object', 'scope': 'experiment'},
-        {'name': 'probe_level', 'label': 'Probe level(s) (list, dB RE ref)',
-         'expression': '[-20,-10,0,10,20]', 'dtype': 'object', 'scope': 'experiment'},
 
         {'name': 'duration', 'label': 'duration of each sample (s)',
          'default': 0.1, 'dtype': 'double', 'scope': 'experiment'},
@@ -2647,7 +2659,7 @@ class BinauralAM(WavSet):
         if trial_idx is None:
             trial_idx = self.current_trial_idx
 
-        if trial_idx >= len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             # hack to prevent identical sequences from repeating
             for t in range(trial_idx):
                 _ = _rng.permutation(np.arange(total_wav_set, dtype=int))
@@ -2882,7 +2894,7 @@ class BigNat(WavSet):
         if trial_idx is None:
             trial_idx = self.current_trial_idx
 
-        if trial_idx >= len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             # hack to prevent identical sequences from repeating
             for t in range(trial_idx):
                 _ = _rng.permutation(np.arange(total_wav_set, dtype=int))
