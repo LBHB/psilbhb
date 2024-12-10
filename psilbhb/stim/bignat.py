@@ -1,3 +1,4 @@
+import os
 from functools import cached_property
 import itertools
 from pathlib import Path
@@ -9,7 +10,8 @@ from scipy.io import wavfile
 
 from psiaudio import util, queue
 from psiaudio.stim import Waveform, FixedWaveform, ToneFactory, \
-    WavFileFactory, WavSequenceFactory, wavs_from_path, load_wav
+    WavFileFactory, WavSequenceFactory, wavs_from_path  #, load_wav
+from psilbhb.stim.wav_set import load_wav
 from psi import get_config
 
 
@@ -37,7 +39,7 @@ def remove_clicks(w, max_threshold=10, verbose=False):
 
 
 @memory.cache
-def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_scale=1,
+def load_wav_deprecated(fs, filename, level, calibration, normalization='pe', norm_fixed_scale=1,
              force_duration=None):
     '''
     Load wav file, scale, and resample
@@ -84,6 +86,7 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
         waveform = remove_clicks(waveform, max_threshold=15)
     else:
         raise ValueError(f'Unrecognized normalization: {normalization}')
+    log.info(f"load_wav (bignat, after norm only): {os.path.basename(filename)} rms: {(waveform**2).mean()**0.5:.5f} {normalization} scale={norm_fixed_scale}")
 
     if calibration is not None:
         sf = calibration.get_sf(1e3, level)
@@ -103,12 +106,12 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
         elif len(waveform) < final_samples:
             waveform = np.concatenate([waveform, np.zeros(final_samples-len(waveform))])
             log.info(f'padded with {final_samples-len(waveform)} samples')
+    log.info(f"load_wav (bignat): {os.path.basename(filename)} rms: {(waveform**2).mean()**0.5:.5f} {normalization} scale={norm_fixed_scale}")
 
     # Resample if sampling rate does not match
     if fs != file_fs:
         waveform_resampled = util.resample_fft(waveform, file_fs, fs)
         return waveform_resampled
-
     return waveform
 
 

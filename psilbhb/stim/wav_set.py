@@ -242,7 +242,7 @@ def remove_clicks(w, max_threshold=10, verbose=False):
     return w_clean
 
 
-def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_scale=1,
+def load_wav(fs, filename, level, calibration=None, normalization='pe', norm_fixed_scale=1,
              force_duration=None, max_correction=20):
     '''
     Load wav file, scale, and resample
@@ -259,6 +259,7 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
         be in units of peSPL (assuming calibration is in units of SPL). If
         normalization is in `'rms'`, level will be dB SPL RMS.
     calibration : instance of Calibration
+        CURRENTLY NOT USED, ADJUSTMENT (relative to 80 dB SPL) IS SIMPLY APPLIED TO WAVEFORM
         Used to scale waveform to appropriate peSPL. If not provided,
         waveform is not scaled.
     normalization : {'pe', 'rms', 'fixed'}
@@ -302,6 +303,7 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
         waveform = remove_clicks(waveform, max_threshold=15)
     else:
         raise ValueError(f'Unrecognized normalization: {normalization}')
+    log.info(f"load_wav pre-attenuate: {os.path.basename(filename)} rms: {(waveform**2).mean()**0.5:.5f} {normalization} scale={norm_fixed_scale}")
 
     if level is not None:
         attenuatedB = 80-level
@@ -313,7 +315,7 @@ def load_wav(fs, filename, level, calibration, normalization='pe', norm_fixed_sc
     waveform[waveform<-5]=-5
     #if np.max(np.abs(waveform)) > 5:
     #    raise ValueError('waveform value too large')
-    #log.info(f'load_wav: wstd: {waveform.std()} {normalization} scale {norm_fixed_scale}')
+    log.info(f"load_wav attenuated {attenuatedB} dB: {os.path.basename(filename)} rms: {(waveform**2).mean()**0.5:.5f}")
 
     return waveform
 
