@@ -1,10 +1,8 @@
-from functools import partial, lru_cache
-import itertools
 from pathlib import Path
+from joblib import Memory
 
 from fractions import Fraction
 from copy import deepcopy
-from random import choices
 import os
 import glob
 import logging
@@ -14,32 +12,13 @@ from scipy import signal
 from scipy.io import wavfile
 import pandas as pd
 
-from psiaudio import queue
 from psiaudio import util
 from .basic_sounds import generate_tone
 from psiaudio.stim import apply_max_correction
-from functools import partial, lru_cache
-import itertools
-from pathlib import Path
-
-from fractions import Fraction
-from copy import deepcopy
-from random import choices
-import os
-import glob
-import logging
-
-import numpy as np
-from scipy import signal
-from scipy.io import wavfile
-import pandas as pd
-
-from psiaudio import queue
-from psiaudio import util
-from .basic_sounds import generate_tone
-from psiaudio.stim import apply_max_correction
+from psi import get_config
 
 log = logging.getLogger(__name__)
+memory = Memory(get_config('CACHE_ROOT'))
 
 def get_stim_list(FgSet, BgSet, catch_ferret_id=3, n_env_bands=[2, 8, 32], reg2catch_ratio=7):
     be_verbose = 1
@@ -242,10 +221,12 @@ def remove_clicks(w, max_threshold=10, verbose=False):
     return w_clean
 
 
+@memory.cache
 def load_wav(fs, filename, level, calibration=None, normalization='pe', norm_fixed_scale=1,
              force_duration=None, max_correction=20):
     '''
     Load wav file, scale, and resample
+    Outputs cached in memory
     Parameters
     ----------
     fs : float
@@ -678,16 +659,12 @@ class WavSet:
 
         return c, sens, calibration
 
-    def update_calibration(self):
+    def update_calibration(self, level=80, max_correction=20):
         # hard code to load a calibration file.
         if self.equalize == 'No':
             self.equalize = False
 
         if self.equalize:
-            # for each ear....
-            level = 80
-            max_correction = 20
-
             if len(self.calfile1) > 0:
                 file, df, self.calibration1 = self.load_cal(self.calfile1)
                 self.calfile1 = file
@@ -730,18 +707,26 @@ class WavSet:
         if self.equalize & (self.calibration1 is not None):
             if 'InterpCalibration' in str(type(self.calibration1)):
                 # apply fir filter using in ear calibration code provided by BB
-                waveform = w[0, :] / 5
-                waveform = np.pad(waveform, (1000, 0))
-                waveform, zi = signal.lfilter(self.calfilt1, [1], waveform, zi=self.zi1)
-                w[0, :] = waveform[1000:] * 5
-
+                # waveform = w[0, :] / 5
+                # do we need to scale input RMS to 1...ask Brad?
+                waveform = w[0, :]
+                # waveform = np.pad(waveform, (1000, 0))
+                # added zi initial state scaling by first time point to remove transient artifact
+                waveform, zi = signal.lfilter(self.calfilt1, [1], waveform, zi=self.zi1*waveform[0])
+                # w[0, :] = waveform[1000:] * 5
+                # w[0, :] = waveform * 5
+                w[0, :] = waveform
         if self.equalize & (self.calibration2 is not None):
-            if 'InterpCalibration' in str(type(self.calibration1)):
+            if 'InterpCalibration' in str(type(self.calibration2)):
                 # apply fir filter using in ear calibration code provided by BB
-                waveform = w[1, :]/5
-                waveform = np.pad(waveform, (1000,0))
-                waveform, zi = signal.lfilter(self.calfilt2, [1], waveform, zi=self.zi2)
-                w[1, :] = waveform[1000:]*5
+                # waveform = w[1, :]/5
+                waveform = w[1, :]
+                # waveform = np.pad(waveform, (1000,0))
+                # added zi initial state scaling by first time point to remove transient artifact
+                waveform, zi = signal.lfilter(self.calfilt2, [1], waveform, zi=self.zi2*waveform[0])
+                # w[1, :] = waveform[1000:]*5
+                # w[1, :] = waveform * 5
+                w[1, :] = waveform
 
         # elif calibration is not None:
         #    sf = calibration.get_sf(1e3, level)
