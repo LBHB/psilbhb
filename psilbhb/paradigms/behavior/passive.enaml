@@ -45,6 +45,18 @@ enamldef PassiveManifest(ControllerManifest): manifest:
     '''
     # Number of speaker outputs
     attr N_output = 2
+
+    # Number of input microphones
+    attr N_input = 2
+
+    # Template that is formatted to generate the channel name each output is
+    # linked to.
+    attr output_template = 'hw_ao::speaker_{}'
+
+    # Template that is formatted to generate the channel name each input is
+    # linked to.
+    attr input_template = 'hw_ai::microphone_{}'
+
     factory = lambda: PassivePlugin()
 
     Extension:
@@ -122,7 +134,7 @@ enamldef PassiveManifest(ControllerManifest): manifest:
         BinaryStore:
             # Make sure we save all the spout contact data
             name = 'initiated_data'
-            continuous_inputs = ['microphone']
+            continuous_inputs = [f'microphone_{i+1}' for i in range(N_input)]
         EventLog:
             show_widget = False
         TrialLog:
@@ -138,12 +150,15 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             EpochOutput:
                 name = f'output_{loop_item+1}'
                 label = f'Output {loop_item+1}'
-                target_name = f'hw_ao::speaker_{loop_item+1}'
+                target_name = manifest.output_template.format(loop_item + 1)
                 configurable = False
 
-        ContinuousInput:
-            name = 'microphone'
-            source_name = 'hw_ai::microphone_1'
+        Looper:
+            iterable = range(N_input)
+
+            ContinuousInput:
+                name = f'microphone_{loop_item+1}'
+                source_name = manifest.input_template.format(loop_item + 1)
 
         ContinuousInput:
             name = 'speaker_1_monitor'
@@ -222,10 +237,8 @@ enamldef PassiveManifest(ControllerManifest): manifest:
                 y_min = -1
                 y_max = 1
 
-                ChannelPlot:
-                    source_name = 'microphone'
-                    pen_color = 'black'
+                Looper:
+                    iterable = range(N_input)
 
-                ChannelPlot:
-                    source_name = 'speaker_1_monitor'
-                    pen_color = 'blue'
+                    ChannelPlot:
+                        source_name = f'microphone_{loop_item+1}'
