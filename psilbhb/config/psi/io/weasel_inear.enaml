@@ -1,6 +1,9 @@
 from enaml.workbench.api import Extension
+from enaml.workbench.core.api import Command
 
-from psi.controller.engines.nidaq import (NIDAQEngine,
+from cftscal.objects import starship_manager
+from psi.controller.engines.nidaq import (connect_trigger,
+                                          NIDAQEngine,
                                           NIDAQHardwareAIChannel,
                                           NIDAQHardwareAOChannel,
                                           NIDAQHardwareDOChannel,
@@ -8,8 +11,8 @@ from psi.controller.engines.nidaq import (NIDAQEngine,
                                           )
 
 from psi.core.enaml.api import ExperimentManifest
-from psi.controller.api import ADC
-
+from psi.controller.api import (ADC, ContinuousOutput, ContinuousInput,
+    ExperimentAction)
 
 from psiaudio.calibration import FlatCalibration
 
@@ -22,14 +25,24 @@ ai_fs = 20e6 / 454
 from psi.controller.api import Trigger, Toggle
 
 
+START_TRIGGER = '/PXI1Slot3/ao/StartTrigger'
+
+
+def configure_channels(event):
+    # Ensure that the start trigger is set properly given the hardware channel
+    # configuration.
+    connect_trigger(event)
+
+
 enamldef IRChannel(NIDAQHardwareAIChannel): irc:
 
     unit = 'V'
-    start_trigger = '/Dev1/ao/StartTrigger'
+    start_trigger = START_TRIGGER
     fs = ai_fs
     expected_range = (-10, 10)
     dtype = 'float64'
     terminal_mode = 'RSE'
+    reference_clock = 'PXI_Clk10'
 
     ADC: adc:
         name << irc.name
@@ -37,6 +50,23 @@ enamldef IRChannel(NIDAQHardwareAIChannel): irc:
 
 
 enamldef IOManifest(ExperimentManifest): manifest:
+
+    Extension:
+        id = 'ornitorinco_commands'
+        point = 'enaml.workbench.core.commands'
+
+        Command:
+            id = 'weasel.configure_channels'
+            handler = configure_channels
+
+    Extension:
+        id = 'ornitorinco_actions'
+        point = 'psi.controller.actions'
+
+        ExperimentAction:
+            event = 'experiment_prepare'
+            command = 'weasel.configure_channels'
+            weight = 90
 
     Extension:
         id = 'backend'
@@ -51,76 +81,34 @@ enamldef IOManifest(ExperimentManifest): manifest:
             NIDAQHardwareAIChannel:
                 label = 'Speaker 1 monitor'
                 name = 'speaker_1_monitor'
-                channel = 'Dev1/ai23'
-                start_trigger = '/Dev1/ao/StartTrigger'
+                channel = '/Dev1/ai3'
+                start_trigger = START_TRIGGER
                 fs = ai_fs
                 expected_range = (-10, 10)
                 dtype = 'float64'
-                terminal_mode = 'RSE'
+                terminal_mode = 'differential'
                 unit = 'V'
                 calibration_user_editable = True
+                reference_clock = 'PXI_Clk10'
 
             NIDAQHardwareAIChannel:
-                label = 'Microphone 1'
-                name = 'microphone_1'
-                channel = 'Dev1/ai21'
+                label = 'Sync Monitor'
+                name = 'sync_monitor'
+                channel = 'Dev1/ai4'
                 start_trigger = '/Dev1/ao/StartTrigger'
                 fs = ai_fs
                 expected_range = (-10, 10)
                 dtype = 'float64'
                 terminal_mode = 'RSE'
                 unit = 'V'
-                calibration_user_editable = True
-
-            NIDAQHardwareAIChannel:
-                label = 'Microphone 2'
-                name = 'microphone_2'
-                channel = 'Dev1/ai22'
-                start_trigger = '/Dev1/ao/StartTrigger'
-                fs = ai_fs
-                expected_range = (-10, 10)
-                dtype = 'float64'
-                terminal_mode = 'RSE'
-                unit = 'V'
-                calibration_user_editable = True
-
-            #NIDAQHardwareAIChannel:
-            #    label = 'Sync Monitor'
-            #    name = 'sync_monitor'
-            #    channel = 'Dev1/ai4'
-            #    start_trigger = '/Dev1/ao/StartTrigger'
-            #    fs = ai_fs
-            #    expected_range = (-10, 10)
-            #    dtype = 'float64'
-            #    terminal_mode = 'RSE'
-            #    unit = 'V'
-            #    calibration = FlatCalibration.from_mv_pa(2.38)
-
-            NIDAQHardwareAOChannel:
-                label = 'Speaker 1'
-                name = 'speaker_1'
-                channel = '/Dev1/ao2'
-                fs = ao_fs
-                expected_range = (-10, 10)
-                dtype = 'float64'
-                terminal_mode = 'RSE'
-                unit = 'V'
-
-            NIDAQHardwareAOChannel:
-                label = 'Speaker 2'
-                name = 'speaker_2'
-                channel = '/Dev1/ao3'
-                fs = ao_fs
-                expected_range = (-10, 10)
-                dtype = 'float64'
-                terminal_mode = 'RSE'
-                unit = 'V'
+                calibration = FlatCalibration.from_mv_pa(2.38)
+                reference_clock = 'PXI_Clk10'
 
             NIDAQHardwareDOChannel:
                 label = 'Sync Trigger'
                 name = 'sync_trigger'
                 channel = '/Dev1/port0/line3'
-                sample_clock = '/Dev1/ao/SampleClock'
+                sample_clock = '/PXI1Slot3/ao/SampleClock'
                 fs = ao_fs
 
             NIDAQSoftwareDOChannel:
@@ -191,48 +179,70 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 label = 'Spout IR 2'
                 channel = 'Dev1/ai2'
 
-			###############################################
-			# Starship A
-			###############################################
-            NIDAQHardwareAOChannel:
-                label = 'Starship A (primary)'
-                name = 'starship_A_primary'
-                channel = '/Dev1/ao2'
-                fs = ao_fs
-                expected_range = (-10, 10)
-                dtype = 'float64'
-                terminal_mode = 'RSE'
-                unit = 'V'
+        NIDAQEngine:
+            name = 'NI_audio'
+            hw_ai_monitor_period = 0.1
+            hw_ao_monitor_period = 0.1
+            hw_ao_buffer_size = 2
 
+            ###############################################
+            # Starship A
+            ###############################################
             NIDAQHardwareAOChannel:
-                label = 'Starship A (secondary)'
-                name = 'starship_A_secondary'
-                channel = '/Dev1/ao2'
+                label = 'Starship 1 (primary)'
+                name = 'speaker_1'
+                channel = '/PXI1Slot3/ao0'
                 fs = ao_fs
                 expected_range = (-10, 10)
                 dtype = 'float64'
-                terminal_mode = 'RSE'
+                terminal_mode = 'differential'
                 unit = 'V'
+                reference_clock = 'PXI_Clk10'
 
             NIDAQHardwareAIChannel:
-                label = 'Starship A (microphone)'
-                name = 'starship_A_microphone'
-                channel = '/Dev1/ai22'
+                label = 'Starship 1 (microphone)'
+                name = 'microphone_1'
+                channel = '/PXI1Slot3/ai0'
                 fs = ao_fs
                 expected_range = (-10, 10)
                 dtype = 'float64'
-                terminal_mode = 'RSE'
+                terminal_mode = 'differential'
                 unit = 'V'
                 start_trigger = '/Dev1/ao/StartTrigger'
+                reference_clock = 'PXI_Clk10'
+                gain = 40
+                calibration = starship_manager \
+                    .get_object('LBHB1') \
+                    .get_current_calibration() \
+                    .load()
 
+            ###############################################
+            # Starship B
+            ###############################################
+            NIDAQHardwareAOChannel:
+                label = 'Starship 2 (primary)'
+                name = 'speaker_2'
+                channel = '/PXI1Slot3/ao1'
+                fs = ao_fs
+                expected_range = (-10, 10)
+                dtype = 'float64'
+                terminal_mode = 'differential'
+                unit = 'V'
+                reference_clock = 'PXI_Clk10'
 
             NIDAQHardwareAIChannel:
-                label = 'Calibration Microphone'
-                name = 'microphone_calibration'
-                channel = '/Dev1/ai23'
+                label = 'Starship 2 (microphone)'
+                name = 'microphone_2'
+                channel = '/PXI1Slot3/ai1'
                 fs = ao_fs
                 expected_range = (-10, 10)
                 dtype = 'float64'
-                terminal_mode = 'RSE'
+                terminal_mode = 'differential'
                 unit = 'V'
                 start_trigger = '/Dev1/ao/StartTrigger'
+                reference_clock = 'PXI_Clk10'
+                gain = 40
+                calibration = starship_manager \
+                    .get_object('LBHB2') \
+                    .get_current_calibration() \
+                    .load()
