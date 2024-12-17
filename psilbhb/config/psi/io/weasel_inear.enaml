@@ -10,9 +10,11 @@ from psi.controller.engines.nidaq import (connect_trigger,
                                           NIDAQSoftwareDOChannel,
                                           )
 
-from psi.core.enaml.api import ExperimentManifest
+from psi.context.api import ContextGroup, Parameter
 from psi.controller.api import (ADC, ContinuousOutput, ContinuousInput,
     ExperimentAction)
+from psi.controller.calibration.api import ChirpCalibrate
+from psi.core.enaml.api import ExperimentManifest
 
 from psiaudio.calibration import FlatCalibration
 
@@ -67,6 +69,45 @@ enamldef IOManifest(ExperimentManifest): manifest:
             event = 'experiment_prepare'
             command = 'weasel.configure_channels'
             weight = 90
+
+    Extension:
+        id = manifest.id + '.context'
+        point = 'psi.context.items'
+
+        ContextGroup:
+            name = 'inear_calibration'
+            label = 'In-ear calibration'
+
+            Parameter:
+                name = 'calibration_gain'
+                label = 'Gain (dB)'
+                dtype = 'float'
+                default = -30
+
+    Extension:
+        id = manifest.id + '.calibration'
+        point = 'psi.controller.calibration.channels'
+
+        ChirpCalibrate: cal_1:
+            name = 'starship_1_calibration'
+            label = 'Calibration'
+            input_name = 'hw_ai::microphone_1'
+            outputs = {'hw_ao::speaker_1': []}
+            gain << C.calibration_gain
+            start_frequency = 10
+            end_frequency = 20e3
+
+        ChirpCalibrate:
+            name = 'starship_2_calibration'
+            input_name = 'hw_ai::microphone_2'
+            outputs = {'hw_ao::speaker_2': []}
+            gain << C.calibration_gain
+			# We want to plot both calibrations on the same widget (for easier
+			# comparision).
+            show_widget = False
+            viewbox_name << cal_1.viewbox_name
+            start_frequency = cal_1.start_frequency
+            end_frequency = cal_1.end_frequency
 
     Extension:
         id = 'backend'
