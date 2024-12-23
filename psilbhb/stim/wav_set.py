@@ -995,6 +995,10 @@ class FgBgSet(WavSet):
                 dlist.append(s)
             stim = pd.concat(dlist, ignore_index=True)
 
+        # special case, force fg/bg level to match (SNR 0) for choice trials
+        stim.loc[stim['fg_go']==-2, 'fg_level']=stim.loc[stim['fg_go']==-2, 'bg_level']
+        if (stim['fg_go']==-2).sum()>0:
+            print(stim[['fg_index','bg_index','fg_go','fg_level','bg_level']])
         # remove probe trials where either FG or BG has level 0
         stim = stim.loc[((stim['fg_level']>0) & (stim['fg_go']>-2)) |
                         ((stim['bg_level']>0) & (stim['fg_go']>-2)) |
@@ -1433,7 +1437,7 @@ class AMFusion(WavSet):
 
         stim = pd.concat(slist, ignore_index=True)
         # remove duplicates of very easy ("inf snr") trials
-        stim.loc[stim['tar_level']-stim['dis_level']>=60, ['dis_offset']] = 0
+        #stim.loc[stim['tar_level']-stim['dis_level']>=60, ['dis_offset']] = 0
 
         stim['dis_freq'] = np.round(stim['tar_freq'] * 2**stim['dis_offset'])
         stim = stim.drop_duplicates()
@@ -1452,6 +1456,10 @@ class AMFusion(WavSet):
             stim_easy = stim.loc[stim['tar_level']-stim['dis_level']>=60]
             slist = [stim] + [stim_easy] * int(self.easy_ratio-1)
             stim = pd.concat(slist, ignore_index=True)
+
+        hisnr = stim['tar_level']-stim['dis_level']>=60
+        stim.loc[hisnr, 'dis_freq'] = stim.loc[hisnr,'tar_freq']
+        stim.loc[hisnr, 'dis_offset'] = 0
 
         self.stim_list = stim.copy().reset_index()
         print(self.stim_list)
@@ -1488,11 +1496,12 @@ class AMFusion(WavSet):
             wfg += np.sin(t*2*np.pi*row['tar_freq'] * (h+1))*(5/hcount)
             wbg += np.sin(t*2*np.pi*row['dis_freq'] * (h+1))*(5/hcount)
 
+        depth = -np.abs(10**(row['tar_depth']/20))
         if row['tar_am']>0:
-            env = 1 + np.sin(t*2*np.pi*row['tar_am'])
+            env = 1 + np.sin(t*2*np.pi*row['tar_am']) * depth
             wfg *= env
         if row['dis_am']>0:
-            env = 1 + np.sin(t*2*np.pi*row['dis_am'])
+            env = 1 + np.sin(t*2*np.pi*row['dis_am']) * depth
             wbg *= env
 
 
