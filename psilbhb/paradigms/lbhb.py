@@ -28,6 +28,30 @@ COMMON_PLUGINS = [
          'fft_freq_ub': 24000,
          'y_label': 'Level (dB)'},
      },
+    {'manifest': 'psi.paradigms.core.signal_mixins.SignalFFTViewManifest',
+     'attrs': {
+         'id': 'microphone_1_fft',
+         'title': 'Microphone 1 PSD',
+         'fft_time_span': 1,
+         'fft_freq_lb': 5,
+         'fft_freq_ub': 24000,
+         'y_label': 'Level (dB)',
+         'apply_calibration': True,
+         'source_name': 'microphone_1',
+         },
+     },
+    {'manifest': 'psi.paradigms.core.signal_mixins.SignalFFTViewManifest',
+     'attrs': {
+         'id': 'microphone_2_fft',
+         'title': 'Microphone 2 PSD',
+         'fft_time_span': 1,
+         'fft_freq_lb': 5,
+         'fft_freq_ub': 24000,
+         'y_label': 'Level (dB)',
+         'apply_calibration': True,
+         'source_name': 'microphone_2',
+         },
+     },
 ]
 
 
