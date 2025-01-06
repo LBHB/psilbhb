@@ -134,7 +134,7 @@ enamldef PassiveManifest(ControllerManifest): manifest:
         BinaryStore:
             # Make sure we save all the spout contact data
             name = 'initiated_data'
-            continuous_inputs = [f'microphone_{i+1}' for i in range(N_input)]
+            continuous_inputs = ['microphone_calibration'] + [f'microphone_{i+1}' for i in range(N_input)]
         EventLog:
             show_widget = False
         TrialLog:
@@ -159,6 +159,10 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             ContinuousInput:
                 name = f'microphone_{loop_item+1}'
                 source_name = manifest.input_template.format(loop_item + 1)
+
+        ContinuousInput:
+            name = 'microphone_calibration'
+            source_name = 'hw_ai::microphone_calibration'
 
         ContinuousInput:
             name = 'speaker_1_monitor'
@@ -232,13 +236,13 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             label = 'Trial timing'
             span = 10
 
-            ViewBox:
-                name = 'microphone'
-                y_min = -1
-                y_max = 1
+            Looper:
+                iterable = range(N_input)
 
-                Looper:
-                    iterable = range(N_input)
+                ViewBox:
+                    name = f'microphone_{loop_item+1}'
+                    y_min = -1
+                    y_max = 1
 
                     ChannelPlot:
                         source_name = f'microphone_{loop_item+1}'
