@@ -657,7 +657,6 @@ class WavSet:
     def update(self):
         pass
 
-
     def trial_waveform(self, trial_idx=None, wav_set_idx=None, **kwargs):
         w = self._trial_waveform(trial_idx=trial_idx, wav_set_idx=wav_set_idx, **kwargs)
 
@@ -1011,7 +1010,7 @@ class FgBgSet(WavSet):
 
         stim = pd.concat(dlist, ignore_index=True)
 
-        # TODO - remove invalid Probe trials
+        # TODO - remove invalid Probe trials -- is this still a TODO?
         iprb = stim['fg_go'] == -3
         if iprb.sum()>0:
             fg_names = stim.loc[iprb,'fg_index'].apply(lambda x: self.FgSet.names[x].replace('.wav',''))
@@ -1021,7 +1020,6 @@ class FgBgSet(WavSet):
 
             # valid_row = [fg_names.index[i] for i in range(len(fg_names)) if fg_names.iloc[i] not in prb_names.iloc[i]]
             # stim_trim = stim.loc[valid_row].reset_index()
-
 
             # for i,r in fg_names.items():
             #     print(f"{i}: {r}")
@@ -2317,25 +2315,27 @@ class BinauralTone(WavSet):
     def _trial_waveform(self, trial_idx=None, wav_set_idx=None):
 
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
+        ref_channel = row['ref_channel']
+        prb_channel = row['prb_channel']
 
         #log.info(f"**** trial {trial_idx} {row}")
         #log.info(f"****   wavidx {row['index']}")
         #log.info(f"****   ref channel: {row['ref_channel']}")
 
-        fg_level = self.reference_level
-        bg_level = self.reference_level + row['prb_level']
-        wfg = generate_tone(row['duration'], row['ref_frequency'], fg_level,
+        ref_level = self.reference_level
+        prb_level = self.reference_level + row['prb_level']
+        wfg = generate_tone(row['duration'], row['ref_frequency'], ref_level,
                             fs=self.fs, ramp=self.ramp,
-                            calibration=self.output_cal[0])
+                            calibration=self.output_cal[ref_channel])
 
-        if fg_level-bg_level>60:
+        if ref_level-prb_level>60:
             # put fg tone condition
             wbg = np.zeros_like(wfg)
         else:
             duration = row['duration'] - row['prb_delay']/1000
-            wbg = generate_tone(duration, row['prb_frequency'], bg_level,
+            wbg = generate_tone(duration, row['prb_frequency'], prb_level,
                                 fs=self.fs, ramp=self.ramp,
-                                calibration=self.output_cal[0])
+                                calibration=self.output_cal[prb_channel])
             padbins = len(wfg)-len(wbg)
             if padbins > 0:
                 wbg = np.concatenate((np.zeros(padbins, dtype=wbg.dtype), wbg))

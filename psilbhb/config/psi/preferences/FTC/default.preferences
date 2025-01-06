@@ -1,11 +1,13 @@
 context:
   meta:
-    trial_log: []
+    trial_log:
+    - this_name
+    - this_reference_frequency
   parameters:
     RandomTone:
       current_full_rep: {}
       duration:
-        expression: '0.1'
+        expression: '2'
         rove: false
       fs:
         expression: '44000'
@@ -20,13 +22,10 @@ context:
         rove: false
         selected: '1'
       probe_count:
-        expression: '64'
-        rove: false
-      probe_level:
-        expression: '[-100]'
+        expression: '6'
         rove: false
       probe_octaves:
-        expression: '[3]'
+        expression: '[1]'
         rove: false
       ramp:
         expression: '5'
@@ -38,7 +37,7 @@ context:
         expression: '2000'
         rove: false
       reference_level:
-        expression: '50'
+        expression: '80'
         rove: false
       switch_channels:
         rove: false
@@ -48,15 +47,13 @@ context:
       this_reference_frequency: {}
       this_snr: {}
     WavSet:
-      calfile1:
-        expression: '"D:\cfts\<-1>"'
-        rove: false
-      calfile2:
-        expression: '"D:\cfts\<-2>"'
-        rove: false
       equalize:
         rove: false
-        selected: 'Yes'
+        selected: 'No'
+    inear_calibration:
+      calibration_gain:
+        expression: '-30'
+        rove: false
     results:
       trial_start: {}
     trial:
@@ -73,8 +70,21 @@ context:
         expression: '10'
         rove: false
   selectors: {}
-microphone:
+microphone_1:
   y_max: 1.0
   y_min: -1.0
+microphone_1_fft_vb:
+  y_max: 100.0
+  y_min: -10.0
+microphone_2:
+  y_max: 1.0
+  y_min: -1.0
+starship_1_calibration:
+  y_max: 160.0
+  y_min: 60.0
 trial_log:
-  column_config: {}
+  column_config:
+    this_name:
+      width: 40
+    this_reference_frequency:
+      width: 40

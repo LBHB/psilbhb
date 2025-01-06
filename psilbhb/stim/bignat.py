@@ -14,15 +14,12 @@ from psiaudio.stim import Waveform, FixedWaveform, ToneFactory, \
 from psilbhb.stim.wav_set import load_wav
 from psi import get_config
 
-
 import logging
 log = logging.getLogger(__name__)
 
-
 memory = Memory(get_config('CACHE_ROOT'))
 
-
-def remove_clicks(w, max_threshold=10, verbose=False):
+def remove_clicks_deprecated(w, max_threshold=10, verbose=False):
     w_clean = w
 
     # log compress everything > 67% of max
