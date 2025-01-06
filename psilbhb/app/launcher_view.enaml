@@ -116,6 +116,13 @@ enamldef LauncherView(MainWindow): main:
                 selected := launcher.io
 
             Label:
+                text = 'Acoustic system'
+
+            ObjectCombo:
+                items = ['free-field', 'starship']
+                selected := launcher.acoustic_system
+
+            Label:
                 text = 'Experiment'
 
             HGroup:

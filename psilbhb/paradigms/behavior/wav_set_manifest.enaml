@@ -24,14 +24,23 @@ def configure_stimuli(manifest, event):
     controller = event.workbench.get_plugin('psi.controller')
     params = context.get_values()
     n_response = getattr(controller, 'N_response', 2)
+    n_output = getattr(controller, 'N_output', 2)
 
+    channels = [controller.get_channel(f'hw_ao::speaker_{i+1}') for i in range(n_output)]
+    output_cal = [c.calibration for c in channels]
+    fs = channels[0].fs
+    
     # All values in `default_parameters` should automatically be present in the
     # dictionary returned by context. It's not necessary to compute the
     # intersection of the two lists.
     plist = manifest.stim_class.default_parameters
     wavset_keys = [p['name'] for p in plist if p.get('type','') != 'Result']
     wavset_params = {k: params[k] for k in wavset_keys}
-    controller.wavset = manifest.stim_class(n_response=n_response, **wavset_params)
+    controller.wavset = manifest.stim_class(
+        n_response=n_response,
+        output_cal=output_cal,
+        **wavset_params
+    )
 
 
 def generate_context_items(manifest):

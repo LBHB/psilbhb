@@ -37,7 +37,7 @@ context:
         expression: '60'
         rove: false
       background_wav_sequence_norm_fixed_scale:
-        expression: '25'
+        expression: '250'
         rove: false
       background_wav_sequence_normalization:
         rove: false
@@ -71,7 +71,7 @@ context:
         expression: '60'
         rove: false
       background_1_wav_sequence_norm_fixed_scale:
-        expression: '25'
+        expression: '250'
         rove: false
       background_1_wav_sequence_normalization:
         rove: false
@@ -90,10 +90,6 @@ context:
         rove: false
     results:
       correct: {}
-      psivideo_frame_ts: {}
-      psivideo_frames_written: {}
-      psivideo_side_frame_ts: {}
-      psivideo_side_frames_written: {}
       response: {}
       response_time: {}
       response_ts: {}
@@ -118,7 +114,7 @@ context:
         expression: '1'
         rove: false
       target_tone_frequency:
-        expression: '4000'
+        expression: '500'
         rove: false
       target_tone_level:
         expression: background_1_wav_sequence_level+snr
@@ -197,11 +193,11 @@ context:
 event_log:
   column_widths:
     event: 100
-    info: 100
+    info: 130
     timestamp: 100
 microphone:
-  y_max: 6.022528848070045
-  y_min: -4.53213542529395
+  y_max: 1.191317649071316
+  y_min: -0.584625115301067
 output.background:
   token_name: wav_sequence
 output.background_1:

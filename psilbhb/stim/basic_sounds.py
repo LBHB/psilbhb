@@ -1,3 +1,6 @@
+import logging
+log = logging.getLogger(__name__)
+
 from functools import partial, lru_cache
 
 import numpy as np
@@ -6,7 +9,7 @@ from scipy.io import wavfile
 
 
 @lru_cache(maxsize=None)
-def generate_tone(duration, frequency, level=60, fs=44000, ramp=5):
+def generate_tone(duration, frequency, level=60, fs=44000, ramp=5, calibration=None):
     """
     Generate tone
     :param duration:
@@ -18,18 +21,22 @@ def generate_tone(duration, frequency, level=60, fs=44000, ramp=5):
     """
     wbins = int(duration*fs)
     t = np.arange(wbins)/fs
-    w = np.sin(t*2*np.pi*frequency)*5
+    w = np.sin(t*2*np.pi*frequency)
 
     rampbins = int(ramp * fs / 1000)
     onramp = np.linspace(0, 1, rampbins)
     offramp = np.linspace(1, 0, rampbins)
     w[:rampbins] = w[:rampbins] * onramp
     w[-rampbins:] = w[-rampbins:] * offramp
+    calibration = None
 
+    if calibration is not None:
+        fg_scaleby = calibration.get_sf(frequency, level) * np.sqrt(2)
+        log.error('TONE %f %f fg_scaleby %f', frequency, level, fg_scaleby / np.sqrt(2))
     if level == 0:
         fg_scaleby = 0
     else:
-        fg_scaleby = 10 ** ((level - 80) / 20)
+        fg_scaleby = 10 ** ((level - 80) / 20) * 5
 
     w *= fg_scaleby
 
