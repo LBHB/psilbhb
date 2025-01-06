@@ -547,18 +547,30 @@ class MCWavFileSet(WavFileSet):
         super().__init__(filenames, level=level, channel_count=channel_count, force_duration=force_duration, **kwargs)
 
 
+def make_filter(fs, calibration, fl=100, fh=19000, window='boxcar', ntaps=101,
+                max_correction=30, level=80, rms=1):
+    # fh = np.min([int(self.fs/2), 45000])
+
+    freq = np.arange(fl, fh + 1)
+    sf = calibration.get_sf(freq, level - util.db(rms))
+    sf[:] = calibration.get_sf(4e3, level - util.db(rms))
+    sf = apply_max_correction(sf, max_correction)
+    freq = np.concatenate(([0, fl / 1.1], freq, [fh * 1.1, fs / 2]))
+    sf = np.pad(sf, 2)
+    filt = signal.firwin2(ntaps, freq=freq, gain=sf, window=window, fs=fs)
+    zi = signal.lfilter_zi(filt, [1])
+    return filt, zi
+
+
 class WavSet:
 
     default_parameters = [
         {'name': 'equalize', 'label': 'Apply equalizer?',
          'choices': {'No': "False", 'Yes': "True"}, 'default': 'No',
          'scope': 'experiment', 'type': 'EnumParameter', 'group_name': 'WavSet'},
-        {'name': 'calfile1', 'label': 'Cal file 1', 'default': '"D:\cfts\<-2>"', 'dtype': 'str', 'group_name': 'WavSet'},
-        {'name': 'calfile2', 'label': 'Cal file 2', 'default': '"D:\cfts\<-1>"', 'dtype': 'str', 'group_name': 'WavSet'},
     ]
 
-    def __init__(self, n_response):
-        self.n_response = n_response
+    def __init__(self, n_response, output_cal, **parameter_dict):
         self.current_trial_idx = -1
         self.trial_wav_idx = np.array([], dtype=int)
         self.trial_outcomes = np.array([], dtype=int)
@@ -566,14 +578,19 @@ class WavSet:
         self.current_full_rep = 0
 
         self.equalize = False
-        self.calfile1 = False
-        self.calfile2 = False
-        self.calibration1 = None
-        self.calibration2 = None
-        self.calfilt1 = None
-        self.calfilt2 = None
         self.stim_list = pd.DataFrame()
 
+        self.update_parameters(parameter_dict)
+        self.n_response = n_response
+        self.output_cal = output_cal
+        self.output_filt = []
+        for cal in output_cal:
+            self.output_filt.append(make_filter(self.fs, cal, rms=5/np.sqrt(2)))
+
+
+    def update_parameters(self, parameter_dict):
+        for k, v in parameter_dict.items():
+            setattr(self, k, v)
 
     @property
     def wav_per_rep(self):
@@ -632,105 +649,30 @@ class WavSet:
         self.update_calibration()
         self.update()
 
-    def load_cal(self, calfile):
-        from psiaudio.calibration import InterpCalibration
-
-        if '<' in calfile:
-            ss = calfile.split("<")
-            filenumber = int(ss[1].replace(">", ""))
-            filelist = glob.glob(ss[0] + "*")
-            c = filelist[filenumber]
-            log.info(f"calfile set to: {c}")
-        else:
-            c = calfile
-        experiment_folder1 = Path(c)
-        sens_file = experiment_folder1 / 'chirp_sens.csv'
-        sens = pd.read_csv(sens_file, index_col=['hw_ao_chirp_level', 'frequency'])
-        try:
-            calibration = InterpCalibration(
-                sens.loc[-20].index.get_level_values('frequency'),
-                sens.loc[-20, 'norm_spl'].values,
-            )
-        except:
-            calibration = InterpCalibration(
-                sens.loc[-40].index.get_level_values('frequency'),
-                sens.loc[-40, 'norm_spl'].values,
-            )
-
-        return c, sens, calibration
-
     def update_calibration(self, level=80, max_correction=20):
         # hard code to load a calibration file.
         if self.equalize == 'No':
             self.equalize = False
-
-        if self.equalize:
-            if len(self.calfile1) > 0:
-                file, df, self.calibration1 = self.load_cal(self.calfile1)
-                self.calfile1 = file
-                # TODO: hijack calibration to call equalizer function from BNB's notebook.from
-                if 'InterpCalibration' in str(type(self.calibration1)):
-                    # apply fir filter using in ear calibration code provided by BB
-                    fl, fh = 200, 19000  # np.min([int(self.fs/2), 45000])
-                    window = 'hann'
-                    ntaps = 1001
-                    freq = np.arange(fl, fh + 1)
-                    sf = self.calibration1.get_sf(freq, level)
-                    sf = apply_max_correction(sf, max_correction)
-                    freq = np.concatenate(([0, fl / 1.1], freq, [fh * 1.1, self.fs / 2]))
-                    sf = np.pad(sf, 2)
-                    self.calfilt1 = signal.firwin2(ntaps, freq=freq, gain=sf, window=window, fs=self.fs)
-                    self.zi1 = signal.lfilter_zi(self.calfilt1, [1])
-
-            if len(self.calfile2) > 0:
-                file, df, self.calibration2 = self.load_cal(self.calfile2)
-                self.calfile2 = file
-                fl, fh = 200, 19000 # np.min([int(self.fs/2), 45000])
-                window = 'hann'
-                ntaps = 1001
-                freq = np.arange(fl, fh + 1)
-                sf = self.calibration2.get_sf(freq, level)
-                sf = apply_max_correction(sf, max_correction)
-                freq = np.concatenate(([0, fl / 1.1], freq, [fh * 1.1, self.fs / 2]))
-                sf = np.pad(sf, 2)
-                self.calfilt2 = signal.firwin2(ntaps, freq=freq, gain=sf, window=window, fs=self.fs)
-                self.zi2 = signal.lfilter_zi(self.calfilt2, [1])
 
     def update(self):
         pass
 
 
     def trial_waveform(self, trial_idx=None, wav_set_idx=None, **kwargs):
-
         w = self._trial_waveform(trial_idx=trial_idx, wav_set_idx=wav_set_idx, **kwargs)
 
-        if self.equalize & (self.calibration1 is not None):
-            if 'InterpCalibration' in str(type(self.calibration1)):
-                # apply fir filter using in ear calibration code provided by BB
-                # waveform = w[0, :] / 5
-                # do we need to scale input RMS to 1...ask Brad?
-                waveform = w[0, :]
-                # waveform = np.pad(waveform, (1000, 0))
-                # added zi initial state scaling by first time point to remove transient artifact
-                waveform, zi = signal.lfilter(self.calfilt1, [1], waveform, zi=self.zi1*waveform[0])
-                # w[0, :] = waveform[1000:] * 5
-                # w[0, :] = waveform * 5
-                w[0, :] = waveform
-        if self.equalize & (self.calibration2 is not None):
-            if 'InterpCalibration' in str(type(self.calibration2)):
-                # apply fir filter using in ear calibration code provided by BB
-                # waveform = w[1, :]/5
-                waveform = w[1, :]
-                # waveform = np.pad(waveform, (1000,0))
-                # added zi initial state scaling by first time point to remove transient artifact
-                waveform, zi = signal.lfilter(self.calfilt2, [1], waveform, zi=self.zi2*waveform[0])
-                # w[1, :] = waveform[1000:]*5
-                # w[1, :] = waveform * 5
-                w[1, :] = waveform
-
-        # elif calibration is not None:
-        #    sf = calibration.get_sf(1e3, level)
-        #    waveform *= sf
+        if self.equalize:
+            for i, cal in enumerate(self.output_cal):
+                if 'InterpCalibration' in str(type(cal)):
+                    # apply fir filter using in ear calibration code provided by BB
+                    # waveform = w[0, :] / 5
+                    # do we need to scale input RMS to 1...ask Brad?
+                    # waveform = np.pad(waveform, (1000, 0))
+                    # added zi initial state scaling by first time point to remove transient artifact
+                    filt, zi = self.output_filt[i]
+                    w[i, :], _ = signal.lfilter(filt, [1], w[i, :], zi=zi*w[i, 0])
+                    # w[0, :] = waveform[1000:] * 5
+                    # w[0, :] = waveform * 5
 
         return w
 
@@ -925,7 +867,7 @@ class FgBgSet(WavSet):
         # wants to use a different group.
         d.setdefault('group_name', 'FgBgSet')
 
-    def __init__(self, n_response, **parameter_dict):
+    def __init__(self, *args, **kwargs):
         """
         FgBgSet polls FgSet and BgSet for .max_index, .waveform, .names, and .fs
         :param FgSet: {WaveformSet, MultichannelWaveformSet, None}
@@ -950,14 +892,11 @@ class FgBgSet(WavSet):
         :param random_seed: int
         """
         # trial management
-        super().__init__(n_response=n_response)
-
+        super().__init__(*args, **kwargs)
         self.fg_snr = 0
-        self.update_parameters(parameter_dict)
 
     def update_parameters(self, parameter_dict):
-        for k, v in parameter_dict.items():
-            setattr(self, k, v)
+        super().update_parameters(parameter_dict)
 
         self.FgSet = MCWavFileSet(
             fs=self.fs, path=self.fg_path, duration=self.duration,
@@ -1441,16 +1380,8 @@ class AMFusion(WavSet):
         # wants to use a different group.
         d.setdefault('group_name', 'AMFusion')
 
-    def __init__(self, n_response, **parameter_dict):
-        super().__init__(n_response=n_response)
-        # internal object to handle wavs, don't need to specify independently
-        log.info('N_response %r', self.n_response)
-
-        self.update_parameters(parameter_dict)
-
     def update_parameters(self, parameter_dict):
-        for k, v in parameter_dict.items():
-            setattr(self, k, v)
+        super().update_parameters(parameter_dict)
         self.response_window = (parameter_dict['response_start'], parameter_dict['response_end'])
 
         self.update()
@@ -1679,18 +1610,13 @@ class VowelSet(WavSet):
         # wants to use a different group.
         d.setdefault('group_name', 'VowelSet')
 
-    def __init__(self, n_response, **parameter_dict):
-        super().__init__(n_response=n_response)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         # internal object to handle wavs, don't need to specify independently
-        log.info('N_response %r', self.n_response)
         self.duration = 0
 
-        # trial management
-        self.update_parameters(parameter_dict)
-
     def update_parameters(self, parameter_dict):
-        for k, v in parameter_dict.items():
-            setattr(self, k, v)
+        super().update_parameters(parameter_dict)
         self.response_window = (parameter_dict['response_start'], parameter_dict['response_end'])
         self.wavset = MCWavFileSet(
             fs=self.fs, path=self.sound_path, duration=self.duration,
@@ -2313,11 +2239,6 @@ class BinauralTone(WavSet):
         # wants to use a different group.
         d.setdefault('group_name', 'BinauralTone')
 
-    def __init__(self, n_response=0, **parameter_dict):
-        super().__init__(n_response=n_response)
-
-        self.update_parameters(parameter_dict)
-
     def update(self, trial_idx=None):
         """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.
         manage trials separately to allow for repeats, etc."""
@@ -2403,14 +2324,18 @@ class BinauralTone(WavSet):
 
         fg_level = self.reference_level
         bg_level = self.reference_level + row['prb_level']
-        wfg = generate_tone(row['duration'], row['ref_frequency'], fg_level, fs=self.fs, ramp=self.ramp)
+        wfg = generate_tone(row['duration'], row['ref_frequency'], fg_level,
+                            fs=self.fs, ramp=self.ramp,
+                            calibration=self.output_cal[0])
 
         if fg_level-bg_level>60:
             # put fg tone condition
             wbg = np.zeros_like(wfg)
         else:
             duration = row['duration'] - row['prb_delay']/1000
-            wbg = generate_tone(duration, row['prb_frequency'], bg_level, fs=self.fs, ramp=self.ramp)
+            wbg = generate_tone(duration, row['prb_frequency'], bg_level,
+                                fs=self.fs, ramp=self.ramp,
+                                calibration=self.output_cal[0])
             padbins = len(wfg)-len(wbg)
             if padbins > 0:
                 wbg = np.concatenate((np.zeros(padbins, dtype=wbg.dtype), wbg))
@@ -2492,14 +2417,11 @@ class RandomTone(BinauralTone):
         # wants to use a different group.
         d.setdefault('group_name', 'RandomTone')
 
-    def __init__(self, n_response=0, **parameter_dict):
-
-        parameter_dict['probe_level'] = [-100]
-        parameter_dict['probe_delay'] = [0]
-        parameter_dict['include_mono'] = False
-        super().__init__(n_response=n_response, **parameter_dict)
-
-        self.update_parameters(parameter_dict)
+    def __init__(self, *args, **kwargs):
+        kwargs['probe_level'] = [-100]
+        kwargs['probe_delay'] = [0]
+        kwargs['include_mono'] = False
+        super().__init__(*args, **kwargs)
 
 
 class BinauralAM(WavSet):
@@ -2572,13 +2494,8 @@ class BinauralAM(WavSet):
         # wants to use a different group.
         d.setdefault('group_name', 'BinauralAM')
 
-    def __init__(self, n_response=0, **parameter_dict):
-        super().__init__(n_response=n_response)
-        self.update_parameters(parameter_dict)
-
     def update_parameters(self, parameter_dict):
-        for k, v in parameter_dict.items():
-            setattr(self, k, v)
+        super().update_parameters(parameter_dict)
         self.update_calibration()
         self.update()
 
@@ -2795,14 +2712,14 @@ class BigNat(WavSet):
         # wants to use a different group.
         d.setdefault('group_name', 'BigNat')
 
-    def __init__(self, n_response=0, **parameter_dict):
+    def __init__(self, n_response=0, output_cal=None, **parameter_dict):
         """
         Parameters
         ----------
         n_response
         parameter_dict
         """
-        super().__init__(n_response=n_response)
+        super().__init__(n_response=n_response, output_cal=output_cal)
         self.update_parameters(parameter_dict)
 
     def update_parameters(self, parameter_dict):
