@@ -1,7 +1,7 @@
 from enaml.workbench.api import Extension
 from enaml.workbench.core.api import Command
 
-from cftscal.objects import starship_manager
+from cftscal.objects import microphone_manager, starship_manager
 from psi.controller.engines.nidaq import (connect_trigger,
                                           NIDAQEngine,
                                           NIDAQHardwareAIChannel,
@@ -22,6 +22,8 @@ from psiaudio.calibration import FlatCalibration
 # Requested sampling rate must be an integer divisor of the timebase clock.
 ao_fs = 20e6 / 454
 ai_fs = 20e6 / 454
+#ao_fs = 100e3
+#ai_fs = 100e3
 
 
 from psi.controller.api import Trigger, Toggle
@@ -94,8 +96,9 @@ enamldef IOManifest(ExperimentManifest): manifest:
             input_name = 'hw_ai::microphone_1'
             outputs = {'hw_ao::speaker_1': []}
             gain << C.calibration_gain
-            start_frequency = 10
-            end_frequency = 20e3
+            #start_frequency = 100
+            #end_frequency = 20e3
+            #repetitions = 64
 
         ChirpCalibrate:
             name = 'starship_2_calibration'
@@ -106,8 +109,9 @@ enamldef IOManifest(ExperimentManifest): manifest:
 			# comparision).
             show_widget = False
             viewbox_name << cal_1.viewbox_name
-            start_frequency = cal_1.start_frequency
-            end_frequency = cal_1.end_frequency
+            #start_frequency = cal_1.start_frequency
+            #end_frequency = cal_1.end_frequency
+            #repetitions = 64
 
     Extension:
         id = 'backend'
@@ -219,6 +223,22 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 name = 'spout_contact_2'
                 label = 'Spout IR 2'
                 channel = 'Dev1/ai2'
+
+            NIDAQHardwareAIChannel:
+                label = 'Calibration microphone'
+                name = 'microphone_calibration'
+                channel = 'Dev1/ai6'
+                start_trigger = START_TRIGGER
+                fs = ai_fs
+                expected_range = (-10, 10)
+                dtype = 'float64'
+                terminal_mode = 'RSE'
+                unit = 'V'
+                gain = 20
+                calibration = microphone_manager \
+                    .get_object('GRAS-40DP') \
+                    .get_current_calibration() \
+                    .load()
 
         NIDAQEngine:
             name = 'NI_audio'
