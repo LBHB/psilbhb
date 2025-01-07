@@ -15,6 +15,7 @@ import pandas as pd
 from psiaudio import util
 from .basic_sounds import generate_tone
 from psiaudio.stim import apply_max_correction
+from psiaudio.calibration import FlatCalibration
 from psi import get_config
 
 log = logging.getLogger(__name__)
@@ -590,21 +591,30 @@ class WavSet:
         self.equalize = False
         self.stim_list = pd.DataFrame()
         self.n_response = n_response
+        self.N_outputs = N_outputs
         self.tonal_stim = False
-
-        if output_cal is None:
-            output_cal = [FlatCalibration(80, vrms=5 / np.sqrt(2))] * N_outputs
         self.output_cal = output_cal
-        self.output_filt = []
-        for cal in output_cal:
-            #self.output_filt.append(make_filter(self.fs, cal, rms=5/np.sqrt(2)))
-            self.output_filt.append(make_filter(self.fs, cal, rms=1))
 
         self.update_parameters(parameter_dict)
 
     def update_parameters(self, parameter_dict):
         for k, v in parameter_dict.items():
             setattr(self, k, v)
+        self.update_calibration()
+        self.update()
+
+    def update_calibration(self, level=80, max_correction=20):
+        # hard code to load a calibration file.
+        if self.equalize == 'No':
+            self.equalize = False
+
+        if self.output_cal is None:
+            self.output_cal = [FlatCalibration.from_spl(80, vrms=5 / np.sqrt(2))] * self.N_outputs
+
+        self.output_filt = []
+        for cal in self.output_cal:
+            #self.output_filt.append(make_filter(self.fs, cal, rms=5/np.sqrt(2)))
+            self.output_filt.append(make_filter(self.fs, cal, rms=1))
 
     @property
     def wav_per_rep(self):
@@ -657,17 +667,6 @@ class WavSet:
         d = self.default_parameters
         return d
 
-    def update_parameters(self, parameter_dict):
-        for k, v in parameter_dict.items():
-            setattr(self, k, v)
-        self.update_calibration()
-        self.update()
-
-    def update_calibration(self, level=80, max_correction=20):
-        # hard code to load a calibration file.
-        if self.equalize == 'No':
-            self.equalize = False
-
     def update(self):
         pass
 
@@ -691,7 +690,7 @@ class WavSet:
                         # w[0, :] = waveform * 5
             else:
                 # flat calibration
-                sf = calibration.get_sf(1000, 80)
+                sf = self.output_cal[0].get_sf(1000, 80)
                 w *= sf
 
         return w
@@ -916,7 +915,8 @@ class FgBgSet(WavSet):
         self.fg_snr = 0
 
     def update_parameters(self, parameter_dict):
-        super().update_parameters(parameter_dict)
+        for k, v in parameter_dict.items():
+            setattr(self, k, v)
 
         self.FgSet = MCWavFileSet(
             fs=self.fs, path=self.fg_path, duration=self.duration,
@@ -951,6 +951,7 @@ class FgBgSet(WavSet):
                 normalization=self.normalization, fit_range=[],
                 test_range=slice(0, ), test_reps=1, channel_count=1, level=65)
 
+        self.update_calibration()
         self.update()
 
     def update(self, trial_idx=None):
@@ -1403,10 +1404,17 @@ class AMFusion(WavSet):
         # wants to use a different group.
         d.setdefault('group_name', 'AMFusion')
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.tonal_stim = True
+
     def update_parameters(self, parameter_dict):
-        super().update_parameters(parameter_dict)
+        for k, v in parameter_dict.items():
+            setattr(self, k, v)
         self.response_window = (parameter_dict['response_start'], parameter_dict['response_end'])
         self.tonal_stim = True
+
+        self.update_calibration()
         self.update()
 
     def update(self, trial_idx=None):
@@ -1639,7 +1647,9 @@ class VowelSet(WavSet):
         self.duration = 0
 
     def update_parameters(self, parameter_dict):
-        super().update_parameters(parameter_dict)
+        for k, v in parameter_dict.items():
+            setattr(self, k, v)
+
         self.response_window = (parameter_dict['response_start'], parameter_dict['response_end'])
         self.wavset = MCWavFileSet(
             fs=self.fs, path=self.sound_path, duration=self.duration,
@@ -1788,6 +1798,7 @@ class VowelSet(WavSet):
 
     def score_response_old(self, outcome, repeat_incorrect=True, trial_idx=None):
         """
+        DEPRECATED?????
         current logic: if invalid or incorrect, trial should be repeated
         :param outcome: int
             -1 trial not scored (yet?) - happens if score_response skips a trial_idx
@@ -2525,11 +2536,6 @@ class BinauralAM(WavSet):
         super().__init__(*args, **kwargs)
         self.tonal_stim = True
 
-    def update_parameters(self, parameter_dict):
-        super().update_parameters(parameter_dict)
-        self.update_calibration()
-        self.update()
-
     def update(self, trial_idx=None):
         """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.
         manage trials separately to allow for repeats, etc."""
@@ -2622,8 +2628,8 @@ class BinauralAM(WavSet):
         ref_channel = row['ref_channel']
         prb_channel = row['prb_channel']
 
-        ref_level = self.reference_level
-        prb_level = self.reference_level + row['prb_level']
+        ref_level = row['ref_level']
+        prb_level = ref_level + row['prb_level']
 
         wbins = int(self.duration*self.fs)
         bgduration = row['duration'] - row['prb_delay'] / 1000
@@ -2748,20 +2754,18 @@ class BigNat(WavSet):
         # wants to use a different group.
         d.setdefault('group_name', 'BigNat')
 
-    def __init__(self, n_response=0, output_cal=None, **parameter_dict):
+    def __init__(self, n_response=0, output_cal=None, **kwargs):
         """
         Parameters
         ----------
         n_response
         parameter_dict
         """
-        super().__init__(n_response=n_response, output_cal=output_cal)
-        self.update_parameters(parameter_dict)
+        super().__init__(n_response=n_response, output_cal=output_cal, **kwargs)
 
     def update_parameters(self, parameter_dict):
         for k, v in parameter_dict.items():
             setattr(self, k, v)
-        self.update_calibration()
 
         self.SoundSet = MCWavFileSet(
             fs=self.fs, path=self.sound_path, duration=self.duration,
@@ -2769,6 +2773,7 @@ class BigNat(WavSet):
             fit_range=self.fit_range, include_silence=self.include_silence,
             test_range=self.test_range, test_reps=self.test_reps, channel_count=1, level=self.level)
 
+        self.update_calibration()
         self.update()
 
     def update(self, trial_idx=None):

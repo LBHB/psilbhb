@@ -11,13 +11,18 @@ from psilbhb.stim.wav_set import BigNat
 pd.set_option('display.width', 160)
 
 plt.ion()
+if os.path.exists('e:/sounds'):
+    sound_path = 'e:/sounds/BigNat/v2'
+else:
+    sound_path = '/auto/data/sounds/BigNat/v2'
 
 params = BigNat.default_values()
-cf1 = 'D:\\cfts\\20241211-135816 Test test right inear_speaker_calibration_chirp'
-cf2 = 'D:\\cfts\\20241211-135742 Test test left inear_speaker_calibration_chirp'
-params.update(primary_channel=0, level=60, sound_path='e:/sounds/BigNat/v2',
+#cf1 = 'D:\\cfts\\20241211-135816 Test test right inear_speaker_calibration_chirp'
+#cf2 = 'D:\\cfts\\20241211-135742 Test test left inear_speaker_calibration_chirp'
+params.update(primary_channel=0, level=60, sound_path=sound_path,
               fit_binaural='twooffset', test_binaural='oneoffset', include_silence=False,
-              fit_range=range(6,51), test_range=range(3,5), test_reps=8, equalize=True, calfile1 = cf1, calfile2=cf2)
+              fit_range=range(6,51), test_range=range(3,5), test_reps=8, equalize=True)
+              #, calfile1 = cf1, calfile2=cf2)
 
 bt = BigNat(**params)
 bt.update()  # not necessary but illustrative of back-end processing
