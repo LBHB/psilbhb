@@ -284,6 +284,10 @@ def load_wav(fs, filename, level, calibration=None, normalization='pe', norm_fix
         waveform = remove_clicks(waveform, max_threshold=15)
     else:
         raise ValueError(f'Unrecognized normalization: {normalization}')
+
+    # SCALE DOWN TO RMS=1 == 80 dB SPL
+    waveform /= 3.5349
+
     log.info(f"load_wav pre-attenuate: {os.path.basename(filename)} rms: {(waveform**2).mean()**0.5:.5f} {normalization} scale={norm_fixed_scale}")
 
     if level is not None:
@@ -296,7 +300,7 @@ def load_wav(fs, filename, level, calibration=None, normalization='pe', norm_fix
     waveform[waveform<-5]=-5
     #if np.max(np.abs(waveform)) > 5:
     #    raise ValueError('waveform value too large')
-    log.info(f"load_wav attenuated {attenuatedB} dB: {os.path.basename(filename)} rms: {(waveform**2).mean()**0.5:.5f}")
+    log.info(f"load_wav atten by {attenuatedB} dB: {os.path.basename(filename)} rms: {(waveform**2).mean()**0.5:.5f}")
 
     return waveform
 
@@ -570,7 +574,13 @@ class WavSet:
          'scope': 'experiment', 'type': 'EnumParameter', 'group_name': 'WavSet'},
     ]
 
-    def __init__(self, n_response, output_cal, **parameter_dict):
+    def __init__(self, n_response=0, output_cal=None, N_outputs=2, **parameter_dict):
+        """
+        :param n_response: 0: passive, 1: go/no-go, N>=2: nAFC
+        :param output_cal: list of psi Calibrations
+        :param N_outputs: number of output channels. Always 2 for now.
+        :param parameter_dict: subclass-specific parameters that are passed through
+        """
         self.current_trial_idx = -1
         self.trial_wav_idx = np.array([], dtype=int)
         self.trial_outcomes = np.array([], dtype=int)
@@ -579,14 +589,18 @@ class WavSet:
 
         self.equalize = False
         self.stim_list = pd.DataFrame()
-
-        self.update_parameters(parameter_dict)
         self.n_response = n_response
+        self.tonal_stim = False
+
+        if output_cal is None:
+            output_cal = [FlatCalibration(80, vrms=5 / np.sqrt(2))] * N_outputs
         self.output_cal = output_cal
         self.output_filt = []
         for cal in output_cal:
-            self.output_filt.append(make_filter(self.fs, cal, rms=5/np.sqrt(2)))
+            #self.output_filt.append(make_filter(self.fs, cal, rms=5/np.sqrt(2)))
+            self.output_filt.append(make_filter(self.fs, cal, rms=1))
 
+        self.update_parameters(parameter_dict)
 
     def update_parameters(self, parameter_dict):
         for k, v in parameter_dict.items():
@@ -660,18 +674,25 @@ class WavSet:
     def trial_waveform(self, trial_idx=None, wav_set_idx=None, **kwargs):
         w = self._trial_waveform(trial_idx=trial_idx, wav_set_idx=wav_set_idx, **kwargs)
 
-        if self.equalize:
-            for i, cal in enumerate(self.output_cal):
-                if 'InterpCalibration' in str(type(cal)):
-                    # apply fir filter using in ear calibration code provided by BB
-                    # waveform = w[0, :] / 5
-                    # do we need to scale input RMS to 1...ask Brad?
-                    # waveform = np.pad(waveform, (1000, 0))
-                    # added zi initial state scaling by first time point to remove transient artifact
-                    filt, zi = self.output_filt[i]
-                    w[i, :], _ = signal.lfilter(filt, [1], w[i, :], zi=zi*w[i, 0])
-                    # w[0, :] = waveform[1000:] * 5
-                    # w[0, :] = waveform * 5
+        apply_calibration_here = (self.tonal_stim == False)
+        equalize = ('InterpCalibration' in str(type(self.output_cal[0])))
+        if apply_calibration_here:
+            if equalize:
+                for i, cal in enumerate(self.output_cal):
+                    if 'InterpCalibration' in str(type(cal)):
+                        # apply fir filter using in ear calibration code provided by BB
+                        # waveform = w[0, :] / 5
+                        # do we need to scale input RMS to 1...ask Brad?
+                        # waveform = np.pad(waveform, (1000, 0))
+                        # added zi initial state scaling by first time point to remove transient artifact
+                        filt, zi = self.output_filt[i]
+                        w[i, :], _ = signal.lfilter(filt, [1], w[i, :], zi=zi*w[i, 0])
+                        # w[0, :] = waveform[1000:] * 5
+                        # w[0, :] = waveform * 5
+            else:
+                # flat calibration
+                sf = calibration.get_sf(1000, 80)
+                w *= sf
 
         return w
 
@@ -1142,29 +1163,33 @@ class FgBgSet(WavSet):
 
     def trial_waveform(self, trial_idx=None, wav_set_idx=None):
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
+        fg_channel = row['fg_channel']
+        bg_channel = row['bg_channel']
 
         wfg = self.FgSet.waveform(row['fg_index'])
-        if row['fg_channel'] == 1:
+        if fg_channel == 1:
             wfg = np.concatenate((np.zeros_like(wfg), wfg), axis=1)
-        if row['fg_go']==-2:
+
+        if row['fg_go'] == -2:
             # choice trial, FgSet for both channels
             wbg = self.FgSet.waveform(row['bg_index'])
-        elif row['fg_go']==-3:
+        elif row['fg_go'] == -3:
             wbg = self.PrbBgSet.waveform(row['bg_index'])
         else:
             wbg = self.BgSet.waveform(row['bg_index'])
-        if row['bg_channel'] == 1:
+
+        if bg_channel == 1:
             wbg = np.concatenate((np.zeros_like(wbg), wbg), axis=1)
         elif row['bg_channel'] == -1:
             wbg = np.concatenate((wbg/(2**0.5), wbg/(2**0.5)), axis=1)
 
         fg_level = row['fg_level']
         bg_level = row['bg_level']
-        if fg_level==0:
+        if fg_level == 0:
             fg_scaleby=0
         else:
             fg_scaleby = 10**((fg_level - self.FgSet.level)/20)
-        if bg_level==0:
+        if bg_level == 0:
             bg_scaleby=0
         else:
             bg_scaleby = 10**((bg_level - self.BgSet.level)/20)
@@ -1381,7 +1406,7 @@ class AMFusion(WavSet):
     def update_parameters(self, parameter_dict):
         super().update_parameters(parameter_dict)
         self.response_window = (parameter_dict['response_start'], parameter_dict['response_end'])
-
+        self.tonal_stim = True
         self.update()
 
     def update(self, trial_idx=None):
@@ -2229,13 +2254,14 @@ class BinauralTone(WavSet):
         {'name': 'current_full_rep', 'label': 'rep', 'type': 'Result'},
     ] + WavSet.default_parameters.copy()
 
-    #'this_ref_channel': row['ref_channel'],
-    #'this_probe_channel': row['prb_channel'],
-
     for d in default_parameters:
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
         d.setdefault('group_name', 'BinauralTone')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.tonal_stim=True
 
     def update(self, trial_idx=None):
         """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.
@@ -2315,12 +2341,12 @@ class BinauralTone(WavSet):
     def _trial_waveform(self, trial_idx=None, wav_set_idx=None):
 
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
-        ref_channel = row['ref_channel']
-        prb_channel = row['prb_channel']
-
         #log.info(f"**** trial {trial_idx} {row}")
         #log.info(f"****   wavidx {row['index']}")
         #log.info(f"****   ref channel: {row['ref_channel']}")
+
+        ref_channel = row['ref_channel']
+        prb_channel = row['prb_channel']
 
         ref_level = self.reference_level
         prb_level = self.reference_level + row['prb_level']
@@ -2348,7 +2374,6 @@ class BinauralTone(WavSet):
         prebins, postbins = int(self.fs*self.pre_silence), int(self.fs*self.post_silence)
         wpre, wpost = np.zeros((prebins, 2)), np.zeros((postbins, 2))
         w = np.concatenate([wpre,w,wpost], axis=0)
-
 
         return w.T
 
@@ -2422,11 +2447,13 @@ class RandomTone(BinauralTone):
         kwargs['probe_delay'] = [0]
         kwargs['include_mono'] = False
         super().__init__(*args, **kwargs)
+        self.tonal_stim = True
 
 
 class BinauralAM(WavSet):
     """ passive - runclass: BAM
     """
+
     default_parameters = [
         # FROM BLT
         {'name': 'reference_center', 'label': 'Reference frequency',
@@ -2493,6 +2520,10 @@ class BinauralAM(WavSet):
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
         d.setdefault('group_name', 'BinauralAM')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.tonal_stim = True
 
     def update_parameters(self, parameter_dict):
         super().update_parameters(parameter_dict)
@@ -2587,43 +2618,48 @@ class BinauralAM(WavSet):
         if len(harmonics)==0:
             harmonics = [0]
         hcount = len(harmonics)
-        fg_level = row['ref_level']
-        bg_level = row['ref_level'] + row['prb_level']
-        wfg = generate_tone(row['duration'], row['ref_frequency'], fg_level, fs=self.fs, ramp=self.ramp)
+
+        ref_channel = row['ref_channel']
+        prb_channel = row['prb_channel']
+
+        ref_level = self.reference_level
+        prb_level = self.reference_level + row['prb_level']
 
         wbins = int(self.duration*self.fs)
         bgduration = row['duration'] - row['prb_delay'] / 1000
         bgbins = int(bgduration*self.fs)
 
-        wfg = np.zeros(wbins)
-        wbg = np.zeros(bgbins)
+        wref = np.zeros(wbins)
+        wprb = np.zeros(bgbins)
         for h in harmonics:
-            if fg_level-bg_level>-60:
-                wfg += generate_tone(row['duration'], row['ref_frequency'] * (h+1), fg_level, fs=self.fs, ramp=self.ramp) / hcount
-            if fg_level-bg_level<60:
-                wbg += generate_tone(bgduration, row['prb_frequency'] * (h+1), bg_level, fs=self.fs, ramp=self.ramp) / hcount
-        padbins = len(wfg) - len(wbg)
+            if ref_level-prb_level>-60:
+                wref += generate_tone(row['duration'], row['ref_frequency'] * (h+1), ref_level, fs=self.fs, ramp=self.ramp,
+                            calibration=self.output_cal[ref_channel]) / hcount
+            if ref_level-prb_level<60:
+                wprb += generate_tone(bgduration, row['prb_frequency'] * (h+1), prb_level, fs=self.fs, ramp=self.ramp,
+                            calibration=self.output_cal[prb_channel]) / hcount
+        padbins = len(wref) - len(wprb)
         if padbins > 0:
-            wbg = np.concatenate((np.zeros(padbins, dtype=wbg.dtype), wbg))
+            wprb = np.concatenate((np.zeros(padbins, dtype=wprb.dtype), wprb))
 
         if row['ref_am']>0:
             t=np.arange(wbins)/self.fs
             env = 1 + np.sin(t*2*np.pi*row['ref_am']) * 10**(-row['ref_moddepth']/20)
-            wfg *= env
+            wref *= env
         #if row['dis_am']>0:
         #    env = 1 + np.sin(t*2*np.pi*row['dis_am']) * 10**(-row['moddepth']/20)
         #    wbg *= env
 
         # combine fg and bg waveforms
-        w = np.zeros((len(wfg), 2), dtype=wfg.dtype)
-        w[:, row['ref_channel']] = wfg
-        w[:, row['prb_channel']] += wbg
+        w = np.zeros((len(wref), 2), dtype=wref.dtype)
+        w[:, ref_channel] = wref
+        w[:, prb_channel] += wprb
 
         prebins, postbins = int(self.fs*self.pre_silence), int(self.fs*self.post_silence)
         wpre, wpost = np.zeros((prebins, 2)), np.zeros((postbins, 2))
-        w = np.concatenate([wpre,w,wpost], axis=0)
+        w = np.concatenate([wpre, w, wpost], axis=0)
 
-        log.info(f"fg level: {fg_level} bg level: {bg_level} FG RMS: {wfg.std():.3f} BG RMS: {wbg.std():.3f}")
+        log.info(f"fg level: {ref_level} bg level: {prb_level} FG RMS: {wref.std():.3f} BG RMS: {wprb.std():.3f}")
         log.info(f"**** trial {trial_idx} wavidx {row['index']}  ref channel: {row['ref_channel']}")
 
         return w.T

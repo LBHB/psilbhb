@@ -4,6 +4,7 @@ import numpy as np
 import os
 import shutil
 from pathlib import Path
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.ndimage import convolve1d
@@ -13,6 +14,22 @@ from psi import get_config
 from psi.util import PSIJsonEncoder
 from psilbhb.util.celldb import celldb, readpsievents, readlogs
 from plotsII import smooth, timecourse_plot,timecourse_bar
+
+SMALL_SIZE = 8
+MEDIUM_SIZE = 10
+BIGGER_SIZE = 12
+USE_THIS_SIZE = BIGGER_SIZE
+
+plt.rc('font', size=USE_THIS_SIZE)          # controls default text sizes
+plt.rc('axes', titlesize=USE_THIS_SIZE)     # fontsize of the axes title
+plt.rc('axes', labelsize=USE_THIS_SIZE)    # fontsize of the x and y labels
+plt.rc('xtick', labelsize=USE_THIS_SIZE)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=USE_THIS_SIZE)    # fontsize of the tick labels
+plt.rc('legend', fontsize=MEDIUM_SIZE)    # legend fontsize
+plt.rc('figure', titlesize=USE_THIS_SIZE)  # fontsize of the figure title
+mpl.rcParams['font.family'] = 'Arial'
+mpl.rcParams['pdf.fonttype'] = 42
+mpl.rcParams['ps.fonttype'] = 42
 
 plt.ion()
 rawids = [#152223, 152224,
@@ -109,7 +126,15 @@ sess_avg = sess_avg.loc[sess_avg['this_distractor_offset'].abs()>0]
 
 sess_avg.plot.scatter(x='this_distractor_offset', y='correct', color='lightgray', ax=ax, label='single day')
 sess_avg.groupby('this_distractor_offset').mean(numeric_only=True).reset_index().plot(x='this_distractor_offset', y='correct', color='k', ax=ax)
-ax.plot([0],easy_sess['correct'].mean(),'s', lw=2, label='AM-only')
+#ax.plot([0],easy_sess['correct'].mean(),'s', lw=2, label='AM-only')
 #d.groupby('this_distractor_offset').mean(numeric_only=True).reset_index().plot(x='this_distractor_offset', y='correct', ax=ax)
 ax.set_title(f"Ichy rawids {np.min(rawids)}-{np.max(rawids)}")
+ax.set_xlabel('Distractor offset (oct)')
+ax.set_ylabel('Mean fraction correct')
 ax.legend()
+
+plt.tight_layout()
+if os.path.exists('/home/svd/Documents/onedrive/proposals/r01_BinauralFusion/'):
+    f.savefig(f'/home/svd/Documents/onedrive/proposals/r01_BinauralFusion/figures/afm_behavior.pdf')
+else:
+    print("Skipping figure save")

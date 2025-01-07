@@ -23,26 +23,26 @@ def generate_tone(duration, frequency, level=60, fs=44000, ramp=5, calibration=N
     t = np.arange(wbins)/fs
     w = np.sin(t*2*np.pi*frequency)
 
+    # apply ramp
     rampbins = int(ramp * fs / 1000)
     onramp = np.linspace(0, 1, rampbins)
     offramp = np.linspace(1, 0, rampbins)
     w[:rampbins] = w[:rampbins] * onramp
     w[-rampbins:] = w[-rampbins:] * offramp
-    calibration = None
 
     if calibration is not None:
-        fg_scaleby = calibration.get_sf(frequency, level) * np.sqrt(2)
-        log.error('TONE %f %f fg_scaleby %f', frequency, level, fg_scaleby / np.sqrt(2))
-    if level == 0:
-        fg_scaleby = 0
+        scaleby = calibration.get_sf(frequency, level) * np.sqrt(2)
+        log.error('TONE %f %f fg_scaleby %f', frequency, level, scaleby / np.sqrt(2))
+    elif level == 0:
+        scaleby = 0
     else:
-        fg_scaleby = 10 ** ((level - 80) / 20) * 5
+        scaleby = 10 ** ((level - 80) / 20) * 5
 
-    w *= fg_scaleby
+    w *= scaleby
 
     return w
 
-def generate_am_tone(duration, frequency, level=60, fs=44000, ramp=5):
+def generate_am_tone(duration, frequency, level=60, fs=44000, ramp=5, calibration=None):
     """
     Generate tone
     :param duration:
@@ -53,9 +53,10 @@ def generate_am_tone(duration, frequency, level=60, fs=44000, ramp=5):
     :return: w: np.array of length int(duration*fs)
     """
     hcount = len(harmonics)
-    fg_level = row['ref_level']
-    bg_level = row['ref_level'] + row['prb_level']
-    wfg = generate_tone(row['duration'], row['ref_frequency'], fg_level, fs=self.fs, ramp=self.ramp)
+    ref_level = row['ref_level']
+    prb_level = row['ref_level'] + row['prb_level']
+    wfg = generate_tone(row['duration'], row['ref_frequency'], ref_level,
+                        fs=self.fs, ramp=self.ramp, calibration=calibration)
 
     wbins = int(self.duration * self.fs)
     bgduration = row['duration'] - row['prb_delay'] / 1000
@@ -64,11 +65,11 @@ def generate_am_tone(duration, frequency, level=60, fs=44000, ramp=5):
     wfg = np.zeros(wbins)
     wbg = np.zeros(bgbins)
     for h in harmonics:
-        if fg_level - bg_level > -60:
-            wfg += generate_tone(row['duration'], row['ref_frequency'] * (h + 1), fg_level, fs=self.fs,
+        if ref_level - prb_level > -60:
+            wfg += generate_tone(row['duration'], row['ref_frequency'] * (h + 1), ref_level, fs=self.fs,
                                  ramp=self.ramp) / hcount
-        if fg_level - bg_level < 60:
-            wbg += generate_tone(bgduration, row['prb_frequency'] * (h + 1), bg_level, fs=self.fs,
+        if ref_level - prb_level < 60:
+            wbg += generate_tone(bgduration, row['prb_frequency'] * (h + 1), prb_level, fs=self.fs,
                                  ramp=self.ramp) / hcount
     padbins = len(wfg) - len(wbg)
     if padbins > 0:
