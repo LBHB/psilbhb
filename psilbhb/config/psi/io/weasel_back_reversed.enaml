@@ -26,6 +26,7 @@ enamldef IRChannel(NIDAQHardwareAIChannel): irc:
 
     unit = 'V'
     start_trigger = '/Dev1/ao/StartTrigger'
+    reference_clock = 'PXI_Clk10'
     fs = ai_fs
     expected_range = (-10, 10)
     dtype = 'float64'
@@ -34,7 +35,6 @@ enamldef IRChannel(NIDAQHardwareAIChannel): irc:
     ADC: adc:
         name << irc.name
         threshold = 0.75
-
 
 enamldef IOManifest(ExperimentManifest): manifest:
 
@@ -53,6 +53,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 name = 'speaker_1_monitor'
                 channel = 'Dev1/ai3'
                 start_trigger = '/Dev1/ao/StartTrigger'
+                reference_clock = 'PXI_Clk10'
                 fs = ai_fs
                 expected_range = (-10, 10)
                 dtype = 'float64'
@@ -62,9 +63,9 @@ enamldef IOManifest(ExperimentManifest): manifest:
 
             NIDAQHardwareAIChannel:
                 label = 'Microphone 1'
-                #name = 'microphone_1'
-                name = 'microphone_calibration'
+                name = 'microphone_1'
                 channel = 'Dev1/ai6'
+                reference_clock = 'PXI_Clk10'
                 start_trigger = '/Dev1/ao/StartTrigger'
                 fs = ai_fs
                 expected_range = (-10, 10)
@@ -78,6 +79,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 name = 'sync_monitor'
                 channel = 'Dev1/ai4'
                 start_trigger = '/Dev1/ao/StartTrigger'
+                reference_clock = 'PXI_Clk10'
                 fs = ai_fs
                 expected_range = (-10, 10)
                 dtype = 'float64'
@@ -89,6 +91,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 label = 'Speaker 1'
                 name = 'speaker_1'
                 channel = '/Dev1/ao0'
+                reference_clock = 'PXI_Clk10'
                 fs = ao_fs
                 expected_range = (-10, 10)
                 dtype = 'float64'
@@ -100,6 +103,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 label = 'Speaker 2'
                 name = 'speaker_2'
                 channel = '/Dev1/ao1'
+                reference_clock = 'PXI_Clk10'
                 fs = ao_fs
                 expected_range = (-10, 10)
                 dtype = 'float64'
@@ -116,7 +120,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
 
             NIDAQSoftwareDOChannel:
                 name = 'water_dispense_1'
-                channel = 'Dev1/port0/line0'
+                channel = 'Dev1/port0/line7'
 
                 # You can have multiple triggers connected to a single
                 # software-timed digital output. The behavior programs will
@@ -161,20 +165,21 @@ enamldef IOManifest(ExperimentManifest): manifest:
             IRChannel:
                 # For go-nogo
                 name = 'reward_contact'
+                name = 'reward_contact'
                 label = 'Reward IR'
-                channel = 'Dev1/ai0'
+                channel = 'Dev1/ai5'
 
             IRChannel:
                 # For go-nogo and NAFC
                 name = 'np_contact'
                 label = 'Nose-poke IR'
-                channel = 'Dev1/ai1'
+                channel = 'Dev1/ai0'
 
             IRChannel:
                 # for NAFC
                 name = 'spout_contact_1'
                 label = 'Spout IR 1'
-                channel = 'Dev1/ai0'
+                channel = 'Dev1/ai5'
 
             IRChannel:
                 # for NAFC

@@ -1,0 +1,93 @@
+context:
+  meta:
+    trial_log:
+    - this_name
+    - this_reference_frequency
+  parameters:
+    RandomTone:
+      current_full_rep: {}
+      duration:
+        expression: '0.1'
+        rove: false
+      fs:
+        expression: '44000'
+        rove: false
+      post_silence:
+        expression: '0.05'
+        rove: false
+      pre_silence:
+        expression: '0.05'
+        rove: false
+      primary_channel:
+        rove: false
+        selected: '1'
+      probe_count:
+        expression: '64'
+        rove: false
+      probe_octaves:
+        expression: '[3]'
+        rove: false
+      ramp:
+        expression: '5'
+        rove: false
+      random_seed:
+        expression: '0'
+        rove: false
+      reference_center:
+        expression: '2000'
+        rove: false
+      reference_level:
+        expression: '50'
+        rove: false
+      switch_channels:
+        rove: false
+        selected: 'No'
+      this_name: {}
+      this_probe_frequency: {}
+      this_reference_frequency: {}
+      this_snr: {}
+    WavSet:
+      equalize:
+        rove: false
+        selected: 'No'
+    inear_calibration:
+      calibration_gain:
+        expression: '-60'
+        rove: false
+    results:
+      trial_start: {}
+    trial:
+      iti_duration:
+        expression: '0.05'
+        rove: false
+      snr:
+        expression: '10'
+        rove: false
+      target_delay:
+        expression: '0.5'
+        rove: false
+      trial_reps:
+        expression: '10'
+        rove: false
+  selectors: {}
+microphone_1:
+  y_max: 1.0
+  y_min: -1.0
+microphone_1_fft_vb:
+  y_max: 100.0
+  y_min: -10.0
+microphone_2:
+  y_max: 1.0
+  y_min: -1.0
+microphone_2_fft_vb:
+  y_max: 100.0
+  y_min: -10.0
+starship_1_calibration:
+  y_max: 160.0
+  y_min: 60.0
+trial_log:
+  column_config:
+    this_name:
+      width: 39
+    this_reference_frequency:
+      width: 39

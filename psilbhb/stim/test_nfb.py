@@ -23,7 +23,7 @@ if os.path.exists('h:/sounds'):
 else:
     soundpath_fg = '/auto/data/sounds/vocalizations/v4'
     soundpath_bg = '/auto/data/sounds/backgrounds/v3'
-    soundpath_prb_bg = 'auto/data/sounds/Categories/chimeric_voc'
+    soundpath_prb_bg = '/auto/data/sounds/Categories/chimeric_voc'
 
 # vv = MCWavFileSet(
 #     fs=44000, path=soundpath_fg, duration=3, normalization='rms',

@@ -1,0 +1,104 @@
+context:
+  meta:
+    trial_log:
+    - s1_name
+    - s2_name
+    - current_full_rep
+  parameters:
+    BigNat:
+      binaural_index_offset:
+        expression: '3'
+        rove: false
+      duration:
+        expression: '18'
+        rove: false
+      fit_binaural:
+        rove: false
+        selected: Two offset
+      fit_range:
+        expression: slice(6,51)
+        rove: false
+      include_silence:
+        rove: false
+        selected: 'No'
+      level:
+        expression: '60'
+        rove: false
+      norm_fixed_scale:
+        expression: '250'
+        rove: false
+      normalization:
+        rove: false
+        selected: fixed
+      post_silence:
+        expression: '1'
+        rove: false
+      pre_silence:
+        expression: '1'
+        rove: false
+      primary_channel:
+        rove: false
+        selected: '0'
+      ramp:
+        expression: '10'
+        rove: false
+      random_seed:
+        expression: '34'
+        rove: false
+      sound_path:
+        expression: '''e:/sounds/BigNat/v2'''
+        rove: false
+      test_binaural:
+        rove: false
+        selected: One offset
+      test_range:
+        expression: slice(3,5)
+        rove: false
+      test_reps:
+        expression: '8'
+        rove: false
+    Results:
+      current_full_rep: {}
+      fs:
+        expression: '44000'
+        rove: false
+      s1_name: {}
+      s2_name: {}
+      trial_cat: {}
+    WavSet:
+      calfile1:
+        expression: '"D:\cfts\<-2>"'
+        rove: false
+      calfile2:
+        expression: '"D:\cfts\<-1>"'
+        rove: false
+      equalize:
+        rove: false
+        selected: 'No'
+    results:
+      trial_start: {}
+    trial:
+      iti_duration:
+        expression: '0.1'
+        rove: false
+      snr:
+        expression: '10'
+        rove: false
+      target_delay:
+        expression: '0.5'
+        rove: false
+      trial_reps:
+        expression: '10'
+        rove: false
+  selectors: {}
+microphone:
+  y_max: 1.0
+  y_min: -1.0
+trial_log:
+  column_config:
+    current_full_rep:
+      width: 39
+    s1_name:
+      width: 73
+    s2_name:
+      width: 73

@@ -29,11 +29,10 @@ from psi.experiment.api import ParadigmDescription, paradigm_manager
 from psilbhb.util.celldb import celldb, readpsievents
 from psilbhb.util.plots import plot_behavior
 
-# redeclare these structures here:
-#from psi.application.base_launcher import SimpleLauncher, launch main_animal
 plt.ion()
 
-class SimpleLauncher(Atom):
+
+class CellDbLauncher(Atom):
 
     io = Value()
     experiment = Typed(ParadigmDescription).tag(template=True, required=True)
@@ -59,10 +58,38 @@ class SimpleLauncher(Atom):
     available_calibrations = List()
     available_preferences = List()
 
+    db = celldb()
+    animal_data = db.get_animals()
+    user_data = db.get_users()
+
+    experimenter = Str().tag(required=True)
+    animal = Str().tag(template=True, required=True)
+    siteid = Str().tag(template=True, required=True)
+    training = Str('Yes').tag(required=True)
+    runclass = Str('NTD').tag(required=True)
+    runnumber = Str().tag(required=False)
+    penname = Str().tag(required=False)
+    note = Str().tag(required=False)
+    channelcount = Str().tag(required=True)
+
+    available_animals = list(animal_data['animal'])
+    available_experimenters = list(user_data['userid'])
+    available_training = ['Yes','Physiology+behavior','Physiology+passive']
+
+    training_folder = Typed(Path)
+
+    template = '{animal}/{siteid}/{runname}'
+    wildcard_template = '*{animal}*{experiment}'
+
     # This is a bit weird, but to set the default value to not be the first
     # item in the list, you have to call the instance with the value you want
     # to be default.
     logging_level = Enum('trace', 'debug', 'info', 'warning', 'error')('info')
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.load_settings()
+        self._update_site()
 
     def _default_experiment(self):
         return self.experiment_choices[0]
@@ -129,27 +156,6 @@ class SimpleLauncher(Atom):
     def _observe_note(self, event):
         self._update()
 
-    def _update(self):
-        exclude = [] if self.save_data else ['experimenter', 'animal', 'ear']
-        required_vals = get_tagged_values(self, 'required')
-        self.can_launch = True
-        for k, v in get_tagged_values(self, 'required').items():
-            if k in exclude:
-                continue
-            if not v:
-                self.can_launch = False
-                return
-
-        if self.save_data:
-            log.debug(f"Updating template")
-            template_vals = get_tagged_values(self, 'template')
-            template_vals['experiment'] = template_vals['experiment'].name
-            self.base_folder = self.root_folder / self.template.format(**template_vals)
-            self.wildcard = self.wildcard_template.format(**template_vals)
-            log.debug(f"set basefolder={self.base_folder}")
-        else:
-            self.base_folder = None
-
     def get_preferences(self):
         if not self.use_prior_preferences:
             return self.preferences
@@ -169,70 +175,6 @@ class SimpleLauncher(Atom):
         m = f'Could not find prior preferences for {self.experiment_type}'
         raise ValueError(m)
 
-    def launch_subprocess(self):
-        args = ['psi', self.experiment.name]
-        plugins = [p.id for p in self.experiment.plugins if p.selected]
-        if self.save_data:
-            args.append(str(self.base_folder))
-        if self.preferences:
-            args.extend(['--preferences', str(self.get_preferences())])
-        if self.io:
-            args.extend(['--io', str(self.io)])
-        if self.calibration:
-            args.extend(['--calibration', str(self.calibration)])
-        for plugin in plugins:
-            args.extend(['--plugins', plugin])
-        args.extend(['--debug-level-console', self.logging_level.upper()])
-        args.extend(['--debug-level-file', self.logging_level.upper()])
-
-        log.info('Launching subprocess: %s', ' '.join(args))
-        print(' '.join(args))
-        subprocess.check_output(args)
-        self._update_choices()
-
-
-class CellDbLauncher(SimpleLauncher):
-
-    #def _default_animal(self):
-    #    return self.animal_choices[0]
-    #
-    #def _default_animal_choices(self):
-    #    return ['Prince','SlipperyJack','Test']
-    db = celldb()
-    animal_data = db.get_animals()
-    user_data = db.get_users()
-
-    experimenter = Str().tag(required=True)
-    animal = Str().tag(template=True, required=True)
-    siteid = Str().tag(template=True, required=True)
-    training = Str().tag(required=True)
-    runclass = Str().tag(required=True)
-    runnumber = Str().tag(required=False)
-    penname = Str().tag(required=False)
-    note = Str().tag(required=False)
-    channelcount = Str().tag(required=True)
-
-    available_animals = list(animal_data['animal'])
-    available_experimenters = list(user_data['userid'])
-    #available_runclasses = ['NTD', 'NFB', 'PHD', 'FTC']
-    available_training = ['Yes','Physiology+behavior','Physiology+passive']
-
-    training_folder = Typed(Path)
-
-    template = '{animal}/{siteid}/{runname}'
-    wildcard_template = '*{animal}*{experiment}'
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.load_settings()
-        self._update_site()
-
-    def _default_training(self):
-        return "Yes"
-
-    def _default_runclass(self):
-        return "NTD"
-
     def _default_training_folder(self):
         return get_config('TRAINING_ROOT')
 
@@ -241,9 +183,6 @@ class CellDbLauncher(SimpleLauncher):
 
     def _observe_training(self, event):
         self._update_site()
-
-    #def _observe_runclass(self, event):
-    #    self._update()
 
     def _observe_runnumber(self, event):
         self._update()
@@ -261,8 +200,7 @@ class CellDbLauncher(SimpleLauncher):
 
     def save_settings(self, configfile="celldblauncher.json"):
         filename = get_config('PREFERENCES_ROOT') / configfile
-        save_parms = ['experimenter','animal','training',
-                      'runclass']
+        save_parms = ['experimenter','animal','training', 'runclass']
         d = {k: getattr(self, k) for k in save_parms}
 
         with open(filename, 'w') as file:
@@ -286,7 +224,6 @@ class CellDbLauncher(SimpleLauncher):
         self._update()
 
     def _update(self):
-
         r = self.experiment.name
         self.runclass  =r.split('-')[0]
 
@@ -327,14 +264,25 @@ class CellDbLauncher(SimpleLauncher):
     def launch_subprocess(self):
         if self.training == 'Yes':
             behavior = 'active'
+            ephys=False
             dataroot = get_config('DATA_ROOT')
             #dataroot = get_config('TRAINING_ROOT')
         elif self.training == 'Physiology+behavior':
             behavior = 'active'
+            ephys=True
             dataroot = get_config('DATA_ROOT')
         else:
             behavior = 'passive'
+            ephys=True
             dataroot = get_config('DATA_ROOT')
+
+        # moved this up from other psi stuff so that OE check will happen before
+        # celldb is advanced.
+        plugins = [p.id for p in self.experiment.plugins if p.selected]
+        if ephys & ('openephys' not in plugins):
+            log.error('Need to turn on openephy plugin!!!')
+            #plugins.append('openephys')
+            return
 
         oeroot = get_config('OPENEPHYS_ROOT')
         oeroot2 = get_config('OPENEPHYS_ROOT2')
@@ -357,7 +305,8 @@ class CellDbLauncher(SimpleLauncher):
             print(error)
 
         args = ['psi', self.experiment.name]
-        plugins = [p.id for p in self.experiment.plugins if p.selected]
+
+
         if self.save_data:
             args.append(str(self.base_folder))
         if self.preferences:
@@ -368,6 +317,7 @@ class CellDbLauncher(SimpleLauncher):
             args.extend(['--calibration', str(self.calibration)])
         for plugin in plugins:
             args.extend(['--plugins', plugin])
+
         args.extend(['--debug-level-console', self.logging_level.upper()])
         args.extend(['--debug-level-file', self.logging_level.upper()])
 

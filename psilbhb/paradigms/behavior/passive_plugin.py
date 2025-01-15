@@ -77,7 +77,7 @@ class PassivePlugin(BaseBehaviorPlugin):
 
     def start_trial(self):
         # Figure out next trial and set up selector.
-        log.info('Starting next trial')
+        log.info(f'Starting next trial ts={self.get_ts()}')
         self.trial += 1
 
         # This generates the waveforms that get sent to each output. We have

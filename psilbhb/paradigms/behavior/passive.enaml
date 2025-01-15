@@ -45,6 +45,21 @@ enamldef PassiveManifest(ControllerManifest): manifest:
     '''
     # Number of speaker outputs
     attr N_output = 2
+
+    # Number of input microphones
+    #attr N_input = 2
+    attr N_input = 0  # svd hack for free-field, where microphone_1 and microphone_2 aren't defined.
+
+    attr input_list = ['microphone_calibration'] + [f'microphone_{i+1}' for i in range(N_input)]
+
+    # Template that is formatted to generate the channel name each output is
+    # linked to.
+    attr output_template = 'hw_ao::speaker_{}'
+
+    # Template that is formatted to generate the channel name each input is
+    # linked to.
+    attr input_template = 'hw_ai::microphone_{}'
+
     factory = lambda: PassivePlugin()
 
     Extension:
@@ -101,7 +116,8 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             kwargs = {'duration': 0.5}
 
         ExperimentAction:
-            event = 'engines_configured'
+            #event = 'engines_configured'
+            event = 'engines_started'
             command = 'psi.controller.prepare_trial'
 
         # This action is mandatory and must be executed before any other
@@ -121,7 +137,7 @@ enamldef PassiveManifest(ControllerManifest): manifest:
         BinaryStore:
             # Make sure we save all the spout contact data
             name = 'initiated_data'
-            continuous_inputs = ['microphone']
+            continuous_inputs = ['microphone_calibration'] + [f'microphone_{i+1}' for i in range(N_input)]
         EventLog:
             show_widget = False
         TrialLog:
@@ -137,12 +153,25 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             EpochOutput:
                 name = f'output_{loop_item+1}'
                 label = f'Output {loop_item+1}'
-                target_name = f'hw_ao::speaker_{loop_item+1}'
+                target_name = manifest.output_template.format(loop_item + 1)
                 configurable = False
 
-        ContinuousInput:
-            name = 'microphone'
-            source_name = 'hw_ai::microphone_1'
+        #Looper:
+        #    iterable = range(N_input)
+        #
+        #    ContinuousInput:
+        #        name = f'microphone_{loop_item+1}'
+        #        source_name = manifest.input_template.format(loop_item + 1)
+        Looper:
+            iterable = input_list
+
+            ContinuousInput:
+                name = loop_item
+                source_name = 'hw_ai::{}'.format(loop_item)
+
+        #ContinuousInput:
+        #    name = 'microphone_calibration'
+        #    source_name = 'hw_ai::microphone_calibration'
 
         ContinuousInput:
             name = 'speaker_1_monitor'
@@ -216,15 +245,32 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             label = 'Trial timing'
             span = 10
 
-            ViewBox:
-                name = 'microphone'
-                y_min = -1
-                y_max = 1
+            #Looper:
+            #    iterable = range(N_input)
+            #
+            #    ViewBox:
+            #        name = f'microphone_{loop_item+1}'
+            #        y_min = -1
+            #        y_max = 1
+            #
+            #        ChannelPlot:
+            #            source_name = f'microphone_{loop_item+1}'
 
-                ChannelPlot:
-                    source_name = 'microphone'
-                    pen_color = 'black'
+            Looper:
+                iterable = input_list
 
-                ChannelPlot:
-                    source_name = 'speaker_1_monitor'
-                    pen_color = 'blue'
+                ViewBox:
+                    name = loop_item
+                    y_min = -1
+                    y_max = 1
+
+                    ChannelPlot:
+                        source_name = loop_item
+
+            #ViewBox:
+            #    name = f'microphone_calibration'
+            #    y_min = -1
+            #    y_max = 1
+            #
+            #    ChannelPlot:
+            #        source_name = f'microphone_calibration'

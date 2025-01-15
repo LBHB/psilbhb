@@ -26,6 +26,7 @@ enamldef IRChannel(NIDAQHardwareAIChannel): irc:
 
     unit = 'V'
     start_trigger = '/Dev1/ao/StartTrigger'
+    reference_clock = 'PXI_Clk10'
     fs = ai_fs
     expected_range = (-10, 10)
     dtype = 'float64'
@@ -59,11 +60,11 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 terminal_mode = 'RSE'
                 unit = 'V'
                 calibration_user_editable = True
+                reference_clock = 'PXI_Clk10'
 
             NIDAQHardwareAIChannel:
                 label = 'Microphone 1'
-                #name = 'microphone_1'
-                name = 'microphone_calibration'
+                name = 'microphone_1'
                 channel = 'Dev1/ai6'
                 start_trigger = '/Dev1/ao/StartTrigger'
                 fs = ai_fs
@@ -72,6 +73,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 terminal_mode = 'RSE'
                 unit = 'V'
                 calibration_user_editable = True
+                reference_clock = 'PXI_Clk10'
 
             NIDAQHardwareAIChannel:
                 label = 'Sync Monitor'
@@ -84,6 +86,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 terminal_mode = 'RSE'
                 unit = 'V'
                 calibration = FlatCalibration.from_mv_pa(2.38)
+                reference_clock = 'PXI_Clk10'
 
             NIDAQHardwareAOChannel:
                 label = 'Speaker 1'
@@ -95,6 +98,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 terminal_mode = 'RSE'
                 unit = 'V'
                 calibration = FlatCalibration.from_spl(80, vrms=5/(2**.5))
+                reference_clock = 'PXI_Clk10'
 
             NIDAQHardwareAOChannel:
                 label = 'Speaker 2'
@@ -106,6 +110,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 terminal_mode = 'RSE'
                 unit = 'V'
                 calibration = FlatCalibration.from_spl(80, vrms=5/(2**.5))
+                reference_clock = 'PXI_Clk10'
 
             NIDAQHardwareDOChannel:
                 label = 'Sync Trigger'
@@ -113,6 +118,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 channel = '/Dev1/port0/line3'
                 sample_clock = '/Dev1/ao/SampleClock'
                 fs = ao_fs
+                #reference_clock = 'PXI_Clk10'
 
             NIDAQSoftwareDOChannel:
                 name = 'water_dispense_1'
@@ -168,7 +174,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 # For go-nogo and NAFC
                 name = 'np_contact'
                 label = 'Nose-poke IR'
-                channel = 'Dev1/ai1'
+                channel = 'Dev1/ai5'
 
             IRChannel:
                 # for NAFC
