@@ -183,7 +183,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         width = 12
     elif runclass in ['AMF']:
         #parmlist = ['this_snr', 'this_distractor_offset', 'this_distractor_frequency']
-        parmlist=['this_distractor_frequency', 'this_distractor_offset']
+        parmlist=['this_snr', 'this_distractor_offset']
         perfsum = d_.groupby(parmlist)[['correct']].mean()
         perfsum = perfsum.unstack(-1)
         perfcount = d_.groupby(parmlist)[['correct']].count().unstack(-1)
