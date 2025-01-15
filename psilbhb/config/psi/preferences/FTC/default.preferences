@@ -7,7 +7,7 @@ context:
     RandomTone:
       current_full_rep: {}
       duration:
-        expression: '2'
+        expression: '0.1'
         rove: false
       fs:
         expression: '44000'
@@ -22,10 +22,10 @@ context:
         rove: false
         selected: '1'
       probe_count:
-        expression: '6'
+        expression: '64'
         rove: false
       probe_octaves:
-        expression: '[1]'
+        expression: '[3]'
         rove: false
       ramp:
         expression: '5'
@@ -37,7 +37,7 @@ context:
         expression: '2000'
         rove: false
       reference_level:
-        expression: '80'
+        expression: '50'
         rove: false
       switch_channels:
         rove: false
@@ -52,13 +52,13 @@ context:
         selected: 'No'
     inear_calibration:
       calibration_gain:
-        expression: '-30'
+        expression: '-60'
         rove: false
     results:
       trial_start: {}
     trial:
       iti_duration:
-        expression: '0.1'
+        expression: '0.05'
         rove: false
       snr:
         expression: '10'
@@ -79,12 +79,15 @@ microphone_1_fft_vb:
 microphone_2:
   y_max: 1.0
   y_min: -1.0
+microphone_2_fft_vb:
+  y_max: 100.0
+  y_min: -10.0
 starship_1_calibration:
   y_max: 160.0
   y_min: 60.0
 trial_log:
   column_config:
     this_name:
-      width: 40
+      width: 39
     this_reference_frequency:
-      width: 40
+      width: 39

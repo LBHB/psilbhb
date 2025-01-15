@@ -212,7 +212,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
 
         ContinuousInput:
             name = 'microphone'
-            source_name = 'hw_ai::microphone_1'
+            source_name = 'hw_ai::microphone_calibration'
 
         ContinuousInput:
             name = 'speaker_1_monitor'

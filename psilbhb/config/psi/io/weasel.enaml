@@ -62,7 +62,8 @@ enamldef IOManifest(ExperimentManifest): manifest:
 
             NIDAQHardwareAIChannel:
                 label = 'Microphone 1'
-                name = 'microphone_1'
+                #name = 'microphone_1'
+                name = 'microphone_calibration'
                 channel = 'Dev1/ai6'
                 start_trigger = '/Dev1/ao/StartTrigger'
                 fs = ai_fs

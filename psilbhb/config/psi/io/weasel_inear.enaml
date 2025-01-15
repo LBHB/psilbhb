@@ -236,7 +236,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 unit = 'V'
                 gain = 20
                 calibration = microphone_manager \
-                    .get_object('GRAS-40DP') \
+                    .get_object('PCB') \
                     .get_current_calibration() \
                     .load()
 

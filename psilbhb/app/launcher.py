@@ -35,7 +35,6 @@ plt.ion()
 class CellDbLauncher(Atom):
 
     io = Value()
-    acoustic_system = Str('free-field')
     experiment = Typed(ParadigmDescription).tag(template=True, required=True)
     calibration = Typed(Path)
     preferences = Typed(Path)
@@ -318,8 +317,6 @@ class CellDbLauncher(Atom):
             args.extend(['--calibration', str(self.calibration)])
         for plugin in plugins:
             args.extend(['--plugins', plugin])
-        if self.acoustic_system == 'starship':
-            args.extend(['--plugins', 'chirp_inear_calibration'])
 
         args.extend(['--debug-level-console', self.logging_level.upper()])
         args.extend(['--debug-level-file', self.logging_level.upper()])

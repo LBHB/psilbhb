@@ -47,7 +47,10 @@ enamldef PassiveManifest(ControllerManifest): manifest:
     attr N_output = 2
 
     # Number of input microphones
-    attr N_input = 2
+    #attr N_input = 2
+    attr N_input = 0  # svd hack for free-field, where microphone_1 and microphone_2 aren't defined.
+
+    attr input_list = ['microphone_calibration'] + [f'microphone_{i+1}' for i in range(N_input)]
 
     # Template that is formatted to generate the channel name each output is
     # linked to.
@@ -153,16 +156,22 @@ enamldef PassiveManifest(ControllerManifest): manifest:
                 target_name = manifest.output_template.format(loop_item + 1)
                 configurable = False
 
+        #Looper:
+        #    iterable = range(N_input)
+        #
+        #    ContinuousInput:
+        #        name = f'microphone_{loop_item+1}'
+        #        source_name = manifest.input_template.format(loop_item + 1)
         Looper:
-            iterable = range(N_input)
+            iterable = input_list
 
             ContinuousInput:
-                name = f'microphone_{loop_item+1}'
-                source_name = manifest.input_template.format(loop_item + 1)
+                name = loop_item
+                source_name = 'hw_ai::{}'.format(loop_item)
 
-        ContinuousInput:
-            name = 'microphone_calibration'
-            source_name = 'hw_ai::microphone_calibration'
+        #ContinuousInput:
+        #    name = 'microphone_calibration'
+        #    source_name = 'hw_ai::microphone_calibration'
 
         ContinuousInput:
             name = 'speaker_1_monitor'
@@ -236,13 +245,32 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             label = 'Trial timing'
             span = 10
 
+            #Looper:
+            #    iterable = range(N_input)
+            #
+            #    ViewBox:
+            #        name = f'microphone_{loop_item+1}'
+            #        y_min = -1
+            #        y_max = 1
+            #
+            #        ChannelPlot:
+            #            source_name = f'microphone_{loop_item+1}'
+
             Looper:
-                iterable = range(N_input)
+                iterable = input_list
 
                 ViewBox:
-                    name = f'microphone_{loop_item+1}'
+                    name = loop_item
                     y_min = -1
                     y_max = 1
 
                     ChannelPlot:
-                        source_name = f'microphone_{loop_item+1}'
+                        source_name = loop_item
+
+            #ViewBox:
+            #    name = f'microphone_calibration'
+            #    y_min = -1
+            #    y_max = 1
+            #
+            #    ChannelPlot:
+            #        source_name = f'microphone_calibration'
