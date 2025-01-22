@@ -722,7 +722,7 @@ class WavSet:
             # want to do this???
             self.current_trial_idx = trial_idx + 1
 
-        if trial_idx>=len(self.trial_wav_idx):
+        if trial_idx > len(self.trial_wav_idx):
             raise ValueError(f"attempting to score response for trial_idx out of range")
 
         if trial_idx > len(self.trial_outcomes):
