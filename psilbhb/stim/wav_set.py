@@ -2741,6 +2741,11 @@ class BigNat(WavSet):
                      'Diotic': "'diotic'", 'Diotic+1off': "'diotic1off"}},
         {'name': 'binaural_index_offset', 'label': 'Binaural index offset',
          'default': 3, 'dtype': 'int', 'scope': 'experiment'},
+        {'name': 'binaural_cross', 'label': 'Binaural crossover', 'default': 'none',
+         'type': 'EnumParameter',
+         'choices': {'None': "'none'", '-6dB': "'-6dB'", 'HRTF30deg': "'HRTF30deg'"}},
+        {'name': 'atten_set', 'label': 'Attenuate chan 2 (dB)',
+         'default': 0, 'dtype': 'double', 'scope': 'experiment'},
 
         {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': 'int'},
         {'name': 'ramp', 'label': 'on/off ramp (ms)', 'default': 10,
@@ -2886,6 +2891,16 @@ class BigNat(WavSet):
             w = np.concatenate((w2, w1), axis=1)
         else:
             w = np.concatenate((w1, w2), axis=1)
+
+        if self.binaural_cross=='-6dB':
+            scaleby = 10 ** (-6. / 20)
+            log.info(f"Binaural crossover {self.binaural_cross} ({scaleby:.3f})")
+            w0 = w.copy()
+            w[:, 0] = w0[:, 0] + scaleby * w0[:, 1]
+            w[:, 1] = scaleby * w0[:, 0] + w0[:, 1]
+
+        elif self.binaural_cross=='HRTF30deg':
+            raise ValueError('BinauralCross HRTF30deg not yet supported')
 
         log.info(f"**** {w.std()}")
 

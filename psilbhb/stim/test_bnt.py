@@ -21,7 +21,8 @@ params = BigNat.default_values()
 #cf2 = 'D:\\cfts\\20241211-135742 Test test left inear_speaker_calibration_chirp'
 params.update(primary_channel=0, level=60, sound_path=sound_path,
               fit_binaural='twooffset', test_binaural='oneoffset', include_silence=False,
-              fit_range=range(6,51), test_range=range(3,5), test_reps=8, equalize=True)
+              fit_range=range(6,51), test_range=range(3,5), test_reps=8, equalize=True,
+              binaural_cross='-6dB')
               #, calfile1 = cf1, calfile2=cf2)
 
 bt = BigNat(**params)
