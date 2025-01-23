@@ -8,7 +8,7 @@ from psi.controller.engines.nidaq import (NIDAQEngine,
                                           )
 
 from psi.core.enaml.api import ExperimentManifest
-from psi.controller.api import ADC
+from psi.controller.api import ADC, ContinuousInput
 
 
 from psiaudio.calibration import FlatCalibration
@@ -73,6 +73,9 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 terminal_mode = 'RSE'
                 unit = 'V'
                 calibration_user_editable = True
+
+                ContinuousInput:
+                    name = 'microphone_1'
 
             NIDAQHardwareAIChannel:
                 label = 'Sync Monitor'

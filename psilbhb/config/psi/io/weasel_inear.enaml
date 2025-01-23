@@ -240,6 +240,9 @@ enamldef IOManifest(ExperimentManifest): manifest:
                     .get_current_calibration() \
                     .load()
 
+                ContinuousInput:
+                    name = 'microphone_calibration'
+
         NIDAQEngine:
             name = 'NI_audio'
             hw_ai_monitor_period = 0.1
@@ -277,6 +280,9 @@ enamldef IOManifest(ExperimentManifest): manifest:
                     .get_current_calibration() \
                     .load()
 
+                ContinuousInput:
+                    name = 'microphone_1'
+
             ###############################################
             # Starship B
             ###############################################
@@ -290,6 +296,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 terminal_mode = 'differential'
                 unit = 'V'
                 reference_clock = 'PXI_Clk10'
+
 
             NIDAQHardwareAIChannel:
                 label = 'Starship 2 (microphone)'
@@ -307,3 +314,6 @@ enamldef IOManifest(ExperimentManifest): manifest:
                     .get_object('LBHB2') \
                     .get_current_calibration() \
                     .load()
+
+                ContinuousInput:
+                    name = 'microphone_2'

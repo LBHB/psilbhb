@@ -689,9 +689,12 @@ class WavSet:
                         # w[0, :] = waveform[1000:] * 5
                         # w[0, :] = waveform * 5
             else:
-                # flat calibration
+                # flat calibration - hard coded to be 5/(2**0.5) = 3.53
                 sf = self.output_cal[0].get_sf(1000, 80)
+                log.info(f"RMS before psi flat adj: {[(w_**2).mean()**0.5 for w_ in w]}")
                 w *= sf
+                log.info(f"RMS after psi flat adj: {[(w_**2).mean()**0.5 for w_ in w]}")
+
 
         return w
 
