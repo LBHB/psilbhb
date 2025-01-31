@@ -2808,8 +2808,8 @@ class BigNat(WavSet):
         # self.fit_binaural : ['none', 'oneoffset', 'twooffset', 'diotic', 'diotic1off']
         # self.test_binaural : ['none', 'oneoffset', 'twooffset', 'diotic', 'diotic1off']
         if self.fit_binaural =='none':
-            fit_s1_range=fit_idx
-            fit_s2_range= -np.ones_like(fit_idx, dtype=int)
+            fit_s1_range = fit_idx
+            fit_s2_range = -np.ones_like(fit_idx, dtype=int)
         elif self.fit_binaural == 'oneoffset':
             raise NotImplementedError('fit oneoffset not implented yet')
             test_s1_range = np.concatenate([fit_idx] * 2 + [-np.ones_like(fit_idx)])
@@ -2824,8 +2824,8 @@ class BigNat(WavSet):
             raise NotImplementedError(f"fit_binaural={self.fit_binaural} not implemented")
 
         if self.test_binaural =='none':
-            test_s1_range=test_idx
-            test_s2_range=np.zeros_like(test_idx, dtype=int)
+            test_s1_range = test_idx
+            test_s2_range = -np.ones_like(test_idx, dtype=int)
         elif self.test_binaural == 'oneoffset':
             test_s1_range = np.concatenate([test_idx] * 2 + [-np.ones_like(test_idx)])
             trange = np.arange(len(test_idx))
