@@ -96,9 +96,9 @@ enamldef IOManifest(ExperimentManifest): manifest:
             input_name = 'hw_ai::microphone_1'
             outputs = {'hw_ao::speaker_1': []}
             gain << C.calibration_gain
-            #start_frequency = 100
-            #end_frequency = 20e3
-            #repetitions = 64
+            start_frequency = 100
+            end_frequency = 20e3
+            repetitions = 64
 
         ChirpCalibrate:
             name = 'starship_2_calibration'
@@ -109,9 +109,9 @@ enamldef IOManifest(ExperimentManifest): manifest:
 			# comparision).
             show_widget = False
             viewbox_name << cal_1.viewbox_name
-            #start_frequency = cal_1.start_frequency
-            #end_frequency = cal_1.end_frequency
-            #repetitions = 64
+            start_frequency = cal_1.start_frequency
+            end_frequency = cal_1.end_frequency
+            repetitions = cal_1.repetitions
 
     Extension:
         id = 'backend'
