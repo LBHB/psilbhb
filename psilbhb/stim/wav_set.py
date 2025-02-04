@@ -575,13 +575,23 @@ class WavSet:
          'scope': 'experiment', 'type': 'EnumParameter', 'group_name': 'WavSet'},
     ]
 
-    def __init__(self, n_response=0, output_cal=None, N_outputs=2, **parameter_dict):
+    def __init__(self, n_response=0, output_cal=None, n_output=2, prefix='', **parameter_dict):
         """
         :param n_response: 0: passive, 1: go/no-go, N>=2: nAFC
         :param output_cal: list of psi Calibrations
-        :param N_outputs: number of output channels. Always 2 for now.
+        :param n_outputs: number of output channels. Always 2 for now.
         :param parameter_dict: subclass-specific parameters that are passed through
         """
+        self.n_output = n_output
+
+        # Stuff to make this work for continuous background 
+        self.cont_trial_idx = {}
+        self.cont_fragments = {}
+        for i in range(self.n_output):
+            self.cont_trial_idx[i] = 0
+            self.cont_fragments[i] = np.array([])
+
+        self.prefix = prefix
         self.current_trial_idx = -1
         self.trial_wav_idx = np.array([], dtype=int)
         self.trial_outcomes = np.array([], dtype=int)
@@ -591,11 +601,33 @@ class WavSet:
         self.equalize = False
         self.stim_list = pd.DataFrame()
         self.n_response = n_response
-        self.N_outputs = N_outputs
         self.tonal_stim = False
         self.output_cal = output_cal
 
         self.update_parameters(parameter_dict)
+
+
+    def next(self, samples, channel):
+        '''
+        Callback for continuous source
+        '''
+        to_combine = []
+        s = samples
+
+        fragment = self.cont_fragments[channel]
+        if fragment.shape[-1] > 0:
+            to_combine.append(fragment)
+            s -= fragment.shape[-1]
+
+        while s > 0:
+            self.cont_trial_idx[channel] = i = self.cont_trial_idx[channel] + 1
+            w = self.trial_waveform(i)[channel]
+            s -= w.shape[-1]
+            to_combine.append(w)
+
+        w = np.concatenate(to_combine, -1)
+        self.cont_fragments[channel] = w[samples:]
+        return w[:samples]
 
     def update_parameters(self, parameter_dict):
         for k, v in parameter_dict.items():
@@ -609,7 +641,7 @@ class WavSet:
             self.equalize = False
 
         if self.output_cal is None:
-            self.output_cal = [FlatCalibration.from_spl(80, vrms=5 / np.sqrt(2))] * self.N_outputs
+            self.output_cal = [FlatCalibration.from_spl(80, vrms=5 / np.sqrt(2))] * self.n_outputs
 
         self.output_filt = []
         for cal in self.output_cal:
@@ -669,6 +701,10 @@ class WavSet:
 
     def update(self):
         pass
+
+    def trial_parameters(self, *args, **kwargs):
+        p = self._trial_parameters(*args, **kwargs)
+        return {f'{self.prefix}{k}': v for k, v in p.items()}
 
     def trial_waveform(self, trial_idx=None, wav_set_idx=None, **kwargs):
         w = self._trial_waveform(trial_idx=trial_idx, wav_set_idx=wav_set_idx, **kwargs)
@@ -833,6 +869,8 @@ class FgBgSet(WavSet):
         1. Merge fg/bgset settings into main class
 
     """
+    prefix = ''
+
     default_parameters = [
         {'name': 'fg_path', 'label': 'FG path', 'default': 'h:/sounds/vocalizations/v4', 'dtype': 'str'},
         {'name': 'bg_path', 'label': 'BG path', 'default': 'h:/sounds/backgrounds/v3', 'dtype': 'str'},
@@ -1237,7 +1275,7 @@ class FgBgSet(WavSet):
 
         return w.T
 
-    def trial_parameters(self, trial_idx=None, wav_set_idx=None):
+    def _trial_parameters(self, trial_idx=None, wav_set_idx=None):
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
 
         fg_i = row['fg_index']
@@ -1554,7 +1592,7 @@ class AMFusion(WavSet):
 
         return w.T
 
-    def trial_parameters(self, trial_idx=None, wav_set_idx=None):
+    def _trial_parameters(self, trial_idx=None, wav_set_idx=None):
 
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
 
@@ -1747,7 +1785,7 @@ class VowelSet(WavSet):
         w = np.concatenate([wpre,w,wpost], axis=0)
         return w.T
 
-    def trial_parameters(self, trial_idx=None, wav_set_idx=None):
+    def _trial_parameters(self, trial_idx=None, wav_set_idx=None):
         """
         :param trial_idx:
         :param wav_set_idx:
@@ -2145,7 +2183,7 @@ class CategorySet(FgBgSet):
 
         return w.T
 
-    def trial_parameters(self, trial_idx=None, wav_set_idx=None):
+    def _trial_parameters(self, trial_idx=None, wav_set_idx=None):
         if wav_set_idx is None:
             if trial_idx is None:
                 trial_idx = self.current_trial_idx
@@ -2400,7 +2438,7 @@ class BinauralTone(WavSet):
 
         return w.T
 
-    def trial_parameters(self, trial_idx=None, wav_set_idx=None):
+    def _trial_parameters(self, trial_idx=None, wav_set_idx=None):
 
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
 
@@ -2682,7 +2720,7 @@ class BinauralAM(WavSet):
 
         return w.T
 
-    def trial_parameters(self, trial_idx=None, wav_set_idx=None):
+    def _trial_parameters(self, trial_idx=None, wav_set_idx=None):
 
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
 
@@ -2909,7 +2947,7 @@ class BigNat(WavSet):
         w = np.concatenate([wpre,w,wpost], axis=0)
         return w.T
 
-    def trial_parameters(self, trial_idx=None, wav_set_idx=None):
+    def _trial_parameters(self, trial_idx=None, wav_set_idx=None):
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
 
         s1 = row['s1idx']
@@ -2937,3 +2975,16 @@ class BigNat(WavSet):
              }
 
         return d
+
+
+class Silence(WavSet):
+
+    default_parameters = [
+        {'name': 'equalize', 'label': 'Apply equalizer?',
+         'choices': {'No': "False", 'Yes': "True"}, 'default': 'No',
+         'scope': 'experiment', 'type': 'EnumParameter', 'group_name': 'Silence'},
+        {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, 'group_name': 'Results' },
+    ]
+
+    def next(self, samples, channel):
+        return np.zeros(samples)

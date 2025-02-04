@@ -109,6 +109,30 @@ ParadigmDescription(
 
 
 ParadigmDescription(
+    'NFC', '(NFC) Two AFC foreground detection in continuous natural background',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
+         'attrs': {'N_response': 2, 'N_output': 2}},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'FgBgSet'}
+         },
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'BigNat', 'output_type': 'continuous', 'prefix': 'background_'}
+         },
+        #{'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+        # 'attrs': {'stim_class_name': 'Silence', 'output_type': 'continuous', 'prefix': 'background_'}
+        # },
+        {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
+         'attrs': {'output_name': 'water_dispense_1',
+                   'event_name': 'deliver_reward_1'}},
+        {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
+         'attrs': {'output_name': 'water_dispense_2',
+                   'event_name': 'deliver_reward_2'}},
+    ],
+)
+
+
+ParadigmDescription(
     'VOW', '(VOW) Vowel discrimination',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_nafc.BehaviorManifest',

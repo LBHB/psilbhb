@@ -121,6 +121,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
     next_trial_state = Str()
 
     wavset = Typed(WavSet)
+    continuous_wavset = Typed(WavSet)
 
     side = Int(-1)
 
@@ -196,6 +197,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         w = self.wavset.trial_waveform(self.trial)
         o1 = self.get_output('output_1')
         o2 = self.get_output('output_2')
+
         with o1.engine.lock:
             o1.set_waveform(w[0])
             o2.set_waveform(w[1])

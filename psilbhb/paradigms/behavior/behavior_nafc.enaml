@@ -11,8 +11,8 @@ from psi.context.api import (
     BoolParameter, EnumParameter, ContextGroup, ContextRow, Parameter, Result
 )
 from psi.controller.api import (
-    ContinuousInput, ControllerManifest, EpochOutput, ExperimentAction,
-    ExperimentEvent, ExperimentState, TimedTrigger
+    ContinuousInput, ContinuousOutput, ControllerManifest, EpochOutput,
+    ExperimentAction, ExperimentEvent, ExperimentState, TimedTrigger
 )
 from psi.data.sinks.api import EventLog, TrialLog
 from psi.experiment.api import StatusItem
@@ -109,7 +109,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             handler = lambda x: controller.start_trial
 
     Extension:
-        id = manifest.id + '.events'
+        id = manifest.id + '.nafc_events'
         point = 'psi.controller.actions'
 
         ExperimentState:
@@ -185,10 +185,6 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             event = 'to_end'
             command = 'room_light_toggle.on'
 
-        ExperimentAction:
-            event = 'experiment_prepare'
-            command = 'configure_stimuli'
-
         # This action is mandatory and must be executed before any other
         # commands that require some information from context. By default, an
         # infinite number of cycles are specified.
@@ -222,6 +218,12 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
 
         Looper:
             iterable = range(N_output)
+
+            ContinuousOutput:
+                name = f'continuous_output_{loop_item+1}'
+                label = f'Continuous Output {loop_item+1}'
+                target_name = f'hw_ao::speaker_{loop_item+1}'
+                configurable = False
 
             EpochOutput:
                 name = f'output_{loop_item+1}'

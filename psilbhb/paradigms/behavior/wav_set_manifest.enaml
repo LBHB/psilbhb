@@ -3,6 +3,7 @@ log = logging.getLogger(__name__)
 
 from functools import partial
 
+from enaml.application import deferred_call
 from enaml.workbench.api import Extension
 from enaml.workbench.core.api import Command
 
@@ -18,10 +19,21 @@ from psilbhb.stim import wav_set
 CONTEXT_ITEM_CACHE = {}
 
 
-def configure_stimuli(manifest, event):
-    # change to def configure_fgbg(event):
+class ContinuousWavsetChannelWrapper:
+
+    def __init__(self, wavset, channel):
+        self.wavset = wavset
+        self.channel = channel
+
+    def next(self, samples):
+        return self.wavset.next(samples, self.channel)
+
+
+def configure_stimuli(manifest, output_type, event):
     context = event.workbench.get_plugin('psi.context')
     controller = event.workbench.get_plugin('psi.controller')
+    core = event.workbench.get_plugin('enaml.workbench.core')
+
     params = context.get_values()
     n_response = getattr(controller, 'N_response', 2)
     n_output = getattr(controller, 'N_output', 2)
@@ -33,14 +45,29 @@ def configure_stimuli(manifest, event):
     # All values in `default_parameters` should automatically be present in the
     # dictionary returned by context. It's not necessary to compute the
     # intersection of the two lists.
+    prefix = manifest.prefix
     plist = manifest.stim_class.default_parameters
     wavset_keys = [p['name'] for p in plist if p.get('type','') != 'Result']
-    wavset_params = {k: params[k] for k in wavset_keys}
-    controller.wavset = manifest.stim_class(
+    wavset_params = {k: params[prefix + k] for k in wavset_keys}
+    instance = manifest.stim_class(
         n_response=n_response,
         output_cal=output_cal,
+        n_output=n_output,
+        prefix=manifest.prefix,
         **wavset_params
     )
+
+    attr_name = 'wavset' if output_type == 'epoch' else 'continuous_wavset'
+    setattr(controller, attr_name, instance)
+
+    if output_type == 'continuous':
+        for i in range(n_output):
+            output = controller.get_output(f'continuous_output_{i+1}')
+            output.source = ContinuousWavsetChannelWrapper(instance, i)
+            deferred_call(
+                core.invoke_command, 
+                f'continuous_output_{i+1}.start', {'timestamp': 1},
+            )
 
 
 def generate_context_items(manifest):
@@ -50,11 +77,15 @@ def generate_context_items(manifest):
 
     context_group_names = set()
     context_items = []
+    prefix = manifest.prefix
+
     for entry in manifest.stim_class.default_parameters:
         entry = entry.copy()
-        context_group_names.add(entry['group_name'])
+        context_group_names.add(prefix + entry['group_name'])
         klass_name = entry.pop('type', 'Parameter')
         klass = getattr(context_api, klass_name)
+        entry['name'] = prefix + entry['name']
+        entry['group_name'] = prefix + entry['group_name']
         item = klass(**entry)
         context_items.append(item)
 
@@ -69,16 +100,26 @@ def generate_context_items(manifest):
 enamldef WavSetManifest(ExperimentManifest): manifest:
 
     # Sets the default stim class
-    id = stim_class.__class__.__name__
+    id = stim_class_name
     attr stim_class_name
+    attr stim_class
+
+    # Prefix to use for parameters and values returned by trial_parameters to
+    # differentiate from other WavSet classes that may use the same names
+    attr prefix = ''
+
+    #: Name of the attribute on the controller that should be set to the
+    #: instance of the wavset
+    attr output_type = 'epoch'
+
     attr stim_class = getattr(wav_set, stim_class_name)
 
     Extension:
         id = manifest.id + '.behavior_commands'
         point = 'enaml.workbench.core.commands'
         Command:
-            id = 'configure_stimuli'
-            handler = partial(configure_stimuli, manifest)
+            id = manifest.id + '.configure_stimuli'
+            handler = partial(configure_stimuli, manifest, manifest.output_type)
 
     Extension:
         id = manifest.id + '.items'
@@ -91,8 +132,7 @@ enamldef WavSetManifest(ExperimentManifest): manifest:
 
         ExperimentAction:
             event = 'experiment_prepare'
-            command = 'configure_stimuli'
-
+            command = manifest.id + '.configure_stimuli'
 
 
 # Delete once we have brought rest of stuff to fruition
