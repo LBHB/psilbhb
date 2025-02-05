@@ -50,6 +50,7 @@ def configure_stimuli(manifest, output_type, event):
     wavset_keys = [p['name'] for p in plist if p.get('type','') != 'Result']
     wavset_params = {k: params[prefix + k] for k in wavset_keys}
     instance = manifest.stim_class(
+        controller=controller,
         n_response=n_response,
         output_cal=output_cal,
         n_output=n_output,
@@ -60,13 +61,16 @@ def configure_stimuli(manifest, output_type, event):
     attr_name = 'wavset' if output_type == 'epoch' else 'continuous_wavset'
     setattr(controller, attr_name, instance)
 
+    start_time = 1
+
     if output_type == 'continuous':
         for i in range(n_output):
             output = controller.get_output(f'continuous_output_{i+1}')
             output.source = ContinuousWavsetChannelWrapper(instance, i)
+            instance.set_cont_start_time(start_time)
             deferred_call(
                 core.invoke_command, 
-                f'continuous_output_{i+1}.start', {'timestamp': 1},
+                f'continuous_output_{i+1}.start', {'timestamp': start_time},
             )
 
 

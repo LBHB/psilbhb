@@ -575,21 +575,25 @@ class WavSet:
          'scope': 'experiment', 'type': 'EnumParameter', 'group_name': 'WavSet'},
     ]
 
-    def __init__(self, n_response=0, output_cal=None, n_output=2, prefix='', **parameter_dict):
+    def __init__(self, controller=None, n_response=0, output_cal=None,
+                 n_output=2, prefix='', **parameter_dict):
         """
         :param n_response: 0: passive, 1: go/no-go, N>=2: nAFC
         :param output_cal: list of psi Calibrations
         :param n_outputs: number of output channels. Always 2 for now.
         :param parameter_dict: subclass-specific parameters that are passed through
         """
+        self.controller = controller
         self.n_output = n_output
 
         # Stuff to make this work for continuous background 
         self.cont_trial_idx = {}
         self.cont_fragments = {}
+        self.cont_offset = {}
         for i in range(self.n_output):
             self.cont_trial_idx[i] = 0
             self.cont_fragments[i] = np.array([])
+            self.cont_offset[i] = 0
 
         self.prefix = prefix
         self.current_trial_idx = -1
@@ -606,28 +610,44 @@ class WavSet:
 
         self.update_parameters(parameter_dict)
 
+    def set_cont_start_time(self, start_time):
+        start_sample = int(start_time * self.fs)
+        for i in range(self.n_output):
+            self.cont_offset[i] = start_sample
 
     def next(self, samples, channel):
         '''
         Callback for continuous source
         '''
         to_combine = []
-        s = samples
 
         fragment = self.cont_fragments[channel]
+        offset = self.cont_offset[channel]
+        s = samples
+        o = offset
+
         if fragment.shape[-1] > 0:
             to_combine.append(fragment)
             s -= fragment.shape[-1]
+            o += fragment.shape[-1]
 
         while s > 0:
             self.cont_trial_idx[channel] = i = self.cont_trial_idx[channel] + 1
             w = self.trial_waveform(i)[channel]
+            params = self.trial_parameters(i)
+
+            event_name = f'continuous_{channel}'
+            timestamp = o / self.fs
+            self.controller._log_event(event_name, timestamp, params)
+
             s -= w.shape[-1]
             to_combine.append(w)
 
         w = np.concatenate(to_combine, -1)
         self.cont_fragments[channel] = w[samples:]
-        return w[:samples]
+        w = w[:samples]
+        self.cont_offset[channel] = offset + w.shape[-1]
+        return w
 
     def update_parameters(self, parameter_dict):
         for k, v in parameter_dict.items():
