@@ -32,12 +32,6 @@ from psi.controller.api import Trigger, Toggle
 START_TRIGGER = '/PXI1Slot3/ao/StartTrigger'
 
 
-def configure_channels(event):
-    # Ensure that the start trigger is set properly given the hardware channel
-    # configuration.
-    connect_trigger(event)
-
-
 enamldef IRChannel(NIDAQHardwareAIChannel): irc:
 
     unit = 'V'
@@ -56,15 +50,15 @@ enamldef IRChannel(NIDAQHardwareAIChannel): irc:
 enamldef IOManifest(ExperimentManifest): manifest:
 
     Extension:
-        id = 'ornitorinco_commands'
+        id = 'weasel_commands.'
         point = 'enaml.workbench.core.commands'
 
         Command:
             id = 'weasel.configure_channels'
-            handler = configure_channels
+            handler = connect_trigger
 
     Extension:
-        id = 'ornitorinco_actions'
+        id = 'weasel_actions'
         point = 'psi.controller.actions'
 
         ExperimentAction:
@@ -235,6 +229,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 terminal_mode = 'RSE'
                 unit = 'V'
                 gain = 20
+                reference_clock = 'PXI_Clk10'
                 calibration = microphone_manager \
                     .get_object('PCB') \
                     .get_current_calibration() \

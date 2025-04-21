@@ -257,6 +257,7 @@ class BehaviorPlugin(BaseBehaviorPlugin):
 
     def start_trial(self):
         log.info('Starting next trial')
+        target_delay = self.context.get_value('target_delay')
         # This is broken into a separate method from
         # handle_waiting_for_np_duration to allow us to trigger this method
         # from a toolbar button for training purposes.
@@ -265,9 +266,9 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         st = self.get_output('sync_trigger')
         with o1.engine.lock:
             ts = self.get_ts()
-            o1.start_waveform(ts + 0.1, False)
-            o2.start_waveform(ts + 0.1, True)
-            st.trigger(ts + 0.1, 0.5)
+            o1.start_waveform(ts + target_delay, False)
+            o2.start_waveform(ts + target_delay, True)
+            st.trigger(ts + target_delay, 0.5)
 
         self.invoke_actions('trial_start', ts)
         # Notify the state machine that we are now in the hold phase of trial.

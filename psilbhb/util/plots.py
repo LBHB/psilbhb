@@ -158,7 +158,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
     d_ = pd.concat(df_list, ignore_index=True)
     ylabel = "Frac. correct"
 
-    if runclass=='NFB':
+    if runclass in ['NFB', 'NFC']:
         d_['config'] = 'contra'
         d_.loc[(d_['bg_channel'] == d_['fg_channel']), 'config'] = 'ipsi'
         d_.loc[(d_['bg_channel'] == -1), 'config'] = 'diotic'

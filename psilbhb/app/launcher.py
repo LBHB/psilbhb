@@ -36,11 +36,12 @@ class CellDbLauncher(Atom):
 
     io = Value()
     experiment = Typed(ParadigmDescription).tag(template=True, required=True)
+    audio = Str().tag(template=True, required=True)
     calibration = Typed(Path)
     preferences = Typed(Path)
     save_data = Bool(True)
-    experimenter = Str().tag(template=True)
-    note = Str().tag(template=True)
+    #experimenter = Str().tag(template=True)
+    #note = Str().tag(template=True)
 
     experiment_type = Str()
     experiment_choices = List()
@@ -72,9 +73,10 @@ class CellDbLauncher(Atom):
     note = Str().tag(required=False)
     channelcount = Str().tag(required=True)
 
+    available_audio = ['Free-field', 'In-ear']
     available_animals = list(animal_data['animal'])
     available_experimenters = list(user_data['userid'])
-    available_training = ['Yes','Physiology+behavior','Physiology+passive']
+    available_training = ['Yes', 'Physiology+behavior', 'Physiology+passive']
 
     training_folder = Typed(Path)
 
@@ -93,6 +95,9 @@ class CellDbLauncher(Atom):
 
     def _default_experiment(self):
         return self.experiment_choices[0]
+
+    def _default_audio(self):
+        return self.available_audio[0]
 
     def _default_experiment_choices(self):
         return paradigm_manager.list_paradigms(self.experiment_type)
@@ -351,6 +356,8 @@ class CellDbLauncher(Atom):
                 file.write(json.dumps(d))
 
             d, dataparm, dataperf = readpsievents(psipath, rawdata['runclass'])
+            dataparm['audio'] = self.audio
+            dataparm['io'] = self.io
 
             self.db.sqlupdate('gDataRaw', rawdata['rawid'], d=d, idfield='id')
             self.db.save_data(rawdata['rawid'], dataparm, parmtype=0, keep_existing=False)

@@ -116,6 +116,13 @@ enamldef LauncherView(MainWindow): main:
                 selected := launcher.io
 
             Label:
+                text = 'Audio'
+
+            ObjectCombo: experimenter:
+                items << launcher.available_audio[:]
+                selected := launcher.audio
+
+            Label:
                 text = 'Experiment'
 
             HGroup:

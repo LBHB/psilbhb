@@ -178,6 +178,14 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             name = 'speaker_1_monitor'
             source_name = 'hw_ai::speaker_1_monitor'
 
+        ContinuousInput:
+            name = 'microphone'
+            source_name = 'hw_ai::microphone_calibration'
+
+        ContinuousInput:
+            name = 'microphone2'
+            source_name = 'hw_ai::microphone_2'
+
         TimedTrigger:
             # This is a hardware-timed trigger that allows us to schedule a
             # trigger to occur at a very precise time (as opposed to Trigger,
@@ -246,13 +254,39 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             label = 'Trial timing'
             span = 10
 
-            Looper:
-                iterable << manifest.input_list
+            ViewBox:
+                name = 'microphone'
+                y_min = -0.05
+                y_max = 0.05
 
-                ViewBox:
-                    name = loop_item
-                    y_min = -1
-                    y_max = 1
+                ChannelPlot:
+                    source_name = 'microphone_calibration'
+                    pen_color = 'pink'
 
-                    ChannelPlot:
-                        source_name = loop_item
+            ViewBox:
+                name = 'microphone_2'
+                y_min = -0.05
+                y_max = 0.05
+
+                ChannelPlot:
+                    source_name = 'microphone_2'
+                    pen_color = 'green'
+
+            ViewBox:
+                y_min = -0.5
+                y_max = 5.5
+
+                ChannelPlot:
+                    source_name = 'sync_trigger_monitor'
+                    pen_color = 'green'
+
+            #Looper:
+            #    iterable << manifest.input_list
+
+            #    ViewBox:
+            #        name = loop_item
+            #        y_min = -1
+            #        y_max = 1
+
+            #        ChannelPlot:
+            #            source_name = loop_item

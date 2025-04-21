@@ -34,7 +34,13 @@ COMMON_PLUGINS = [
          'port': 33334,
          'filename': 'video_pupil.avi',
      }},
-
+    {'manifest': 'psilbhb.paradigms.video.PSIVideo',
+     'attrs': {
+         'id': 'psivideo_side3',
+         'title': 'Video (side3)',
+         'port': 33335,
+         'filename': 'video_pupil.avi',
+     }},
     {'manifest': 'psilbhb.paradigms.openephys.OpenEphysManifest'},
     {'manifest': PATH + 'behavior_mixins.SignalFFTViewManifest',
      'attrs': {
