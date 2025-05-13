@@ -1571,22 +1571,25 @@ class AMFusion(WavSet):
             harmonics = [0]
         hcount = len(harmonics)
 
+        # generate the carriers
         wbins = int(row['duration']*self.fs)
-        t=np.arange(wbins)/self.fs
+        t = np.arange(wbins)/self.fs
         wfg = np.zeros(wbins)
         wbg = np.zeros(wbins)
         for h in harmonics:
             wfg += np.sin(t*2*np.pi*row['tar_freq'] * (h+1))*(5/hcount)
             wbg += np.sin(t*2*np.pi*row['dis_freq'] * (h+1))*(5/hcount)
 
+        # apply AM as specified
         depth = -np.abs(10**(row['tar_depth']/20))
         if row['tar_am']>0:
-            env = 1 + np.sin(t*2*np.pi*row['tar_am']) * depth
-            wfg *= env
+            env = (1 + np.sin(t*2*np.pi*row['tar_am']) * depth)
+            wfg = wfg * env / 2
         if row['dis_am']>0:
-            env = 1 + np.sin(t*2*np.pi*row['dis_am']) * depth
-            wbg *= env
-
+            env = (1 + np.sin(t*2*np.pi*row['dis_am']) * depth)
+            wbg = wbg * env / 2
+            # from Matlab human expt code:
+            # z0=(1+m_index2*sin(2*pi*mr*t)).*cos(2*pi*F(Fpairs(fi,2))*t+phase0)/2; %Added random phase 10/30/2024 MC
 
         fg_level = row['tar_level']
         bg_level = row['dis_level']
@@ -2801,7 +2804,7 @@ class BigNat(WavSet):
          'default': 3, 'dtype': 'int', 'scope': 'experiment'},
         {'name': 'binaural_cross', 'label': 'Binaural crossover', 'default': 'none',
          'type': 'EnumParameter',
-         'choices': {'None': "'none'", '-6dB': "'-6dB'", 'HRTF30deg': "'HRTF30deg'"}},
+         'choices': {'none': "'none'", '-6dB': "'-6dB'", 'HRTF30deg': "'HRTF30deg'"}},
         {'name': 'atten_set', 'label': 'Attenuate chan 2 (dB)',
          'default': 0, 'dtype': 'double', 'scope': 'experiment'},
 
