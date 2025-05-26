@@ -13,7 +13,7 @@ from scipy.io import wavfile
 import pandas as pd
 
 from psiaudio import util
-from .basic_sounds import generate_tone
+from .basic_sounds import generate_tone, generate_tone_stack, temp_seed
 from psiaudio.stim import apply_max_correction
 from psiaudio.calibration import FlatCalibration
 from psi import get_config
@@ -1409,6 +1409,8 @@ class FgBgSet(WavSet):
 class AMFusion(WavSet):
 
     default_parameters = [
+        {'name': 'runclass', 'label': 'Run class [AFM]',
+         'expression': '''AFM''', 'dtype': 'str', 'scope': 'experiment'},
         {'name': 'target_frequency', 'label': 'Target center frequenc(ies) (list)',
          'expression': '[1000]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'target_am_rate', 'label': 'Target AM rate (list)',
@@ -1447,7 +1449,7 @@ class AMFusion(WavSet):
         {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 'all', 'type': 'EnumParameter',
          'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}},
 
-       {'name': 'response_start', 'label': 'response win start (s)',
+        {'name': 'response_start', 'label': 'response win start (s)',
          'default': 0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'response_end', 'label': 'response win end (s)', 'default': 2,
          'dtype': 'double', 'scope': 'experiment'},
@@ -1567,29 +1569,53 @@ class AMFusion(WavSet):
 
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
         harmonics = self.harmonics
-        if len(harmonics)==0:
-            harmonics = [0]
-        hcount = len(harmonics)
+        ramp=0
+        if (len(harmonics)>1):
+            f_offsets = harmonics
+            phases = np.zeros(len(f_offsets))
+            target_bandwidth=0
+        elif self.target_bandwidth>0:
+            f_offsets = np.linspace(-self.target_bandwidth/2,
+                                self.target_bandwidth/2, 101)
+            with temp_seed(wav_set_idx):
+                phases = np.random.uniform(0,2*np.pi,size=len(f_offsets))
+            ramp=0.005
+            target_bandwidth=self.target_bandwidth
+        else:
+            f_offsets = [0]
+            phases = np.zeros(len(f_offsets))
+            target_bandwidth=0
 
-        # generate the carriers
-        wbins = int(row['duration']*self.fs)
-        t = np.arange(wbins)/self.fs
-        wfg = np.zeros(wbins)
-        wbg = np.zeros(wbins)
-        for h in harmonics:
-            wfg += np.sin(t*2*np.pi*row['tar_freq'] * (h+1))*(5/hcount)
-            wbg += np.sin(t*2*np.pi*row['dis_freq'] * (h+1))*(5/hcount)
+        hcount = len(f_offsets)
 
-        # apply AM as specified
-        depth = -np.abs(10**(row['tar_depth']/20))
-        if row['tar_am']>0:
-            env = (1 + np.sin(t*2*np.pi*row['tar_am']) * depth)
-            wfg = wfg * env / 2
-        if row['dis_am']>0:
-            env = (1 + np.sin(t*2*np.pi*row['dis_am']) * depth)
-            wbg = wbg * env / 2
-            # from Matlab human expt code:
-            # z0=(1+m_index2*sin(2*pi*mr*t)).*cos(2*pi*F(Fpairs(fi,2))*t+phase0)/2; %Added random phase 10/30/2024 MC
+        #generate_tone_stack(freq, f_offsets, phases, target_bandwidth, duration, fs):
+        wfg = generate_tone_stack(row['tar_freq'], f_offsets, phases, target_bandwidth, row['tar_depth'], row['tar_am'], row['duration'], self.fs)
+        wbg = generate_tone_stack(row['dis_freq'], f_offsets, phases, target_bandwidth, row['tar_depth'], row['dis_am'], row['duration'], self.fs)
+
+        # # generate the carriers
+        # wbins = int(row['duration']*self.fs)
+        # t = np.arange(wbins)/self.fs
+        # wfg = np.zeros(wbins)
+        # wbg = np.zeros(wbins)
+        # for h,ph in zip(f_offsets, phases):
+        #     #log.info(f"{h:.3f} {row['tar_freq'] * (h+1)}")
+        #     wfg += np.sin(t*2*np.pi*row['tar_freq'] * (h+1) + ph)*(5/hcount)
+        #     wbg += np.sin(t*2*np.pi*row['dis_freq'] * (h+1) + ph)*(5/hcount)
+        # if target_bandwidth>0:
+        #     # fix RMS level to be 80 dB
+        #     wfg = wfg / wfg.std() * 3.5349
+        #     wbg = wbg / wbg.std() * 3.5349
+
+        # # apply AM as specified
+        # depth = -np.abs(10**(row['tar_depth']/20))
+        # if row['tar_am']>0:
+        #     env = (1 + np.sin(t*2*np.pi*row['tar_am']) * depth)
+        #     wfg = wfg * env / 2
+        # if row['dis_am']>0:
+        #     env = (1 + np.sin(t*2*np.pi*row['dis_am']) * depth)
+        #     wbg = wbg * env / 2
+        #     # from Matlab human expt code:
+        #     # z0=(1+m_index2*sin(2*pi*mr*t)).*cos(2*pi*F(Fpairs(fi,2))*t+phase0)/2; %Added random phase 10/30/2024 MC
 
         fg_level = row['tar_level']
         bg_level = row['dis_level']
@@ -1609,9 +1635,16 @@ class AMFusion(WavSet):
             w = np.stack((wfg, wbg), axis=1)
         else:
             w = np.stack((wbg, wfg), axis=1)
-        print(row)
+        if ramp>0:
+            ramplen=int(ramp*self.fs)
+            r = np.linspace(0,1,ramplen)
+            w[:ramplen] *= r[:,np.newaxis]
+            roff = np.linspace(1,0,ramplen)
+            w[-ramplen:] *= roff[:,np.newaxis]
+
+        #print(row)
         log.info(f"fg level: {fg_level} bg level: {bg_level} FG RMS: {wfg.std():.3f} BG RMS: {wbg.std():.3f}")
-        log.info(f"**** trial {trial_idx} wavidx {row['index']}  tar channel: {row['tar_channel']}")
+        log.info(f"**** trial_waveform trial {trial_idx} wavidx {row['index']}  tar channel: {row['tar_channel']}")
 
         return w.T
 
@@ -1620,6 +1653,7 @@ class AMFusion(WavSet):
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
 
         is_go_trial = row['go_trial']
+        is_go_trial = 1
         if is_go_trial == 0:
             if (self.reward_ambiguous_frac == 0.5):
                 # random
@@ -1637,7 +1671,8 @@ class AMFusion(WavSet):
         tar_name = f"{row['tar_freq']}:{row['tar_level']}:{row['tar_am']}"
         dis_name = f"{row['dis_freq']}:{row['dis_level']}"
         response_window = (self.response_window[0],self.response_window[1])
-        log.info(f"**** trial {trial_idx} wavidx {row['index']} parms tar channel: {row['tar_channel']} response cond {response_condition}")
+        log.info(f"**** _trial_parameters trial {trial_idx} wavidx {row['index']} parms tar channel: {row['tar_channel']} response cond {response_condition}")
+        log.info(f"     Is go trial? {row['go_trial']}")
 
         d = {'trial_idx': trial_idx,
              'wav_set_idx': row['index'],

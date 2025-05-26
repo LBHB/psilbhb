@@ -204,7 +204,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
             name = 'initiated_data'
             continuous_inputs = [
                 'np_contact_analog',
-                'microphone', 'microphone2'
+                'microphone', 'microphone_2'
             ] + [f'spout_contact_{i+1}_analog' for i in range(N_response)]
         EventLog:
             show_widget = True
@@ -231,13 +231,13 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 target_name = f'hw_ao::speaker_{loop_item+1}'
                 configurable = False
 
-        ContinuousInput:
-            name = 'microphone'
-            source_name = 'hw_ai::microphone_calibration'
+        #ContinuousInput:
+        #    name = 'microphone'
+        #    source_name = 'microphone_calibration'
 
-        ContinuousInput:
-            name = 'microphone2'
-            source_name = 'hw_ai::microphone_2'
+        #ContinuousInput:
+        #    name = 'microphone2'
+        #    source_name = 'microphone_2'
 
         ContinuousInput:
             name = 'speaker_1_monitor'
@@ -448,9 +448,10 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                     source_name = 'speaker_1_monitor'
                     pen_color = 'red'
 
-                ChannelPlot:
-                   source_name = 'sync_trigger_monitor'
-                   pen_color = 'green'
+
+                #ChannelPlot:
+                #   source_name = 'sync_trigger_monitor'
+                #   pen_color = 'green'
 
             ViewBox:
                 name = 'IR_sensors'

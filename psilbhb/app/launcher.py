@@ -358,7 +358,8 @@ class CellDbLauncher(Atom):
             d, dataparm, dataperf = readpsievents(psipath, rawdata['runclass'])
             dataparm['audio'] = self.audio
             dataparm['io'] = self.io
-
+            #if 'runclass' in d.keys():
+            #    rawdata['runclass'] = d['runclass']
             self.db.sqlupdate('gDataRaw', rawdata['rawid'], d=d, idfield='id')
             self.db.save_data(rawdata['rawid'], dataparm, parmtype=0, keep_existing=False)
             self.db.save_data(rawdata['rawid'], dataperf, parmtype=1, keep_existing=False)

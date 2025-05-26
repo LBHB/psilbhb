@@ -9,24 +9,15 @@ from psi.controller.engines.nidaq import (connect_trigger,
                                           NIDAQSoftwareDOChannel,
                                           )
 
-from psi.context.api import ContextGroup, Parameter
-from psi.controller.api import (ADC, ContinuousOutput, ContinuousInput,
-    ExperimentAction)
-from psi.controller.calibration.api import ChirpCalibrate
 from psi.core.enaml.api import ExperimentManifest
-from psi.controller.api import ADC, ContinuousInput
-
-
+from psi.controller.api import ADC, ContinuousInput, ExperimentAction
 from psiaudio.calibration import FlatCalibration
+from psi.controller.api import Trigger, Toggle
 
 
 # Requested sampling rate must be an integer divisor of the timebase clock.
 ao_fs = 20e6 / 454
 ai_fs = 20e6 / 454
-
-
-from psi.controller.api import Trigger, Toggle
-
 
 #START_TRIGGER = '/PXI1Slot3/ao/StartTrigger'
 START_TRIGGER = '/Dev1/ao/StartTrigger'
@@ -236,6 +227,10 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 unit = 'V'
                 calibration_user_editable = True
                 reference_clock = 'PXI_Clk10'
+
+                # 2 different names for cross-hardware compatabiltiy? (see badger)
+                ContinuousInput:
+                    name = 'microphone'
 
                 ContinuousInput:
                     name = 'microphone_calibration'
