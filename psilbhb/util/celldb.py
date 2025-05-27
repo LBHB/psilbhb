@@ -72,6 +72,10 @@ def readpsievents(logpath=None, runclass=None, rawid=None, c=None):
         rawdata['reps'] = df['current_full_rep'].max()
     else:
         rawdata['reps'] = 1
+
+    if 'runclass' in df.columns:
+        rawdata['runclass'] = df.loc[0, 'runclass']
+
     if runclass is None:
         runclass = logpath[-3:]
     if runclass=='NTD':
@@ -327,6 +331,12 @@ class celldb():
         engine = self.Engine()
         conn = engine.connect()
 
+        if ('runclass' in d.keys()) & ('runclassid' not in d.keys()):
+            drc = self.pd_query(f"SELECT * FROM gRunClass WHERE name='{d['runclass']}'")
+            if len(drc) > 0:
+                d['runclassid'] = drc.loc[0, 'id']
+                d['stimclass'] = drc.loc[0, 'stimclass']
+                d['task'] = drc.loc[0, 'task']
         fv = []
         for k,v in d.items():
             if type(v) is str:
@@ -337,7 +347,7 @@ class celldb():
         if type(id) is str:
             id = "'" + id + "'"
         sql = f"UPDATE {table} SET {','.join(fv)} WHERE {idfield}={id}"
-
+        print(sql)
         if self.TESTMODE:
             print(sql)
         else:

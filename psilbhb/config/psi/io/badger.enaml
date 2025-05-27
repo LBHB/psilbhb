@@ -1,17 +1,18 @@
 from enaml.workbench.api import Extension
+from enaml.workbench.core.api import Command
 
 from psi.controller.engines.nidaq import (NIDAQEngine,
                                           NIDAQHardwareAIChannel,
                                           NIDAQHardwareAOChannel,
                                           NIDAQHardwareDOChannel,
                                           NIDAQSoftwareDOChannel,
+                                          connect_trigger,
                                           )
 
 from psi.core.enaml.api import ExperimentManifest
-from psi.controller.api import ADC, ContinuousInput
-
-
+from psi.controller.api import ADC, ContinuousInput, ExperimentAction
 from psiaudio.calibration import FlatCalibration
+from psi.controller.api import Trigger, Toggle
 
 
 # Requested sampling rate must be an integer divisor of the timebase clock.
@@ -19,13 +20,12 @@ ao_fs = 20e6 / 454
 ai_fs = 20e6 / 454
 
 
-from psi.controller.api import Trigger, Toggle
-
+START_TRIGGER = '/Dev1/ao/StartTrigger'
 
 enamldef IRChannel(NIDAQHardwareAIChannel): irc:
 
     unit = 'V'
-    start_trigger = '/Dev1/ao/StartTrigger'
+    start_trigger = START_TRIGGER
     fs = ai_fs
     expected_range = (-10, 10)
     dtype = 'float64'
@@ -35,7 +35,25 @@ enamldef IRChannel(NIDAQHardwareAIChannel): irc:
         name << irc.name
 
 
+
 enamldef IOManifest(ExperimentManifest): manifest:
+
+    Extension:
+        id = 'badger_commands.'
+        point = 'enaml.workbench.core.commands'
+
+        Command:
+            id = 'badger.configure_channels'
+            handler = connect_trigger
+
+    Extension:
+        id = 'badger_actions'
+        point = 'psi.controller.actions'
+
+        ExperimentAction:
+            event = 'experiment_prepare'
+            command = 'badger.configure_channels'
+            weight = 90
 
     Extension:
         id = 'backend'
@@ -74,8 +92,15 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 unit = 'V'
                 calibration_user_editable = True
 
+                # 3 different names for cross-hardware compatability? (see weasel)
                 ContinuousInput:
                     name = 'microphone_calibration'
+
+                ContinuousInput:
+                    name = 'microphone'
+
+                ContinuousInput:
+                    name = 'microphone_2'
 
             NIDAQHardwareAIChannel:
                 label = 'Sync Monitor'
@@ -88,6 +113,9 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 terminal_mode = 'RSE'
                 unit = 'V'
                 calibration = FlatCalibration.from_mv_pa(2.38)
+
+                ContinuousInput:
+                    name = 'sync_trigger_monitor'
 
             NIDAQHardwareAOChannel:
                 label = 'Speaker 1'

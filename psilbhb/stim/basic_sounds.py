@@ -1,5 +1,5 @@
 import logging
-log = logging.getLogger(__name__)
+import contextlib
 
 from functools import partial, lru_cache
 
@@ -7,8 +7,25 @@ import numpy as np
 from scipy import signal
 from scipy.io import wavfile
 
+from joblib import Memory
 
-@lru_cache(maxsize=None)
+
+log = logging.getLogger(__name__)
+
+location = 'cachedir'
+memory = Memory(location, verbose=0)
+
+@contextlib.contextmanager
+def temp_seed(seed):
+    state = np.random.get_state()
+    np.random.seed(seed)
+    try:
+        yield
+    finally:
+        np.random.set_state(state)
+
+
+@memory.cache
 def generate_tone(duration, frequency, level=60, fs=44000, ramp=5, calibration=None):
     """
     Generate tone
@@ -97,5 +114,29 @@ def generate_am_tone(duration, frequency, level=60, fs=44000, ramp=5, calibratio
         fg_scaleby = 10 ** ((level - 80) / 20)
 
     w *= fg_scaleby
+
+    return w
+
+
+@memory.cache
+def generate_tone_stack(freq, f_offsets, phases, target_bandwidth, db_depth, am, duration, fs):
+
+    hcount = len(f_offsets)
+
+    # generate the carriers
+    wbins = int(duration * fs)
+    t = np.arange(wbins) / fs
+    w = np.zeros(wbins)
+    for h, ph in zip(f_offsets, phases):
+        # log.info(f"{h:.3f} {row['tar_freq'] * (h+1)}")
+        w += np.sin(t * 2 * np.pi * freq * (h + 1) + ph) * (5 / hcount)
+    if target_bandwidth > 0:
+        # fix RMS level to be 80 dB
+        w = w / w.std() * 3.5349
+
+    depth = -np.abs(10**(db_depth/20))
+    if am>0:
+        env = (1 + np.sin(t*2*np.pi*am) * depth)
+        w = w * env / 2
 
     return w
