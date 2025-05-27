@@ -98,7 +98,7 @@ context:
       trial_type: {}
     selector:
       go_probability:
-        expression: '0.65'
+        expression: '0.8'
         rove: false
       remind_trials:
         expression: '0'
@@ -114,7 +114,7 @@ context:
         expression: '1'
         rove: false
       target_tone_frequency:
-        expression: '500'
+        expression: '6000'
         rove: false
       target_tone_level:
         expression: background_1_wav_sequence_level+snr
@@ -174,7 +174,6 @@ context:
       - snr: -5
       - snr: 0
       - snr: 5
-      - snr: -10
     nogo:
       context_item_order:
       - snr
@@ -193,7 +192,7 @@ context:
 event_log:
   column_widths:
     event: 100
-    info: 130
+    info: 3884
     timestamp: 100
 microphone:
   y_max: 1.191317649071316
