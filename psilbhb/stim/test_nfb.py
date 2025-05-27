@@ -24,6 +24,7 @@ else:
     soundpath_fg = '/auto/data/sounds/vocalizations/v4'
     soundpath_bg = '/auto/data/sounds/backgrounds/v3'
     soundpath_prb_bg = '/auto/data/sounds/Categories/chimeric_voc'
+    prb_bg_range=[]
 
 # vv = MCWavFileSet(
 #     fs=44000, path=soundpath_fg, duration=3, normalization='rms',
@@ -43,13 +44,15 @@ else:
 
 params = FgBgSet.default_values()
 # Update probe trials indices based on the get_stim_list()
-params.update(dict(fg_path=soundpath_fg, fg_range=[6, 7],
+params.update(dict(fg_path=soundpath_fg, fg_range=[6],
                    bg_path=soundpath_bg, bg_range=[3,4,5],
                    prb_bg_path=soundpath_prb_bg, prb_bg_range=prb_bg_range,
-                   prb_f=2, fg_choice_trials=2,
-                 fg_switch_channels=True, contra_n=1, ipsi_n=1, diotic_n=1,
-                 combinations='all', migrate_fraction=0.0, fg_delay=0.5, duration=2.0,
-                 fg_level=[55, 63], bg_level=[55], random_seed=4234))
+                   prb_f=0, fg_choice_trials=0,
+                   fg_switch_channels=True, contra_n=0, ipsi_n=0, diotic_n=1,
+                   combinations='all', migrate_fraction=0.0, fg_delay=0.0, duration=2.0,
+                   spatial_attention_block=50, spatial_attention_catch_ratio=0.1,
+                   spatial_attention_start_chan=1,
+                   fg_level=[55, 63], bg_level=[55], random_seed=4235))
 
 # params.update(dict(fg_path=soundpath_fg, bg_path=soundpath_bg,
 #                    prb_path=soundpath_prb, fg_range=[1,2], bg_range=[0],

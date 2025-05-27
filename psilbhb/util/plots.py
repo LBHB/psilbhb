@@ -112,7 +112,9 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         rawid_list = rawid
     else:
         rawid_list = [rawid]
-
+    early_np_count = 0
+    valid_trial_count = 0
+    total_trial_count = 0
     for rawid in rawid_list:
         rawdata = c.pd_query(f"SELECT * FROM gDataRaw where id={rawid}")
 
@@ -123,7 +125,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         runclass = rawdata.loc[0, 'runclass']
 
         df_trial, df_event = readlogs(rawid=rawid, c=c)
-        trial_count = df_trial.shape[0]
+        total_trial_count += df_trial.shape[0]
 
         # throw out invalid trials-- early NP or previous trial was error
         if df_trial.score.dtype == 'O':
@@ -145,13 +147,14 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
             d_ = d_.loc[d_['prev_score'] >= 2]
         else:
             # remove invalid (early np) trials
-            early_np_count = (df_trial.score==0).sum()
+            early_np_count += (df_trial.score==0).sum()
             d_=df_trial.loc[df_trial.score>0].copy()
             v = np.roll(d_['score'].values, 1)
             v[0]=2
             d_['prev_score']=v
             # only include trials where prev trial was correct
             d_ = d_.loc[d_['prev_score']==2]
+            valid_trial_count += d_.shape[0]
             print(f"Keeping {d_.shape[0]}/{df_trial.shape[0]} valid trials (not repeat or early np)")
         df_list.append(d_)
 
@@ -181,9 +184,12 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         dbias = d_.groupby(['response', 'snr'])['correct'].mean()
         dbias = dbias.unstack(-1)
         width = 12
-    elif runclass in ['AMF']:
+    elif runclass in ['AFM', 'AMF', 'DET']:
         #parmlist = ['this_snr', 'this_distractor_offset', 'this_distractor_frequency']
-        parmlist=['this_snr', 'this_distractor_offset']
+        if runclass=='DET':
+            parmlist=['this_snr', 'this_target_frequency']
+        else:
+            parmlist=['this_snr', 'this_distractor_offset']
         perfsum = d_.groupby(parmlist)[['correct']].mean()
         perfsum = perfsum.unstack(-1)
         perfcount = d_.groupby(parmlist)[['correct']].count().unstack(-1)
@@ -222,7 +228,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
     ax[0].axhline(y=0.5, color='b', linestyle=':')
     ax[0].axhline(y=0.5, color='b', linestyle=':')
     ax[0].set_ylabel(ylabel)
-    ax[0].set_title(f"n valid={trial_count-early_np_count}/{trial_count}")
+    ax[0].set_title(f"n valid={valid_trial_count} early={early_np_count} tot={total_trial_count}")
 
     perfcount.plot.bar(ax=ax[1], legend=True)
     ax[1].set_ylabel('N trials')
