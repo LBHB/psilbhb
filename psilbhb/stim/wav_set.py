@@ -661,7 +661,7 @@ class WavSet:
             self.equalize = False
 
         if self.output_cal is None:
-            self.output_cal = [FlatCalibration.from_spl(80, vrms=5 / np.sqrt(2))] * self.n_outputs
+            self.output_cal = [FlatCalibration.from_spl(80, vrms=5 / np.sqrt(2))] * self.n_output
 
         self.output_filt = []
         for cal in self.output_cal:
@@ -919,17 +919,25 @@ class FgBgSet(WavSet):
         {'name': 'ipsi_n', 'label': 'Ipsi BG portion (int)', 'default': 0, 'dtype': 'int'},
         {'name': 'prb_f', 'label': 'Regular to probe ratio', 'default': -1, 'dtype': 'int'},
 
+        {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': 'int'},
+
         {'name': 'migrate_fraction', 'label': 'Percent migrate trials', 'default': '0', 'type': 'EnumParameter',
          'choices': {'0': 0.0, '25': 0.25, '50': 0.5}, 'group_name': 'Results'},
         {'name': 'migrate_start', 'label': "migrate_start (s)", 'default': 0.5, 'dtype': 'float', 'group_name': 'Results'},
         {'name': 'migrate_stop', 'label': "migrate_stop (s)", 'default': 1.0, 'dtype': 'float', 'group_name': 'Results'},
 
+        {'name': 'spatial_attention_block', 'label': 'S.A. block trials', 'default': '0', 'dtype': 'int',
+         'group_name': 'Results'},
+        {'name': 'spatial_attention_catch_ratio', 'label': "S.A. catch frac", 'default': 0.1, 'dtype': 'float',
+         'group_name': 'Results'},
+        {'name': 'spatial_attention_start_chan', 'label': "S.A. start chan", 'default': 0, 'dtype': 'int',
+         'group_name': 'Results'},
+
         {'name': 'response_window', 'label': 'Response start,stop (s)', 'expression': '(0, 1)', 'group_name': 'Results'},
         {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 'all', 'type': 'EnumParameter',
-         'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}},
-        {'name': 'reward_durations', 'label': 'FG reward durations', 'expression': '()'},
+         'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}, 'group_name': 'Results'},
+        {'name': 'reward_durations', 'label': 'FG reward durations', 'expression': '()', 'group_name': 'Results'},
 
-        {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': 'int'},
         {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, 'group_name': 'Results' },
 
         {'name': 'fg_channel', 'label': 'FG chan', 'type': 'Result', 'group_name': 'Results'},
@@ -987,18 +995,6 @@ class FgBgSet(WavSet):
             fs=self.fs, path=self.bg_path, duration=self.duration,
             normalization=self.normalization, fit_range=self.bg_range,
             test_range=slice(0, ), test_reps=1, channel_count=1, level=65)
-
-        # if len(self.prb_fg_path)>0:
-        #     print(f"probe path = {self.prb_fg_path}")
-        #     self.PrbFgSet = MCWavFileSet(
-        #         fs=self.fs, path=self.prb_fg_path, duration=self.duration,
-        #         normalization=self.normalization, fit_range=self.prb_fg_range,
-        #         test_range=slice(0, ), test_reps=1, channel_count=1, level=65)
-        # else:
-        #     self.PrbFgSet = MCWavFileSet(
-        #         fs=self.fs, path=self.fg_path, duration=self.duration,
-        #         normalization=self.normalization, fit_range=[],
-        #         test_range=slice(0, ), test_reps=1, channel_count=1, level=65)
 
         if len(self.prb_bg_path)>0:
             print(f"probe path = {self.prb_bg_path}")
@@ -1066,18 +1062,42 @@ class FgBgSet(WavSet):
                       [1-self.primary_channel] * self.contra_n + \
             [-1] * self.diotic_n
         fg_channels = [self.primary_channel] * len(bg_channels)
-        if self.fg_switch_channels:
+
+
+        if self.spatial_attention_block>0:
+            if type(self.fg_level) is int:
+                self.fg_level=[self.fg_level]
+            if type(self.bg_level) is int:
+                self.bg_level=[self.bg_level]
+            levelmult = len(self.fg_level) * len(self.bg_level)
+
+            block_len = int(self.spatial_attention_block/levelmult)
+            setloops = int(block_len/len(stim))
+
+            catch_count = int(np.ceil(setloops * self.spatial_attention_catch_ratio))
+            reg_count=setloops-catch_count
+            bg_channels = [self.spatial_attention_start_chan] * self.ipsi_n + \
+                          [1-self.spatial_attention_start_chan] * self.contra_n + \
+                [-1] * self.diotic_n
+            fg_channels = [self.spatial_attention_start_chan] * len(bg_channels) * reg_count + \
+                          [1 - self.spatial_attention_start_chan] * len(bg_channels) * catch_count
+            bg_channels = bg_channels * setloops
+
+
+        elif self.fg_switch_channels:
             bg_channels += [1-self.primary_channel] * self.ipsi_n + \
                            [self.primary_channel] * self.contra_n + \
                            [-1] * self.diotic_n
             fg_channels += [1-self.primary_channel] * (self.ipsi_n + self.contra_n + self.diotic_n)
 
         dlist = []
+
         for f, b in zip(fg_channels, bg_channels):
             s = stim.copy()
             s['fg_channel']=f
             s['bg_channel']=b
             dlist.append(s)
+
 
         if self.fg_choice_trials > 0:
             fgc_range = [0] * self.fg_choice_trials * 2
