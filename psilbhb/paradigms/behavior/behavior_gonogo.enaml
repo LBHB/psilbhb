@@ -680,7 +680,8 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         BinaryStore:
             #continuous_inputs = ['reward_contact_analog', 'microphone',
             #                     'cal_microphone']
-            continuous_inputs = ['reward_contact_analog', 'microphone']
+            # continuous_inputs = ['reward_contact_analog', 'microphone']
+            continuous_inputs = ['reward_contact_analog', 'microphone', 'microphone_2']
 
     Extension:
         id = 'io'

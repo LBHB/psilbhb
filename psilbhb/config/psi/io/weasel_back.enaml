@@ -18,6 +18,7 @@ from psiaudio.calibration import FlatCalibration
 ao_fs = 20e6 / 454
 ai_fs = 20e6 / 454
 
+START_TRIGGER = '/Dev1/ao/StartTrigger'
 
 from psi.controller.api import Trigger, Toggle
 
@@ -25,7 +26,7 @@ from psi.controller.api import Trigger, Toggle
 enamldef IRChannel(NIDAQHardwareAIChannel): irc:
 
     unit = 'V'
-    start_trigger = '/Dev1/ao/StartTrigger'
+    start_trigger = START_TRIGGER
     reference_clock = 'PXI_Clk10'
     fs = ai_fs
     expected_range = (-10, 10)
@@ -62,21 +63,21 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 calibration_user_editable = True
                 reference_clock = 'PXI_Clk10'
 
-            NIDAQHardwareAIChannel:
-                label = 'Microphone 1'
-                name = 'microphone_1'
-                channel = 'Dev1/ai6'
-                start_trigger = '/Dev1/ao/StartTrigger'
-                fs = ai_fs
-                expected_range = (-10, 10)
-                dtype = 'float64'
-                terminal_mode = 'RSE'
-                unit = 'V'
-                calibration_user_editable = True
-                reference_clock = 'PXI_Clk10'
+            # NIDAQHardwareAIChannel:
+            #    label = 'Microphone 1'
+            #    name = 'microphone_1'
+            #    channel = 'Dev1/ai6'
+            #    start_trigger = '/Dev1/ao/StartTrigger'
+            #    fs = ai_fs
+            #    expected_range = (-10, 10)
+            #    dtype = 'float64'
+            #    terminal_mode = 'RSE'
+            #    unit = 'V'
+            #    calibration_user_editable = True
+            #    reference_clock = 'PXI_Clk10'
 
-                ContinuousInput:
-                    name = 'microphone_1'
+            #    ContinuousInput:
+            #        name = 'microphone_1'
 
             NIDAQHardwareAIChannel:
                 label = 'Sync Monitor'
@@ -190,3 +191,46 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 name = 'spout_contact_2'
                 label = 'Spout IR 2'
                 channel = 'Dev1/ai2'
+
+        NIDAQEngine:
+            name = 'NI_mic'
+            hw_ai_monitor_period = 0.1
+            hw_ao_monitor_period = 0.1
+            hw_ao_buffer_size = 2
+
+            NIDAQHardwareAIChannel:
+                label = 'Microphone 1'
+                name = 'microphone_calibration'
+                channel = '/PXI1Slot3/ai0'
+                start_trigger = START_TRIGGER
+                fs = ai_fs
+                expected_range = (-10, 10)
+                dtype = 'float64'
+                terminal_mode = 'differential'
+                unit = 'V'
+                calibration_user_editable = True
+                reference_clock = 'PXI_Clk10'
+
+                # 2 different names for cross-hardware compatabiltiy? (see badger)
+                ContinuousInput:
+                    name = 'microphone'
+
+                ContinuousInput:
+                    name = 'microphone_calibration'
+
+            NIDAQHardwareAIChannel:
+                label = 'Microphone 2'
+                #name = 'microphone_2'
+                name = 'microphone_2'
+                channel = '/PXI1Slot3/ai1'
+                start_trigger = START_TRIGGER
+                fs = ai_fs
+                expected_range = (-10, 10)
+                dtype = 'float64'
+                terminal_mode = 'differential'
+                unit = 'V'
+                calibration_user_editable = True
+                reference_clock = 'PXI_Clk10'
+
+                ContinuousInput:
+                    name = 'microphone_2'

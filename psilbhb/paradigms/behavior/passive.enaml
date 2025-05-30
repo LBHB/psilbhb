@@ -178,9 +178,9 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             name = 'speaker_1_monitor'
             source_name = 'hw_ai::speaker_1_monitor'
 
-        ContinuousInput:
-            name = 'microphone'
-            source_name = 'hw_ai::microphone_calibration'
+        #ContinuousInput:
+        #    name = 'microphone'
+        #    source_name = 'hw_ai::microphone_calibration'
 
         ContinuousInput:
             name = 'microphone2'
