@@ -203,6 +203,9 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             o2.set_waveform(w[1])
 
         # All parameters in this dictionary get logged to the trial log.
+        #context = self.context.get_values()
+        #self.wavset.set_context(**context)
+
         wavset_info = self.wavset.trial_parameters(self.trial)
 
         # Override dispense durations

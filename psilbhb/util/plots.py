@@ -103,6 +103,67 @@ def timecourse_plot(df, column='this_snr', label=None, ax=None,
     return ax
 
 
+def load_behavior(rawid=None, parmfile=None, remove_early=True,
+                  remove_repeats=True):
+    if rawid is None:
+        raise ValueError(f"rawid required")
+    df_list = []
+    if type(rawid) is list:
+        rawid_list = rawid
+    else:
+        rawid_list = [rawid]
+    early_np_count = 0
+    total_trial_count = 0
+    for rawid in rawid_list:
+        rawdata = c.pd_query(f"SELECT * FROM gDataRaw where id={rawid}")
+
+        pendata = c.pd_query(f"SELECT gPenetration.* FROM gPenetration INNER JOIN gCellMaster ON gPenetration.id=gCellMaster.penid WHERE gCellMaster.id={rawdata.loc[0, 'masterid']}")
+        name = pendata.loc[0, 'animal'].lower()
+        animal = pendata.loc[0, 'penname'][:3]
+        parmfile = rawdata.loc[0, 'parmfile']
+        runclass = rawdata.loc[0, 'runclass']
+
+        df_trial, df_event = readlogs(rawid=rawid, c=c)
+        df_trial['rawid']=rawid
+        total_trial_count += df_trial.shape[0]
+
+        # throw out invalid trials-- early NP or previous trial was error
+        if df_trial.score.dtype == 'O':
+            # convert from HIT/MISS to
+            df_trial['score_str']=df_trial['score']
+            df_trial['score']=0
+            # 2: hit = 'HIT'     0: miss = 'MISS' 3: correct_reject = 'CR'    1: false_alarm = 'FA'
+
+            df_trial.loc[df_trial['score_str']=='FA','score']=1
+            df_trial.loc[df_trial['score_str']=='HIT','score']=2
+            df_trial.loc[df_trial['score_str']=='CR','score']=3
+            df_trial['correct'] = df_trial['score']>=2
+            early_np_count = (df_trial.score==0).sum()
+
+            d_=df_trial.copy()
+            v = np.roll(d_['score'].values,1)
+            v[0]=2
+            d_['prev_score']=v
+            if remove_repeats:
+                d_ = d_.loc[d_['prev_score'] >= 2]
+        else:
+            # remove invalid (early np) trials
+            if remove_early:
+                early_np_count += (df_trial.score==0).sum()
+                d_=df_trial.loc[df_trial.score>0].copy()
+            v = np.roll(d_['score'].values, 1)
+            v[0] = 2
+            d_['prev_score'] = v
+            if remove_repeats:
+                # only include trials where prev trial was correct
+                d_ = d_.loc[d_['prev_score']==2]
+                print(f"Keeping {d_.shape[0]}/{df_trial.shape[0]} valid trials (not repeat or early np)")
+        df_list.append(d_)
+
+    return pd.concat(df_list, ignore_index=True)
+
+
+
 def plot_behavior(rawid=None, parmfile=None, save_fig=True):
 
     if rawid is None:
@@ -262,7 +323,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         log.info(f"saving to {figfile}")
         f.savefig(figfile)
 
-    return df_trial
+    return d_
 
 
 def fix_old_plots(sitemask="SQD"):

@@ -474,6 +474,12 @@ class MCWavFileSet(WavFileSet):
         ----------
         '''
         all_wav = list(sorted(Path(path).glob('*.wav')))
+
+        # force Windows (case-insensitive) sorting
+        filelist = pd.DataFrame({'file': all_wav})
+        filelist['lfile']=filelist['file'].apply(lambda x: str(x).lower())
+        filelist=filelist.sort_values(by='lfile').reset_index()
+        all_wav = list(filelist['file'])
         if len(all_wav)==0:
             log.info(f'No wav files found in path={path}')
         if duration > 0:
@@ -724,6 +730,11 @@ class WavSet:
 
     def trial_parameters(self, *args, **kwargs):
         p = self._trial_parameters(*args, **kwargs)
+        if 'event_name' not in p.keys():
+            if 'this_name' in p.keys():
+                p['event_name'] = p['this_name']
+            else:
+                p['event_name'] = 'Undefined'
         return {f'{self.prefix}{k}': v for k, v in p.items()}
 
     def trial_waveform(self, trial_idx=None, wav_set_idx=None, **kwargs):
@@ -926,7 +937,9 @@ class FgBgSet(WavSet):
         {'name': 'migrate_start', 'label': "migrate_start (s)", 'default': 0.5, 'dtype': 'float', 'group_name': 'Results'},
         {'name': 'migrate_stop', 'label': "migrate_stop (s)", 'default': 1.0, 'dtype': 'float', 'group_name': 'Results'},
 
-        {'name': 'spatial_attention_block', 'label': 'S.A. block trials', 'default': '0', 'dtype': 'int',
+        {'name': 'spatial_attention_locus', 'label': 'S.A. state', 'default': 'R', 'type': 'EnumParameter',
+         'choices': {'R': 0, 'L': 1}, 'group_name': 'Results'},
+        {'name': 'spatial_attention_block', 'label': 'S.A. block trials', 'default': 0, 'dtype': 'int',
          'group_name': 'Results'},
         {'name': 'spatial_attention_catch_ratio', 'label': "S.A. catch frac", 'default': 0.1, 'dtype': 'float',
          'group_name': 'Results'},
@@ -948,6 +961,7 @@ class FgBgSet(WavSet):
         {'name': 'migrate_trial', 'label': 'Moving Tar', 'type': 'Result', 'group_name': 'Results'},
         {'name': 'current_full_rep', 'label': 'Rep', 'type': 'Result', 'group_name': 'Results'},
         {'name': 'trial_cat', 'label': 'Type', 'type': 'Result', 'group_name': 'Results'},
+
     ]
 
     for d in default_parameters:
@@ -1375,7 +1389,6 @@ class FgBgSet(WavSet):
             bg_name = self.PrbBgSet.names[bg_i]
         else:
             raise ValueError('unknown is_go_trial value')
-
         d = {'trial_idx': trial_idx,
              'wav_set_idx': row['index'],
              'fg_i': fg_i,
@@ -1396,7 +1409,7 @@ class FgBgSet(WavSet):
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
              'primary_channel': self.primary_channel,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx-1],
+             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
              'trial_cat': trial_cat,
              }
 
@@ -1415,6 +1428,55 @@ class FgBgSet(WavSet):
             d[f'dispense_duration'] = self.reward_durations[fg_i]
             d[f'dispense_1_duration'] = -1
             d[f'dispense_2_duration'] = -1
+
+        # baphy/nems-compatible event name
+        fg_name = d['fg_name']
+        bg_name = d['bg_name']
+        snr = d['snr']
+        fg_channel = d['fg_channel'] + 1
+        bg_channel = d['bg_channel'] + 1
+        #target_delay = d['target_delay']
+        # fg_duration=info['result']['fg_duration']
+        #fg_duration = int(np.round(d['fg_duration'])) \
+        #    if np.round(d['fg_duration']) == d['fg_duration'] else d['fg_duration']
+        bg_duration = int(np.round(d['bg_duration'])) \
+            if np.round(d['bg_duration']) == d['bg_duration'] else d['bg_duration']
+        max_snr = np.max(row['fg_level'])-np.min(row['bg_level'])
+        if 0: # LMD_format ... TODO : delete?
+            if snr < 50:
+                bg_str = f"{bg_name.replace('.wav', '')}-0-{bg_duration}-{bg_channel}"
+            else:
+                bg_str = 'null'
+                snr -= 100
+            if snr < 0:
+                s_snr = f"n{np.abs(snr):.0f}"
+            else:
+                s_snr = f"{np.abs(snr):.0f}"
+            if snr < -50:
+                fg_str = 'null'
+            else:
+                # fg_str=f"{fg_name.replace('.wav','')}-{target_delay}-{target_off}-{fg_channel}-{s_snr}dB"
+                fg_str = f"{fg_name.replace('.wav', '')}-{0}-{bg_duration}-{fg_channel}-{s_snr}dB"
+        else:
+            if snr < 40:
+                bg_str = f"{bg_name.replace('.wav', '')}-0-{bg_duration}-{bg_channel}"
+            else:
+                bg_str = 'null'
+                if np.max(self.bg_level)>0:
+                    snr -= np.max(self.bg_level)
+                else:
+                    snr -= np.min(self.fg_level)
+            if snr < 0:
+                s_snr = f"n{-snr:.0f}"
+            else:
+                s_snr = f"{snr:.0f}"
+            if snr <= -40:
+                fg_str = 'null'
+            else:
+                # fg_str=f"{fg_name.replace('.wav','')}-{target_delay}-{target_off}-{fg_channel}-{s_snr}dB"
+                fg_str = f"{fg_name.replace('.wav', '')}-{0}-{bg_duration}-{fg_channel}-{s_snr}dB"
+
+        d['event_name'] = f"{bg_str}_{fg_str}"
 
         # snippet from controller
         # for i in range(self.N_response):
@@ -1456,7 +1518,7 @@ class AMFusion(WavSet):
          'choices': {'No': "False", 'Yes': "True"},
          'scope': 'experiment', 'type': 'EnumParameter'},
         {'name': 'easy_ratio', 'label': 'High SNR mult',
-         'dtype': 'double', 'scope': 'experiment'},
+         'default': 1.0, 'dtype': 'double', 'scope': 'experiment'},
 
         {'name': 'primary_channel', 'label': 'Primary channel',
          'compact_label': 'primary_channel', 'default': '0',
@@ -1710,7 +1772,7 @@ class AMFusion(WavSet):
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
              'primary_channel': self.primary_channel,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx-1],
+             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
         }
 
         return d
@@ -1920,7 +1982,7 @@ class VowelSet(WavSet):
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
              'primary_channel': self.primary_channel,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx-1],
+             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
              }
         return d
 
@@ -2292,6 +2354,10 @@ class CategorySet(FgBgSet):
             response_window = (self.fg_delay[fg_i] + self.response_window[fg_i][0],
                                self.fg_delay[fg_i] + self.response_window[fg_i][1])
 
+        if trial_idx is None:
+            repeat = 0
+        else:
+            repeat = self.trial_is_repeat[trial_idx - 1]
         d = {'trial_idx': trial_idx,
              'wav_set_idx': wav_set_idx,
              'fg_i': fg_i,
@@ -2311,7 +2377,7 @@ class CategorySet(FgBgSet):
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
              'primary_channel': self.primary_channel,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx],
+             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
              }
         return d
         #def score_response(self, outcome, repeat_incorrect=2, trial_idx=None):
@@ -2529,7 +2595,7 @@ class BinauralTone(WavSet):
              'this_probe_channel': row['prb_channel'],
              'this_snr': row['prb_level'],
              'current_full_rep': self.current_full_rep,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx-1],
+             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
         }
 
         return d
@@ -2816,7 +2882,7 @@ class BinauralAM(WavSet):
              'this_probe_level': row['ref_level']+row['prb_level'],
              'this_snr': row['prb_level'],
              'current_full_rep': self.current_full_rep,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx-1],
+             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
         }
 
         return d
@@ -3034,12 +3100,15 @@ class BigNat(WavSet):
         if s1>=0:
             s1_name = self.SoundSet.names[s1]
         else:
-            s1_name = 'null'
+            s1_name = 'x_silence.wav'
         if s2>=0:
             s2_name = self.SoundSet.names[s2]
         else:
-            s2_name = 'null'
-
+            s2_name = 'x_silence.wav'
+        if self.test_binaural=='none':
+            event_name = s1_name
+        else:
+            event_name = f"{s1_name}:{row['s1_channel']+1}+{s2_name}:{row['s2_channel']+1}"
         d = {'trial_idx': trial_idx,
              'wav_set_idx': row['index'],
              's1idx': s1,
@@ -3049,7 +3118,8 @@ class BigNat(WavSet):
              's1_channel': row['s1_channel'],
              's2_channel': row['s2_channel'],
              'current_full_rep': self.current_full_rep,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx-1],
+             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
+             'event_name': event_name,
              }
 
         return d
