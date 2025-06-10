@@ -174,6 +174,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
     else:
         rawid_list = [rawid]
     early_np_count = 0
+    valid_trial_count = 0
     total_trial_count = 0
     for rawid in rawid_list:
         rawdata = c.pd_query(f"SELECT * FROM gDataRaw where id={rawid}")
@@ -214,6 +215,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
             d_['prev_score']=v
             # only include trials where prev trial was correct
             d_ = d_.loc[d_['prev_score']==2]
+            valid_trial_count += d_.shape[0]
             print(f"Keeping {d_.shape[0]}/{df_trial.shape[0]} valid trials (not repeat or early np)")
         df_list.append(d_)
 
@@ -287,7 +289,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
     ax[0].axhline(y=0.5, color='b', linestyle=':')
     ax[0].axhline(y=0.5, color='b', linestyle=':')
     ax[0].set_ylabel(ylabel)
-    ax[0].set_title(f"n valid={total_trial_count-early_np_count}/{total_trial_count}")
+    ax[0].set_title(f"n valid={valid_trial_count} early={early_np_count} tot={total_trial_count}")
 
     perfcount.plot.bar(ax=ax[1], legend=True)
     ax[1].set_ylabel('N trials')

@@ -961,7 +961,7 @@ class FgBgSet(WavSet):
         {'name': 'migrate_trial', 'label': 'Moving Tar', 'type': 'Result', 'group_name': 'Results'},
         {'name': 'current_full_rep', 'label': 'Rep', 'type': 'Result', 'group_name': 'Results'},
         {'name': 'trial_cat', 'label': 'Type', 'type': 'Result', 'group_name': 'Results'},
-
+        {'name': 'SA', 'label': 'SA', 'type': 'Result', 'group_name': 'Results'},
     ]
 
     for d in default_parameters:
@@ -1077,25 +1077,34 @@ class FgBgSet(WavSet):
             [-1] * self.diotic_n
         fg_channels = [self.primary_channel] * len(bg_channels)
 
-
+        log.info('****************************')
+        log.info('****************************')
+        log.info(f"spatial attention block={self.spatial_attention_block}")
         if self.spatial_attention_block>0:
+
             if type(self.fg_level) is int:
                 self.fg_level=[self.fg_level]
             if type(self.bg_level) is int:
                 self.bg_level=[self.bg_level]
             levelmult = len(self.fg_level) * len(self.bg_level)
+            log.info(f"levelmult={levelmult}")
 
             block_len = int(self.spatial_attention_block/levelmult)
             setloops = int(block_len/len(stim))
+            log.info(f"setloops={setloops}")
 
             catch_count = int(np.ceil(setloops * self.spatial_attention_catch_ratio))
-            reg_count=setloops-catch_count
+            reg_count = setloops - catch_count
+            log.info(f"catch_count={catch_count}")
+
             bg_channels = [self.spatial_attention_start_chan] * self.ipsi_n + \
                           [1-self.spatial_attention_start_chan] * self.contra_n + \
                 [-1] * self.diotic_n
             fg_channels = [self.spatial_attention_start_chan] * len(bg_channels) * reg_count + \
                           [1 - self.spatial_attention_start_chan] * len(bg_channels) * catch_count
             bg_channels = bg_channels * setloops
+            log.info(f"len(fg_channels)={len(fg_channels)}")
+            log.info(f"len(bg_channels)={len(bg_channels)}")
 
 
         elif self.fg_switch_channels:
@@ -1104,6 +1113,7 @@ class FgBgSet(WavSet):
                            [-1] * self.diotic_n
             fg_channels += [1-self.primary_channel] * (self.ipsi_n + self.contra_n + self.diotic_n)
 
+
         dlist = []
 
         for f, b in zip(fg_channels, bg_channels):
@@ -1111,6 +1121,7 @@ class FgBgSet(WavSet):
             s['fg_channel']=f
             s['bg_channel']=b
             dlist.append(s)
+        log.info(f"len(dlist) = {len(dlist)}")
 
 
         if self.fg_choice_trials > 0:
@@ -1126,6 +1137,9 @@ class FgBgSet(WavSet):
             dlist.append(stimc)
 
         stim = pd.concat(dlist, ignore_index=True)
+        log.info(f"\n{stim}")
+        log.info('****************************')
+        log.info('****************************')
 
         # TODO - remove invalid Probe trials -- is this still a TODO?
         iprb = stim['fg_go'] == -3
@@ -1174,15 +1188,17 @@ class FgBgSet(WavSet):
 
         # remove dups of zero-dB spatial locations
         # but allow other dups
-        zrows = (stim['bg_level']==0) | (stim['fg_level']==0)
-        nzrows = (stim['bg_level']>0) & (stim['fg_level']>0)
-        zstim = stim.loc[zrows].copy()
-        nzstim = stim.loc[nzrows].copy()
-        zstim.loc[zstim['fg_level']==0, 'fg_channel']=-1
-        zstim.loc[zstim['fg_level']==0, 'fg_index']=stim['fg_index'].min()
-        zstim.loc[zstim['bg_level']==0, 'bg_channel']=-1
-        zstim.loc[zstim['bg_level']==0, 'bg_index']=stim['bg_index'].min()
-        stim = pd.concat([nzstim, zstim.drop_duplicates()], ignore_index=True)
+        if self.spatial_attention_block==0:
+            zrows = (stim['bg_level']==0) | (stim['fg_level']==0)
+            nzrows = (stim['bg_level']>0) & (stim['fg_level']>0)
+
+            zstim = stim.loc[zrows].copy()
+            nzstim = stim.loc[nzrows].copy()
+            zstim.loc[zstim['fg_level']==0, 'fg_channel']=-1
+            zstim.loc[zstim['fg_level']==0, 'fg_index']=stim['fg_index'].min()
+            zstim.loc[zstim['bg_level']==0, 'bg_channel']=-1
+            zstim.loc[zstim['bg_level']==0, 'bg_index']=stim['bg_index'].min()
+            stim = pd.concat([nzstim, zstim.drop_duplicates()], ignore_index=True)
 
         # Couple of bookkeeping
         # 1.  Remove probe trials with high SNR (high-SNR trials are to keep ferrets motivated,
@@ -1232,6 +1248,14 @@ class FgBgSet(WavSet):
         migrate_keep = (stim['fg_level'] > 0) | (stim['migrate_trial'] == False)
         stim = stim.loc[migrate_keep]
 
+        stim['SA'] = 0
+        if self.spatial_attention_block>0:
+            log.info(f"SA: flipping for even block")
+            stimflip = stim.copy()
+            stimflip['fg_channel'] = 1-stimflip['fg_channel']
+            stimflip['SA'] = 1
+            stim = pd.concat([stim, stimflip], ignore_index=True)
+
         self.stim_list = stim.reset_index()
 
         total_wav_set = len(stim)
@@ -1256,6 +1280,9 @@ class FgBgSet(WavSet):
                 new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
                 dd = np.argwhere(np.diff(self.stim_list.loc[new_trial_wav, 'fg_channel'])!=0).min()
                 ii += 1
+            if self.spatial_attention_block>0:
+                new_trial_wav = new_trial_wav[np.argsort(self.stim_list.loc[new_trial_wav,'SA'].values)]
+                log.info(f"new_trial_wav: {new_trial_wav}")
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))
             log.info(f'Added {len(new_trial_wav)}/{len(self.trial_wav_idx)} trials to trial_wav_idx')
             self.current_full_rep += 1
@@ -1411,6 +1438,7 @@ class FgBgSet(WavSet):
              'primary_channel': self.primary_channel,
              'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
              'trial_cat': trial_cat,
+             'SA': row['SA'],
              }
 
         if (is_go_trial==-2) & (len(self.reward_durations)>1):
