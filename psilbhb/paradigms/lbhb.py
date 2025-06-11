@@ -75,16 +75,6 @@ COMMON_PLUGINS = [
      },
 ]
 
-
-ParadigmDescription(
-    'NFB-passive', '(NFB) Passive FG in natural background',
-    'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'passive.PassiveManifest',},
-        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True, 'attrs': {'stim_class_name': 'FgBgSet'}},
-    ],
-)
-
-
 ParadigmDescription(
     'NTD-gonogo-np', '(NTD) Go-nogo tone detection in natural background (initiated)',
     'animal', COMMON_PLUGINS + [
@@ -96,8 +86,6 @@ ParadigmDescription(
         {'manifest': PATH + 'stimuli.ToneInNaturalSoundsGoNogo'},
     ],
 )
-
-
 
 ParadigmDescription(
     'NTD-passive', '(NTD) Tone in natural background (passive)',
@@ -128,12 +116,20 @@ ParadigmDescription(
     ],
 )
 
+ParadigmDescription(
+    'NFB-passive', '(NFB) Passive FG in natural background',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'passive.PassiveManifest',},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'FgBgSet'}},
+    ],
+)
 
 ParadigmDescription(
     'NFC', '(NFC) Two AFC foreground detection in continuous natural background',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
-         'attrs': {'N_response': 2, 'N_output': 2}},
+         'attrs': {'N_response': 2, 'N_output': 2} },
         {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
          'attrs': {'stim_class_name': 'FgBgSet'}
          },
@@ -152,6 +148,19 @@ ParadigmDescription(
     ],
 )
 
+ParadigmDescription(
+    'NFC-passive', '(NFC) Passive FG in continuous natural BG',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'passive.PassiveManifest'},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'FgBgSet'}
+         },
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'BigNat', 'output_type': 'continuous',
+                   'prefix': 'background_'}
+         },
+     ],
+)
 
 ParadigmDescription(
     'VOW', '(VOW) Vowel discrimination',
@@ -226,14 +235,14 @@ ParadigmDescription(
     ],
 )
 
-ParadigmDescription(
-    'OLP', 'OLP - Overlapping Sounds Passive [Placeholder]',
-    'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
-         'attrs': {'stim_class_name': 'OverlappingSounds'}
-         },
-    ],
-)
+# ParadigmDescription(
+#     'OLP', 'OLP - Overlapping Sounds Passive [Placeholder]',
+#     'animal', COMMON_PLUGINS + [
+#         {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+#          'attrs': {'stim_class_name': 'OverlappingSounds'}
+#          },
+#     ],
+# )
 
 ParadigmDescription(
     'FTC', '(FTC) Passive random tone',
@@ -248,6 +257,15 @@ ParadigmDescription(
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'passive.PassiveManifest',},
         {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True, 'attrs': {'stim_class_name': 'BandpassNoise'}},
+    ],
+)
+
+ParadigmDescription(
+    'BNT', '(BNT) Big natural sound set',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'passive.PassiveManifest', },
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'BigNat'}},
     ],
 )
 
@@ -276,11 +294,3 @@ ParadigmDescription(
     ],
 )
 
-ParadigmDescription(
-    'BNT', '(BNT) Big natural sound set',
-    'animal', COMMON_PLUGINS + [
-        {'manifest': PATH + 'passive.PassiveManifest', },
-        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
-         'attrs': {'stim_class_name': 'BigNat'}},
-    ],
-)
