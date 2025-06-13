@@ -4,6 +4,7 @@ log = logging.getLogger(__name__)
 import enum
 from threading import Event
 
+from enaml.application import deferred_call
 from atom.api import Bool, Int, Str, Typed, Value
 from enaml.application import timed_call
 from enaml.core.api import d_
@@ -24,6 +25,19 @@ from psi.data.plots import (EventPlot, FFTContainer, FFTChannelPlot, TimeContain
 from psi.data.sinks.api import BinaryStore
 
 from .behavior_mixins import (BaseBehaviorPlugin, TrialType, TrialState)
+
+
+def check_microphones(workbench, manifest):
+    controller = workbench.get_plugin('psi.controller')
+    data = workbench.get_plugin('psi.data')
+    channels = []
+    for engine in controller._engines.values():
+        engine_channels = engine.get_channels(mode='analog', direction='input', active=False)
+        channels.extend(engine_channels)
+
+    channel_names = [c.name for c in channels if 'microphone' in c.name]
+    manifest.input_list = channel_names
+    data._refresh_plots()
 
 
 ################################################################################
@@ -570,6 +584,12 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
     Defines the core settings that any behavior experiment may require. Does
     not include timeout/reward settings as those are provided by plugins.
     '''
+
+    initialized ::
+        deferred_call(check_microphones, workbench, manifest)
+
+    attr input_list = []
+
     factory = BehaviorPlugin
 
     Extension:
@@ -680,16 +700,16 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         BinaryStore:
             #continuous_inputs = ['reward_contact_analog', 'microphone',
             #                     'cal_microphone']
-            # continuous_inputs = ['reward_contact_analog', 'microphone']
+            #continuous_inputs = ['reward_contact_analog', 'microphone']
             continuous_inputs = ['reward_contact_analog', 'microphone', 'microphone_2']
 
     Extension:
         id = 'io'
         point = 'psi.controller.io'
 
-        ContinuousInput:
-            name = 'microphone'
-            source_name = 'hw_ai::microphone_1'
+        # ContinuousInput:
+        #    name = 'microphone'
+        #    source_name = 'hw_ai::microphone_1'
 
         #ContinuousInput:
         #    name = 'cal_microphone'
@@ -942,12 +962,22 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
 
             ViewBox:
                 name = 'microphone'
-                y_min = -1
-                y_max = 1
+                y_min = -0.05
+                y_max = 0.05
 
                 ChannelPlot:
                     source_name = 'microphone'
-                    pen_color = 'black'
+                    pen_color = 'pink'
+
+            #ViewBox:
+            #    name = 'microphone_2'
+            #    y_min = -0.05
+            #    y_max = 0.05
+
+            #    ChannelPlot:
+            #        source_name = 'microphone_2'
+            #        pen_color = 'green'
+
 
                 #ChannelPlot:
                 #    source_name = 'cal_microphone'

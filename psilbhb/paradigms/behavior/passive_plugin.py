@@ -53,6 +53,7 @@ class PassivePlugin(BaseBehaviorPlugin):
     rng = Typed(np.random.RandomState)
 
     wavset = Typed(WavSet)
+    continuous_wavset = Typed(WavSet)
 
     def _default_rng(self):
         return np.random.RandomState()

@@ -11,9 +11,8 @@ from psi.context.api import (
     ContextGroup, Parameter, Result
 )
 from psi.controller.api import (
-    ContinuousInput, ControllerManifest, EpochOutput,
-    ExperimentAction, ExperimentEvent, ExperimentState,
-    TimedTrigger
+    ContinuousInput, ContinuousOutput, ControllerManifest, EpochOutput,
+    ExperimentAction, ExperimentEvent, ExperimentState, TimedTrigger
 )
 from psi.data.sinks.api import EventLog, TrialLog
 from psi.experiment.api import StatusItem
@@ -167,6 +166,12 @@ enamldef PassiveManifest(ControllerManifest): manifest:
 
         Looper:
             iterable = range(N_output)
+
+            ContinuousOutput:
+                name = f'continuous_output_{loop_item+1}'
+                label = f'Continuous Output {loop_item+1}'
+                target_name = f'hw_ao::speaker_{loop_item+1}'
+                configurable = False
 
             EpochOutput:
                 name = f'output_{loop_item+1}'
