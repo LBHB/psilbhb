@@ -125,6 +125,7 @@ def load_behavior(rawid=None, parmfile=None, remove_early=True,
 
         df_trial, df_event = readlogs(rawid=rawid, c=c)
         df_trial['rawid']=rawid
+        df_trial['masterid']=rawdata.loc[0,'masterid']
         total_trial_count += df_trial.shape[0]
 
         # throw out invalid trials-- early NP or previous trial was error
@@ -157,7 +158,7 @@ def load_behavior(rawid=None, parmfile=None, remove_early=True,
             if remove_repeats:
                 # only include trials where prev trial was correct
                 d_ = d_.loc[d_['prev_score']==2]
-                print(f"Keeping {d_.shape[0]}/{df_trial.shape[0]} valid trials (not repeat or early np)")
+                print(f"rawid {rawid}: Keeping {d_.shape[0]}/{df_trial.shape[0]} valid trials (not repeat or early np)")
         df_list.append(d_)
 
     return pd.concat(df_list, ignore_index=True)
