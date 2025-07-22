@@ -2015,7 +2015,7 @@ class VowelSet(WavSet):
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
              'primary_channel': self.primary_channel,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
+             'trial_is_repeat': self.trial_is_repeat[trial_idx] if (trial_idx is not None) & (trial_idx<len(self.trial_is_repeat)) else 0,
              }
         return d
 
