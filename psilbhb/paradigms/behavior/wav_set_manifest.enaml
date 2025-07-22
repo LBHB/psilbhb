@@ -40,7 +40,6 @@ def configure_stimuli(manifest, output_type, event):
 
     channels = [controller.get_channel(f'hw_ao::speaker_{i+1}') for i in range(n_output)]
     output_cal = [c.calibration for c in channels]
-    fs = channels[0].fs
     
     # All values in `default_parameters` should automatically be present in the
     # dictionary returned by context. It's not necessary to compute the
@@ -49,6 +48,8 @@ def configure_stimuli(manifest, output_type, event):
     plist = manifest.stim_class.default_parameters
     wavset_keys = [p['name'] for p in plist if p.get('type','') != 'Result']
     wavset_params = {k: params[prefix + k] for k in wavset_keys}
+    wavset_params['fs'] = channels[0].fs
+
     instance = manifest.stim_class(
         controller=controller,
         n_response=n_response,

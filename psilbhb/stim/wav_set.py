@@ -1435,6 +1435,11 @@ class FgBgSet(WavSet):
             bg_name = self.PrbBgSet.names[bg_i]
         else:
             raise ValueError('unknown is_go_trial value')
+        try:
+            trial_is_repeat = self.trial_is_repeat[trial_idx]
+        except:
+            trial_is_repeat = 0
+
         d = {'trial_idx': trial_idx,
              'wav_set_idx': row['index'],
              'fg_i': fg_i,
@@ -1455,7 +1460,7 @@ class FgBgSet(WavSet):
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
              'primary_channel': self.primary_channel,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
+             'trial_is_repeat': trial_is_repeat,
              'trial_cat': trial_cat,
              'SA': row['SA'],
              }
@@ -3090,7 +3095,8 @@ class BandpassNoise(WavSet):
 
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
         if self.bandwidth > 0:
-            f_offsets = np.linspace(-self.bandwidth/2, self.bandwidth/2, 101)
+            Noffsets = self.bandwidth * 400 + 1
+            f_offsets = np.linspace(-self.bandwidth/2, self.bandwidth/2, Noffsets)
             with temp_seed(wav_set_idx):
                 phases = np.random.uniform(0, 2*np.pi, size=len(f_offsets))
         else:

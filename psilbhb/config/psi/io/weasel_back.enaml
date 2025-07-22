@@ -1,6 +1,8 @@
 from enaml.workbench.api import Extension
+from enaml.workbench.core.api import Command
 
-from psi.controller.engines.nidaq import (NIDAQEngine,
+from psi.controller.engines.nidaq import (connect_trigger,
+                                          NIDAQEngine,
                                           NIDAQHardwareAIChannel,
                                           NIDAQHardwareAOChannel,
                                           NIDAQHardwareDOChannel,
@@ -9,36 +11,49 @@ from psi.controller.engines.nidaq import (NIDAQEngine,
 
 from psi.core.enaml.api import ExperimentManifest
 from psi.controller.api import ADC, ContinuousInput
-
-
 from psiaudio.calibration import FlatCalibration
+from psi.controller.api import Trigger, Toggle
 
 
 # Requested sampling rate must be an integer divisor of the timebase clock.
 ao_fs = 20e6 / 454
 ai_fs = 20e6 / 454
 
+#START_TRIGGER = '/PXI1Slot3/ao/StartTrigger'
 START_TRIGGER = '/Dev1/ao/StartTrigger'
-
-from psi.controller.api import Trigger, Toggle
-
 
 enamldef IRChannel(NIDAQHardwareAIChannel): irc:
 
     unit = 'V'
     start_trigger = START_TRIGGER
-    reference_clock = 'PXI_Clk10'
     fs = ai_fs
     expected_range = (-10, 10)
     dtype = 'float64'
     terminal_mode = 'RSE'
-
+    reference_clock = 'PXI_Clk10'
     ADC: adc:
         name << irc.name
         threshold = 0.75
 
 
 enamldef IOManifest(ExperimentManifest): manifest:
+
+    Extension:
+        id = 'weasel_commands.'
+        point = 'enaml.workbench.core.commands'
+
+        Command:
+            id = 'weasel.configure_channels'
+            handler = connect_trigger
+
+    Extension:
+        id = 'weasel_actions'
+        point = 'psi.controller.actions'
+
+        ExperimentAction:
+            event = 'experiment_prepare'
+            command = 'weasel.configure_channels'
+            weight = 90
 
     Extension:
         id = 'backend'
@@ -49,12 +64,14 @@ enamldef IOManifest(ExperimentManifest): manifest:
             hw_ai_monitor_period = 0.1
             hw_ao_monitor_period = 0.1
             hw_ao_buffer_size = 2
+            master_clock = True
 
             NIDAQHardwareAIChannel:
                 label = 'Speaker 1 monitor'
                 name = 'speaker_1_monitor'
                 channel = 'Dev1/ai3'
-                start_trigger = '/Dev1/ao/StartTrigger'
+           #     start_trigger = '/Dev1/ao/StartTrigger'
+                start_trigger = START_TRIGGER
                 fs = ai_fs
                 expected_range = (-10, 10)
                 dtype = 'float64'
@@ -63,21 +80,21 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 calibration_user_editable = True
                 reference_clock = 'PXI_Clk10'
 
-            # NIDAQHardwareAIChannel:
-            #    label = 'Microphone 1'
-            #    name = 'microphone_1'
-            #    channel = 'Dev1/ai6'
-            #    start_trigger = '/Dev1/ao/StartTrigger'
-            #    fs = ai_fs
-            #    expected_range = (-10, 10)
-            #    dtype = 'float64'
-            #    terminal_mode = 'RSE'
-            #    unit = 'V'
-            #    calibration_user_editable = True
-            #    reference_clock = 'PXI_Clk10'
+           #  NIDAQHardwareAIChannel:
+           #     label = 'Microphone 1'
+           #     name = 'microphone_1'
+           #     channel = 'Dev1/ai6'
+           #     start_trigger = '/Dev1/ao/StartTrigger'
+           #     fs = ai_fs
+           #     expected_range = (-10, 10)
+           #     dtype = 'float64'
+           #     terminal_mode = 'RSE'
+           #     unit = 'V'
+           #     calibration_user_editable = True
+           #     reference_clock = 'PXI_Clk10'
 
-            #    ContinuousInput:
-            #        name = 'microphone_1'
+           #     ContinuousInput:
+           #         name = 'microphone_1'
 
             NIDAQHardwareAIChannel:
                 label = 'Sync Monitor'

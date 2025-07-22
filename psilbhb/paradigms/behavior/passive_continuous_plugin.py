@@ -53,6 +53,7 @@ class PassivePlugin(BaseBehaviorPlugin):
     rng = Typed(np.random.RandomState)
 
     wavset = Typed(WavSet)
+    continuous_wavset = Typed(WavSet)
 
     def _default_rng(self):
         return np.random.RandomState()
@@ -128,6 +129,9 @@ class PassivePlugin(BaseBehaviorPlugin):
         # go_probability) are reflected in determining the next trial type.
         if self._apply_requested:
             self._apply_changes(False)
+
+        if self.wavset.current_full_rep > self.context.get_value('trial_reps'):
+            self.invoke_actions('experiment_end')
 
     def advance_state(self, state, timestamp):
         log.info(f'Advancing to {state}')
