@@ -11,14 +11,15 @@ from psilbhb.stim.wav_set import BigNat
 pd.set_option('display.width', 160)
 
 plt.ion()
+#cf1 = 'D:\\cfts\\20241211-135816 Test test right inear_speaker_calibration_chirp'
+#cf2 = 'D:\\cfts\\20241211-135742 Test test left inear_speaker_calibration_chirp'
+
 if os.path.exists('e:/sounds'):
     sound_path = 'e:/sounds/BigNat/v2'
 else:
     sound_path = '/auto/data/sounds/BigNat/v2'
 
 params = BigNat.default_values()
-#cf1 = 'D:\\cfts\\20241211-135816 Test test right inear_speaker_calibration_chirp'
-#cf2 = 'D:\\cfts\\20241211-135742 Test test left inear_speaker_calibration_chirp'
 params.update(primary_channel=0, level=60, sound_path=sound_path,
               fit_binaural='twooffset', test_binaural='oneoffset', include_silence=False,
               fit_range=range(6,51), test_range=range(3,5), test_reps=8, equalize=True,
@@ -44,5 +45,5 @@ for trial_idx, a in enumerate(ax):
     a.plot(w[0, :])
     a.plot(w[1, :]+1)
     a.set_title(d['s1_name'], fontsize=8)
-
+    print(w.shape)
     plt.tight_layout()

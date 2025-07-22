@@ -17,6 +17,25 @@ from .basic_sounds import generate_tone, generate_tone_stack, temp_seed
 from psiaudio.stim import apply_max_correction
 from psiaudio.calibration import FlatCalibration
 from psi import get_config
+from pathlib import Path
+from joblib import Memory
+
+from fractions import Fraction
+from copy import deepcopy
+import os
+import glob
+import logging
+
+import numpy as np
+from scipy import signal
+from scipy.io import wavfile
+import pandas as pd
+
+from psiaudio import util
+from .basic_sounds import generate_tone, generate_tone_stack, temp_seed
+from psiaudio.stim import apply_max_correction
+from psiaudio.calibration import FlatCalibration
+from psi import get_config
 
 log = logging.getLogger(__name__)
 memory = Memory(get_config('CACHE_ROOT'))
@@ -1486,19 +1505,17 @@ class FgBgSet(WavSet):
                 # fg_str=f"{fg_name.replace('.wav','')}-{target_delay}-{target_off}-{fg_channel}-{s_snr}dB"
                 fg_str = f"{fg_name.replace('.wav', '')}-{0}-{bg_duration}-{fg_channel}-{s_snr}dB"
         else:
-            if snr < 40:
+            if row['bg_level'] > 0:
                 bg_str = f"{bg_name.replace('.wav', '')}-0-{bg_duration}-{bg_channel}"
             else:
                 bg_str = 'null'
                 if np.max(self.bg_level)>0:
                     snr -= np.max(self.bg_level)
-                else:
-                    snr -= np.min(self.fg_level)
             if snr < 0:
                 s_snr = f"n{-snr:.0f}"
             else:
                 s_snr = f"{snr:.0f}"
-            if snr <= -40:
+            if row['fg_level'] <= 0:
                 fg_str = 'null'
             else:
                 # fg_str=f"{fg_name.replace('.wav','')}-{target_delay}-{target_off}-{fg_channel}-{s_snr}dB"
@@ -1665,7 +1682,7 @@ class AMFusion(WavSet):
         if trial_idx is None:
             trial_idx = self.current_trial_idx
 
-        if trial_idx > len(self.trial_wav_idx):
+        if trial_idx >= len(self.trial_wav_idx):
             # hack to prevent identical sequences from repeating
             for t in range(trial_idx):
                 _ = _rng.permutation(np.arange(total_wav_set, dtype=int))
@@ -1805,6 +1822,290 @@ class AMFusion(WavSet):
 
         return d
 
+class AMDetect(WavSet):
+
+    default_parameters = [
+        {'name': 'runclass', 'label': 'Run class [AMD]',
+         'default': 'AMD', 'dtype': 'str', 'scope': 'experiment'},
+        {'name': 'go_frequency', 'label': 'Go center frequenc(ies) (list)',
+         'expression': '[1000]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'go_depth', 'label': 'Go modulation depth(s) (list)',
+         'expression': '[100]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'nogo_frequency', 'label': 'No-go center frequenc(ies) (list)',
+         'expression': '[1000]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'nogo_depth', 'label': 'No-go modulation depth(s) (list)',
+         'expression': '[100]', 'dtype': 'object', 'scope': 'experiment'},
+
+        {'name': 'target_am_rate', 'label': 'Target AM rate (list)',
+         'expression': '[20]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'target_bandwidth', 'label': 'Target bandwidth (0=PT)',
+         'expression': '0', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'target_level', 'label': 'Target dB SPL (list)',
+         'expression': '[60]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'distractor_offset', 'label': 'Distractor offset octaves (list)',
+         'expression': '[-1, 1]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'distractor_am_rate', 'label': 'Distractor AM rate (list)',
+         'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'distractor_level', 'label': 'Distractor dB SPL (list)',
+         'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'harmonics', 'label': 'Harmonics (list)',
+         'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'duration', 'label': 'duration of each sample (s)',
+         'default': 1.0, 'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'swap_carriers', 'label': 'Swap tar/dis carriers',
+         'compact_label': 'combinations', 'default': 'No',
+         'choices': {'No': "False", 'Yes': "True"},
+         'scope': 'experiment', 'type': 'EnumParameter'},
+        {'name': 'go_multiplier', 'label': 'Ratio of go:no-go',
+         'default': 1, 'dtype': 'double', 'scope': 'experiment'},
+
+        {'name': 'primary_channel', 'label': 'Primary channel',
+         'compact_label': 'primary_channel', 'default': '0',
+         'choices': {'0': 0, '1': 1},
+         'scope': 'experiment', 'type': 'EnumParameter'},
+        {'name': 'switch_channels', 'label': 'Switch target channel?',
+         'compact_label': 'combinations', 'default': 'No',
+         'choices': {'No': "False", 'Yes': "True"},
+         'scope': 'experiment', 'type': 'EnumParameter'},
+        {'name': 'include_mono', 'label': 'Include mono stim',
+         'compact_label': 'include_mono', 'default': 'No',
+         'choices': {'No': 0, 'Yes': 1},
+         'scope': 'experiment', 'type': 'EnumParameter'},
+        {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 'all', 'type': 'EnumParameter',
+         'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}},
+
+        {'name': 'response_start', 'label': 'response win start (s)',
+         'default': 0, 'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'response_end', 'label': 'response win end (s)', 'default': 2,
+         'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
+         'int', 'scope': 'experiment'},
+
+        {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
+         'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'level', 'label': 'level (dB peSPL)', 'default': 60,
+         'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'pre_silence', 'label': 'pre-stim silence (s)',
+         'default': 0.0, 'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'post_silence', 'label': 'post-stim silence (s)',
+         'default': 0.0, 'dtype': 'double', 'scope': 'experiment'},
+
+        {'name': 'this_target_frequency', 'label': 'T', 'type': 'Result'},
+        {'name': 'this_distractor_offset', 'label': 'Doct', 'type': 'Result'},
+        {'name': 'this_distractor_frequency', 'label': 'D', 'type': 'Result'},
+        {'name': 'this_snr', 'label': 'SNR', 'type': 'Result'},
+        {'name': 'response_condition', 'label': 'T spout', 'type': 'Result'},
+        {'name': 'trial_is_repeat', 'label': 'rep', 'type': 'Result'},
+
+    ] + WavSet.default_parameters.copy()
+
+    for d in default_parameters:
+        # Use `setdefault` so we don't accidentally override a parameter that
+        # wants to use a different group.
+        d.setdefault('group_name', 'AMDetect')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.tonal_stim = True
+
+    def update_parameters(self, parameter_dict):
+        for k, v in parameter_dict.items():
+            setattr(self, k, v)
+        self.response_window = (parameter_dict['response_start'], parameter_dict['response_end'])
+        self.tonal_stim = True
+
+        self.update_calibration()
+        self.update()
+
+    def update(self, trial_idx=None):
+        """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.
+        manage trials separately to allow for repeats, etc."""
+        _rng = np.random.RandomState(self.random_seed)
+
+        go_range_ = np.array(self.go_frequency, dtype=float)
+        go_rate_ = np.array(self.target_am_rate, dtype=float)
+        if len(go_rate_)==1:
+            go_rate_ = np.zeros_like(go_range_) + go_rate_
+        go_depth_ = np.array(self.go_depth, dtype=float)
+        if len(go_depth_)==1:
+            go_depth_ = np.zeros_like(go_range_) + go_depth_
+        else:
+            go_range_ = np.repeat(go_range_,len(go_depth_))
+            go_rate_ = np.repeat(go_rate_, len(go_depth_))
+
+        nogo_range_ = np.array(self.nogo_frequency, dtype=float)
+        nogo_rate_ = np.array(self.target_am_rate, dtype=float)
+        if len(nogo_rate_) == 1:
+            nogo_rate_ = np.zeros_like(nogo_range_) + nogo_rate_
+        nogo_depth_ = np.array(self.nogo_depth, dtype=float)
+        if len(nogo_depth_) == 1:
+            nogo_depth_ = np.zeros_like(nogo_range_) + nogo_depth_
+        else:
+            nogo_range_ = np.repeat(nogo_range_,len(nogo_depth_))
+            nogo_rate_ = np.repeat(nogo_rate_, len(nogo_depth_))
+
+        tar_range_ = np.concatenate([np.repeat(go_range_,int(self.go_multiplier)),nogo_range_])
+        tar_rate_ = np.concatenate([np.repeat(go_rate_,int(self.go_multiplier)),nogo_rate_])
+        tar_depth_ = np.concatenate([np.repeat(go_depth_,int(self.go_multiplier)),nogo_depth_])
+        all_cat = ['T'] * len(go_range_)*int(self.go_multiplier) + ['N'] * len(nogo_range_)
+
+        dis_range_ = np.array(self.distractor_offset, dtype=float)
+        dis_am_rate_ = np.array(self.distractor_am_rate, dtype=float)
+        if len(dis_am_rate_)==1:
+            dis_am_rate_ = np.zeros_like(dis_range_) + dis_am_rate_
+
+        # combinations
+        tar_count=len(tar_range_)
+        dis_count=len(dis_range_)
+        slist = []
+        for tlevel in self.target_level:
+            for dlevel in self.distractor_level:
+                data = {'tar_freq': np.concatenate([tar_range_] * dis_count),
+                        'tar_am': np.concatenate([tar_rate_] * dis_count),
+                        'tar_depth': np.concatenate([tar_depth_] * dis_count),
+                        'tar_bandwidth': self.target_bandwidth,
+                        'tar_level': tlevel,
+                        'tar_cat': all_cat * dis_count,
+                        'dis_offset': np.concatenate([np.zeros(tar_count)+d for d in dis_range_]),
+                        'dis_am': np.concatenate([np.zeros(tar_count)+d for d in dis_am_rate_]),
+                        'dis_level': dlevel,
+                        'duration': self.duration,
+                        'tar_channel': self.primary_channel,
+                        }
+                #log.info(f"{data}")
+                slist.append(pd.DataFrame(data))
+
+        stim = pd.concat(slist, ignore_index=True)
+        # remove duplicates of very easy ("inf snr") trials
+        #stim.loc[stim['tar_level']-stim['dis_level']>=60, ['dis_offset']] = 0
+
+        stim['dis_freq'] = np.round(stim['tar_freq'] * 2**stim['dis_offset'])
+        #stim = stim.drop_duplicates()
+        stim['go_trial'] = (stim['tar_cat']=='T')
+
+        if self.switch_channels:
+            d2=stim.copy()
+            d2['tar_channel']=1-self.primary_channel
+            stim = pd.concat([stim,d2], ignore_index=True)
+
+        if (self.swap_carriers=='Yes') | (self.swap_carriers==True):
+            t_ = stim['tar_freq']
+            stim['tar_freq'] = stim['dis_freq']
+            stim['dis_freq'] = t_
+
+        hisnr = stim['tar_level']-stim['dis_level']>=60
+        stim.loc[hisnr, 'dis_freq'] = stim.loc[hisnr,'tar_freq']
+        stim.loc[hisnr, 'dis_offset'] = 0
+
+        self.stim_list = stim.copy().reset_index()
+        #print(self.stim_list)
+        total_wav_set = len(stim)
+
+        # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
+        if trial_idx is None:
+            trial_idx = self.current_trial_idx
+
+        if trial_idx >= len(self.trial_wav_idx):
+            # hack to prevent identical sequences from repeating
+            for t in range(trial_idx):
+                _ = _rng.permutation(np.arange(total_wav_set, dtype=int))
+            new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
+            self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))
+            log.info(f'Added {len(new_trial_wav)}/{len(self.trial_wav_idx)} trials to trial_wav_idx')
+            self.current_full_rep += 1
+            self.trial_is_repeat = np.concatenate((self.trial_is_repeat, np.zeros_like(new_trial_wav)))
+
+    def trial_waveform(self, trial_idx=None, wav_set_idx=None):
+
+        row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
+        harmonics = self.harmonics
+        ramp = 0
+        if len(harmonics) > 1:
+            f_offsets = harmonics
+            phases = np.zeros(len(f_offsets))
+            target_bandwidth = 0
+        elif self.target_bandwidth > 0:
+            f_offsets = np.linspace(-self.target_bandwidth/2,
+                                self.target_bandwidth/2, 101)
+            with temp_seed(wav_set_idx):
+                phases = np.random.uniform(0, 2*np.pi, size=len(f_offsets))
+            ramp = 0.005
+            target_bandwidth = self.target_bandwidth
+        else:
+            f_offsets = [0]
+            phases = np.zeros(len(f_offsets))
+            target_bandwidth = 0
+
+        hcount = len(f_offsets)
+
+        wfg = generate_tone_stack(row['tar_freq'], f_offsets, phases, target_bandwidth, row['tar_depth'], row['tar_am'], row['duration'], self.fs)
+        wbg = generate_tone_stack(row['dis_freq'], f_offsets, phases, target_bandwidth, row['tar_depth'], row['dis_am'], row['duration'], self.fs)
+
+        fg_level = row['tar_level']
+        bg_level = row['dis_level']
+        if fg_level == 0:
+            fg_scaleby = 0
+        else:
+            fg_scaleby = 10 ** ((fg_level - 80) / 20)
+        if bg_level == 0:
+            bg_scaleby = 0
+        else:
+            bg_scaleby = 10 ** ((bg_level - 80) / 20)
+        wfg *= fg_scaleby
+        wbg *= bg_scaleby
+
+        # combine fg and bg waveforms
+        if row['tar_channel'] == 0:
+            w = np.stack((wfg, wbg), axis=1)
+        else:
+            w = np.stack((wbg, wfg), axis=1)
+        if ramp>0:
+            ramplen=int(ramp*self.fs)
+            r = np.linspace(0,1,ramplen)
+            w[:ramplen] *= r[:,np.newaxis]
+            roff = np.linspace(1,0,ramplen)
+            w[-ramplen:] *= roff[:,np.newaxis]
+
+        #print(row)
+        log.info(f"fg level: {fg_level} bg level: {bg_level} FG RMS: {wfg.std():.3f} BG RMS: {wbg.std():.3f}")
+        log.info(f"**** trial_waveform trial {trial_idx} wavidx {row['index']}  tar channel: {row['tar_channel']}")
+
+        return w.T
+
+    def _trial_parameters(self, trial_idx=None, wav_set_idx=None):
+
+        row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
+
+        response_condition = row['go_trial']
+
+        tar_name = f"{row['tar_freq']}:{row['tar_level']}:{row['tar_am']}:{row['tar_channel']}"
+        dis_name = f"{row['dis_freq']}:{row['dis_level']}:0:{1-row['tar_channel']}"
+        response_window = (self.response_window[0],self.response_window[1])
+        log.info(f"**** _trial_parameters trial {trial_idx} wavidx {row['index']} parms tar channel: {row['tar_channel']} response cond {response_condition}")
+        log.info(f"     Is go trial? {row['go_trial']}")
+
+        d = {'trial_idx': trial_idx,
+             'wav_set_idx': row['index'],
+             'target_name': tar_name,
+             'distractor_name': dis_name,
+             'this_target_frequency': row['tar_freq'],
+             'this_target_am': row['tar_am'],
+             'this_distractor_offset': row['dis_offset'],
+             'this_distractor_frequency': row['dis_freq'],
+             'this_duration': row['duration'],
+             'this_target_level': row['tar_level'],
+             'this_distractor_level': row['dis_level'],
+             'this_snr': row['tar_level']-row['dis_level'],
+             'this_name': tar_name + "+" + dis_name,
+             'response_condition': response_condition,
+             'response_window': response_window,
+             'current_full_rep': self.current_full_rep,
+             'primary_channel': self.primary_channel,
+             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
+        }
+
+        return d
+
 
 class VowelSet(WavSet):
 
@@ -1916,7 +2217,7 @@ class VowelSet(WavSet):
         # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
         if trial_idx is None:
             trial_idx = self.current_trial_idx
-        if trial_idx > len(self.trial_wav_idx):
+        if trial_idx >= len(self.trial_wav_idx):
             for rep in np.arange(self.current_full_rep+1):
                 new_trial_wav = _rng.permutation(np.arange(len(self.stim1idx), dtype=int))
             self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))

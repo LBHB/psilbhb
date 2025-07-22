@@ -134,7 +134,7 @@ def generate_tone_stack(freq, f_offsets, phases, target_bandwidth, db_depth, am,
         # fix RMS level to be 80 dB
         w = w / w.std() * 3.5349
 
-    depth = -np.abs(10**(db_depth/20))
+    depth = 10**-np.abs(db_depth/20)
     if am>0:
         env = (1 + np.sin(t*2*np.pi*am) * depth)
         w = w * env / 2

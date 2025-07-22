@@ -235,6 +235,20 @@ ParadigmDescription(
     ],
 )
 
+ParadigmDescription(
+    'AMD', '(AMD) Go/nogo AM detect',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'behavior_nafc.BehaviorManifest',
+         'attrs': {'N_response': 1}},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'AMDetect'}},
+        {'manifest': PATH + 'behavior_mixins.WaterBolusDispenser',
+         'attrs': {'output_name': 'water_dispense_1',
+                   'event_name': 'deliver_reward_1'}},
+    ],
+)
+
+
 # ParadigmDescription(
 #     'OLP', 'OLP - Overlapping Sounds Passive [Placeholder]',
 #     'animal', COMMON_PLUGINS + [
