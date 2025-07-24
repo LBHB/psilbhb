@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('QtAgg')
+#matplotlib.use('QtAgg')
 import matplotlib.pyplot as plt
 
 import numpy as np
@@ -11,9 +11,10 @@ from psilbhb.stim.wav_set import BinauralTone, BinauralAM, AMDetect
 pd.set_option('display.width', 160)
 
 params = AMDetect.default_values()
-params.update(primary_channel=0, switch_channels=True, random_seed=4234,
-              target_level=50, distractor_level=[40], go_multiplier=2,
-              go_depth=[0,5,10], nogo_depth=[60], include_mono=True)
+params.update(primary_channel=0, switch_channels=False, random_seed=4234,
+              go_frequency=[400], nogo_frequency=[400], distractor_offset=[-0.5, 0, 0.5],
+              target_level=[55], distractor_level=[55], go_multiplier=1,
+              go_depth=[0, 5, 10, 15, 20, 25], nogo_depth=[60], include_mono=True)
 
 bt = AMDetect(**params)
 bt.update()  # not necessary but illustrative of back-end processing

@@ -1928,8 +1928,10 @@ class AMDetect(WavSet):
         if len(go_depth_)==1:
             go_depth_ = np.zeros_like(go_range_) + go_depth_
         else:
+            x=len(go_range_)
             go_range_ = np.repeat(go_range_,len(go_depth_))
             go_rate_ = np.repeat(go_rate_, len(go_depth_))
+            go_depth_ = np.array(list(go_depth_) * x)
 
         nogo_range_ = np.array(self.nogo_frequency, dtype=float)
         nogo_rate_ = np.array(self.target_am_rate, dtype=float)
@@ -1939,8 +1941,10 @@ class AMDetect(WavSet):
         if len(nogo_depth_) == 1:
             nogo_depth_ = np.zeros_like(nogo_range_) + nogo_depth_
         else:
+            x=len(nogo_range_)
             nogo_range_ = np.repeat(nogo_range_,len(nogo_depth_))
             nogo_rate_ = np.repeat(nogo_rate_, len(nogo_depth_))
+            nogo_depth_ = np.array(list(nogo_depth_) * x)
 
         tar_range_ = np.concatenate([np.repeat(go_range_,int(self.go_multiplier)),nogo_range_])
         tar_rate_ = np.concatenate([np.repeat(go_rate_,int(self.go_multiplier)),nogo_rate_])
@@ -1984,6 +1988,12 @@ class AMDetect(WavSet):
         if self.switch_channels:
             d2=stim.copy()
             d2['tar_channel']=1-self.primary_channel
+            stim = pd.concat([stim,d2], ignore_index=True)
+        stim['dis_channel'] = 1-stim['tar_channel']
+
+        if self.include_mono:
+            d2=stim.copy()
+            d2['dis_channel']=d2['tar_channel']
             stim = pd.concat([stim,d2], ignore_index=True)
 
         if (self.swap_carriers=='Yes') | (self.swap_carriers==True):
@@ -2053,10 +2063,10 @@ class AMDetect(WavSet):
         wbg *= bg_scaleby
 
         # combine fg and bg waveforms
-        if row['tar_channel'] == 0:
-            w = np.stack((wfg, wbg), axis=1)
-        else:
-            w = np.stack((wbg, wfg), axis=1)
+        w = np.zeros((len(wfg), 2))
+        w[:, row['tar_channel']] += wfg.flatten()
+        w[:, row['dis_channel']] += wbg.flatten()
+
         if ramp>0:
             ramplen=int(ramp*self.fs)
             r = np.linspace(0,1,ramplen)
@@ -2076,8 +2086,8 @@ class AMDetect(WavSet):
 
         response_condition = row['go_trial']
 
-        tar_name = f"{row['tar_freq']}:{row['tar_level']}:{row['tar_am']}:{row['tar_channel']}"
-        dis_name = f"{row['dis_freq']}:{row['dis_level']}:0:{1-row['tar_channel']}"
+        tar_name = f"{row['tar_freq']}:{row['tar_level']}:{int(row['tar_am'])}:{int(row['tar_depth'])}:{row['tar_channel']}"
+        dis_name = f"{row['dis_freq']}:{row['dis_level']}:0:{row['dis_channel']}"
         response_window = (self.response_window[0],self.response_window[1])
         log.info(f"**** _trial_parameters trial {trial_idx} wavidx {row['index']} parms tar channel: {row['tar_channel']} response cond {response_condition}")
         log.info(f"     Is go trial? {row['go_trial']}")
@@ -2086,13 +2096,15 @@ class AMDetect(WavSet):
              'wav_set_idx': row['index'],
              'target_name': tar_name,
              'distractor_name': dis_name,
-             'this_target_frequency': row['tar_freq'],
+            'this_target_frequency': row['tar_freq'],
              'this_target_am': row['tar_am'],
              'this_distractor_offset': row['dis_offset'],
              'this_distractor_frequency': row['dis_freq'],
              'this_duration': row['duration'],
              'this_target_level': row['tar_level'],
              'this_distractor_level': row['dis_level'],
+             'this_target_channel': row['tar_channel'],
+             'this_distractor_channel': row['dis_channel'],
              'this_snr': row['tar_level']-row['dis_level'],
              'this_name': tar_name + "+" + dis_name,
              'response_condition': response_condition,
