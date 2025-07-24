@@ -594,14 +594,24 @@ def make_filter(fs, calibration, fl=100, fh=19000, window='boxcar', ntaps=101,
 
 class WavSet:
 
+    # default_parameters = [
+    #     {'name': 'equalize', 'label': 'Apply equalizer?',
+    #      'choices': {'No': "False", 'Yes': "True"}, 'default': 'No',
+    #      'scope': 'experiment', 'type': 'EnumParameter', 'group_name': 'WavSet'},
+    # ]
     default_parameters = [
-        {'name': 'equalize', 'label': 'Apply equalizer?',
-         'choices': {'No': "False", 'Yes': "True"}, 'default': 'No',
-         'scope': 'experiment', 'type': 'EnumParameter', 'group_name': 'WavSet'},
+        {'name': 'primary_channel', 'label': 'Primary channel',
+         'compact_label': 'primary_channel', 'default': 0,
+         'choices': {'0': 0, '1': 1},
+         'scope': 'experiment', 'type': 'EnumParameter'},
+        {'name': 'random_seed', 'label': 'Random seed', 'default': 0,
+         'dtype': 'int', 'scope': 'experiment', 'group_name': 'WavSet'},
+        {'name': 'ramp', 'label': 'on/off ramp (ms)', 'default': 10,
+         'dtype': 'double', 'scope': 'experiment', 'group_name': 'WavSet'},
     ]
 
     def __init__(self, controller=None, n_response=0, output_cal=None,
-                 n_output=2, prefix='', **parameter_dict):
+                 n_output=2, prefix='', fs=None, **parameter_dict):
         """
         :param n_response: 0: passive, 1: go/no-go, N>=2: nAFC
         :param output_cal: list of psi Calibrations
@@ -632,7 +642,10 @@ class WavSet:
         self.n_response = n_response
         self.tonal_stim = False
         self.output_cal = output_cal
-
+        if fs is None:
+            self.fs = 20e6 / 200  # 100K samples/s
+        else:
+            self.fs = fs
         self.update_parameters(parameter_dict)
 
     def set_cont_start_time(self, start_time):
@@ -938,7 +951,6 @@ class FgBgSet(WavSet):
         {'name': 'duration', 'label': 'FG/BG duration (s)', 'default': 3.0, 'dtype': 'float'},
         {'name': 'fg_delay', 'label': 'FG delay (s)', 'default': 0.0, 'dtype': 'float'},
 
-        {'name': 'primary_channel', 'label': 'Primary FG channel', 'default': 0, 'dtype': 'int'},
         {'name': 'fg_switch_channels', 'label': 'Switch FG channel', 'type': 'BoolParameter', 'default': False},
         {'name': 'combinations', 'label': 'How to combine FG+BG', 'default': 'all', 'type': 'EnumParameter',
          'choices': {'simple': "'simple'", 'all': "'all'"}},
@@ -948,8 +960,6 @@ class FgBgSet(WavSet):
         {'name': 'diotic_n', 'label': 'Diotic BG portion (int)', 'default': 0, 'dtype': 'int'},
         {'name': 'ipsi_n', 'label': 'Ipsi BG portion (int)', 'default': 0, 'dtype': 'int'},
         {'name': 'prb_f', 'label': 'Regular to probe ratio', 'default': -1, 'dtype': 'int'},
-
-        {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': 'int'},
 
         {'name': 'migrate_fraction', 'label': 'Percent migrate trials', 'default': '0', 'type': 'EnumParameter',
          'choices': {'0': 0.0, '25': 0.25, '50': 0.5}, 'group_name': 'Results'},
@@ -969,8 +979,6 @@ class FgBgSet(WavSet):
         {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 'all', 'type': 'EnumParameter',
          'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}, 'group_name': 'Results'},
         {'name': 'reward_durations', 'label': 'FG reward durations', 'expression': '()', 'group_name': 'Results'},
-
-        {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, 'group_name': 'Results' },
 
         {'name': 'fg_channel', 'label': 'FG chan', 'type': 'Result', 'group_name': 'Results'},
         {'name': 'bg_channel', 'label': 'BG chan', 'type': 'Result', 'group_name': 'Results'},
@@ -1436,7 +1444,7 @@ class FgBgSet(WavSet):
         else:
             raise ValueError('unknown is_go_trial value')
         try:
-            trial_is_repeat = self.trial_is_repeat[trial_idx]
+            trial_is_repeat = self.trial_is_repeat[trial_idx-1]
         except:
             trial_is_repeat = 0
 
@@ -1570,10 +1578,6 @@ class AMFusion(WavSet):
         {'name': 'easy_ratio', 'label': 'High SNR mult',
          'default': 1.0, 'dtype': 'double', 'scope': 'experiment'},
 
-        {'name': 'primary_channel', 'label': 'Primary channel',
-         'compact_label': 'primary_channel', 'default': '0',
-         'choices': {'0': 0, '1': 1},
-         'scope': 'experiment', 'type': 'EnumParameter'},
         {'name': 'switch_channels', 'label': 'Switch target channel?',
          'compact_label': 'combinations', 'default': 'No',
          'choices': {'No': "False", 'Yes': "True"},
@@ -1585,11 +1589,7 @@ class AMFusion(WavSet):
          'default': 0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'response_end', 'label': 'response win end (s)', 'default': 2,
          'dtype': 'double', 'scope': 'experiment'},
-        {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
-         'int', 'scope': 'experiment'},
 
-        {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
-         'dtype': 'double', 'scope': 'experiment'},
         {'name': 'this_target_frequency', 'label': 'T', 'type': 'Result'},
         {'name': 'this_distractor_offset', 'label': 'Doct', 'type': 'Result'},
         {'name': 'this_distractor_frequency', 'label': 'D', 'type': 'Result'},
@@ -1822,7 +1822,7 @@ class AMFusion(WavSet):
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
              'primary_channel': self.primary_channel,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
+             'trial_is_repeat': self.trial_is_repeat[trial_idx-1] if trial_idx is not None else 0,
         }
 
         return d
@@ -1864,10 +1864,6 @@ class AMDetect(WavSet):
         {'name': 'go_multiplier', 'label': 'Ratio of go:no-go',
          'default': 1, 'dtype': 'double', 'scope': 'experiment'},
 
-        {'name': 'primary_channel', 'label': 'Primary channel',
-         'compact_label': 'primary_channel', 'default': '0',
-         'choices': {'0': 0, '1': 1},
-         'scope': 'experiment', 'type': 'EnumParameter'},
         {'name': 'switch_channels', 'label': 'Switch target channel?',
          'compact_label': 'combinations', 'default': 'No',
          'choices': {'No': "False", 'Yes': "True"},
@@ -1883,11 +1879,7 @@ class AMDetect(WavSet):
          'default': 0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'response_end', 'label': 'response win end (s)', 'default': 2,
          'dtype': 'double', 'scope': 'experiment'},
-        {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
-         'int', 'scope': 'experiment'},
 
-        {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
-         'dtype': 'double', 'scope': 'experiment'},
         {'name': 'level', 'label': 'level (dB peSPL)', 'default': 60,
          'dtype': 'double', 'scope': 'experiment'},
         {'name': 'pre_silence', 'label': 'pre-stim silence (s)',
@@ -2106,7 +2098,7 @@ class AMDetect(WavSet):
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
              'primary_channel': self.primary_channel,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
+             'trial_is_repeat': self.trial_is_repeat[trial_idx-1] if trial_idx is not None else 0,
         }
 
         return d
@@ -2127,10 +2119,11 @@ class VowelSet(WavSet):
          'compact_label': 'combinations', 'default': 'No',
          'choices': {'No': "False", 'Yes': "True"},
          'scope': 'experiment', 'type': 'EnumParameter'},
-        {'name': 'primary_channel', 'label': 'primary_channel',
-         'compact_label': 'primary_channel', 'default': '0',
-         'choices': {'0': 0, '1': 1},
+        {'name': 'mono_pairs', 'label': 'Pairs from single loc?',
+         'compact_label': 'mono_pairs', 'default': 'No',
+         'choices': {'No': "False", 'Yes': "True"},
          'scope': 'experiment', 'type': 'EnumParameter'},
+
         {'name': 'duration', 'label': 'duration of each sample (s)',
          'default': 0.24, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'repeat_count', 'label': 'repeats per trial', 'default': 2,
@@ -2141,8 +2134,6 @@ class VowelSet(WavSet):
          'default': 5, 'dtype': 'int', 'scope': 'experiment'},
         {'name': 'level', 'label': 'level (dB peSPL)', 'default': 60,
          'dtype': 'double', 'scope': 'experiment'},
-        {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
-         'dtype': 'double', 'scope': 'experiment'},
         {'name': 'response_start', 'label': 'response win start (s)',
          'default': 0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'response_end', 'label': 'response win end (s)', 'default': 2,
@@ -2151,9 +2142,7 @@ class VowelSet(WavSet):
          'default': 0.0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'post_silence', 'label': 'post-stim silence (s)',
          'default': 0.0, 'dtype': 'double', 'scope': 'experiment'},
-        {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
-         'int', 'scope': 'experiment'},
-        {'name': 'this_name', 'label': 'N', 'type': 'Result', 'type': 'Result'},
+       {'name': 'this_name', 'label': 'N', 'type': 'Result', 'type': 'Result'},
         {'name': 's1_name', 'label': 'S1', 'type': 'Result', 'type': 'Result'},
         {'name': 's2_name', 'label': 'S2', 'type': 'Result'},
         {'name': 'stim_cat', 'label': 'Cat', 'type': 'Result'},
@@ -2217,6 +2206,25 @@ class VowelSet(WavSet):
             self.stim1idx = stim1idx
             self.stim2idx = stim2idx
             self.stim_cat = all_cat
+        stimcount = len(self.stim1idx)
+        self.s1_channel = [self.primary_channel] * stimcount
+        self.s2_channel = [1-self.primary_channel] * stimcount
+        if self.mono_pairs:
+            for ii in range(stimcount):
+                t1=self.stim1idx[ii]
+                t2=self.stim2idx[ii]
+                if t1!=t2:
+                    self.stim1idx.append(t1)
+                    self.stim2idx.append(t2)
+                    self.s1_channel.append(self.primary_channel)
+                    self.s2_channel.append(self.primary_channel)
+                    self.stim_cat.append(self.stim_cat[ii])
+                    self.stim1idx.append(t1)
+                    self.stim2idx.append(t2)
+                    self.s1_channel.append(1-self.primary_channel)
+                    self.s2_channel.append(1-self.primary_channel)
+                    self.stim_cat.append(self.stim_cat[ii])
+
         self.duration = self.repeat_count * self.wavset.duration + \
                         (self.repeat_count-1) * self.repeat_isi
         # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
@@ -2235,16 +2243,21 @@ class VowelSet(WavSet):
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
         wav_set_idx = row['index']
         s1idx = self.stim1idx[wav_set_idx]
+        s2idx = self.stim2idx[wav_set_idx]
+        s1c = self.s1_channel[wav_set_idx]
+        s2c = self.s2_channel[wav_set_idx]
         if s1idx >= 0:
             w1 = self.wavset.waveform(s1idx)
         else:
             w1 = self.wavset.waveform_zero()
-        s2idx = self.stim2idx[wav_set_idx]
         if s2idx >= 0:
             w2 = self.wavset.waveform(s2idx)
         else:
             w2 = self.wavset.waveform_zero()
-        w = np.concatenate([w1, w2], axis=1)
+
+        w = np.zeros((len(w1), 2))
+        w[:, s1c] += w1.flatten()
+        w[:, s2c] += w2.flatten()
 
         if self.repeat_count>1:
             isi_bins = int(self.wavset.fs * self.repeat_isi)
@@ -2271,12 +2284,15 @@ class VowelSet(WavSet):
 
         s1idx = self.stim1idx[wav_set_idx]
         s2idx = self.stim2idx[wav_set_idx]
+        s1c = self.s1_channel[wav_set_idx]
+        s2c = self.s2_channel[wav_set_idx]
+
         if s1idx>-1:
-            s1_name = self.wavset.names[s1idx]
+            s1_name = self.wavset.names[s1idx]+':'+str(s1c)
         else:
             s1_name = ''
         if s2idx>-1:
-            s2_name = self.wavset.names[s2idx]
+            s2_name = self.wavset.names[s2idx]+':'+str(s2c)
         else:
             s2_name = ''
 
@@ -2307,6 +2323,8 @@ class VowelSet(WavSet):
              'wav_set_idx': wav_set_idx,
              's1idx': s1idx,
              's2idx': s2idx,
+             's1_channel': s1c,
+             's2_channel': s2c,
              'this_name': name,
              's1_name': s1_name,
              's2_name': s2_name,
@@ -2316,7 +2334,7 @@ class VowelSet(WavSet):
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
              'primary_channel': self.primary_channel,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx] if (trial_idx is not None) & (trial_idx<len(self.trial_is_repeat)) else 0,
+             'trial_is_repeat': self.trial_is_repeat[trial_idx-1] if (trial_idx is not None) & (trial_idx<len(self.trial_is_repeat)) else 0,
              }
         return d
 
@@ -2688,10 +2706,6 @@ class CategorySet(FgBgSet):
             response_window = (self.fg_delay[fg_i] + self.response_window[fg_i][0],
                                self.fg_delay[fg_i] + self.response_window[fg_i][1])
 
-        if trial_idx is None:
-            repeat = 0
-        else:
-            repeat = self.trial_is_repeat[trial_idx - 1]
         d = {'trial_idx': trial_idx,
              'wav_set_idx': wav_set_idx,
              'fg_i': fg_i,
@@ -2711,7 +2725,7 @@ class CategorySet(FgBgSet):
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
              'primary_channel': self.primary_channel,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
+             'trial_is_repeat': self.trial_is_repeat[trial_idx-1] if trial_idx is not None else 0,
              }
         return d
         #def score_response(self, outcome, repeat_incorrect=2, trial_idx=None):
@@ -2767,10 +2781,6 @@ class BinauralTone(WavSet):
         {'name': 'post_silence', 'label': 'post-stim silence (s)',
          'default': 0.05, 'dtype': 'double', 'scope': 'experiment'},
 
-        {'name': 'primary_channel', 'label': 'Primary (contra) channel',
-         'compact_label': 'primary_channel', 'default': '0',
-         'choices': {'0': 0, '1': 1},
-         'scope': 'experiment', 'type': 'EnumParameter'},
         {'name': 'switch_channels', 'label': 'Switch ref channel?',
          'compact_label': 'combinations', 'default': 'No',
          'choices': {'No': "False", 'Yes': "True"},
@@ -2780,12 +2790,6 @@ class BinauralTone(WavSet):
          'choices': {'No': "False", 'Yes': "True"},
          'scope': 'experiment', 'type': 'EnumParameter'},
 
-        {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
-         'dtype': 'double', 'scope': 'experiment'},
-        {'name': 'ramp', 'label': 'on/off ramp (ms)', 'default': 10,
-         'dtype': 'double', 'scope': 'experiment'},
-        {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
-         'int', 'scope': 'experiment'},
         {'name': 'this_name', 'label': 'N', 'type': 'Result'},
         {'name': 'this_reference_frequency', 'label': 'R', 'type': 'Result'},
         {'name': 'this_probe_frequency', 'label': 'P', 'type': 'Result'},
@@ -2953,21 +2957,11 @@ class RandomTone(BinauralTone):
         {'name': 'post_silence', 'label': 'post-stim silence (s)',
          'default': 0.05, 'dtype': 'double', 'scope': 'experiment'},
 
-        {'name': 'primary_channel', 'label': 'Primary (contra) channel',
-         'compact_label': 'primary_channel', 'default': '0',
-         'choices': {'0': 0, '1': 1},
-         'scope': 'experiment', 'type': 'EnumParameter'},
         {'name': 'switch_channels', 'label': 'Switch ref channel?',
          'compact_label': 'combinations', 'default': 'No',
          'choices': {'No': "False", 'Yes': "True"},
          'scope': 'experiment', 'type': 'EnumParameter'},
 
-        {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
-         'dtype': 'double', 'scope': 'experiment'},
-        {'name': 'ramp', 'label': 'on/off ramp (ms)', 'default': 10,
-         'dtype': 'double', 'scope': 'experiment'},
-        {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
-         'int', 'scope': 'experiment'},
         {'name': 'this_name', 'label': 'N', 'type': 'Result'},
         {'name': 'this_reference_frequency', 'label': 'R', 'type': 'Result'},
         {'name': 'this_probe_frequency', 'label': 'P', 'type': 'Result'},
@@ -3009,21 +3003,11 @@ class BandpassNoise(WavSet):
         {'name': 'post_silence', 'label': 'post-stim silence (s)',
          'default': 0.1, 'dtype': 'double', 'scope': 'experiment'},
 
-        {'name': 'primary_channel', 'label': 'Primary (contra) channel',
-         'compact_label': 'primary_channel', 'default': '0',
-         'choices': {'0': 0, '1': 1},
-         'scope': 'experiment', 'type': 'EnumParameter'},
         {'name': 'switch_channels', 'label': 'Switch ref channel?',
          'compact_label': 'combinations', 'default': 'No',
          'choices': {'No': "False", 'Yes': "True"},
          'scope': 'experiment', 'type': 'EnumParameter'},
 
-        {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
-         'dtype': 'double', 'scope': 'experiment'},
-        {'name': 'ramp', 'label': 'on/off ramp (s)', 'default': 0.001,
-         'dtype': 'double', 'scope': 'experiment'},
-        {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
-         'int', 'scope': 'experiment'},
         {'name': 'this_name', 'label': 'N', 'type': 'Result'},
         {'name': 'this_center', 'label': 'F', 'type': 'Result'},
         {'name': 'current_full_rep', 'label': 'rep', 'type': 'Result'},
@@ -3187,10 +3171,6 @@ class BinauralAM(WavSet):
         {'name': 'post_silence', 'label': 'post-stim silence (s)',
          'default': 0.25, 'dtype': 'double', 'scope': 'experiment'},
 
-        {'name': 'primary_channel', 'label': 'Primary (contra) channel',
-         'compact_label': 'primary_channel', 'default': '0',
-         'choices': {'0': 0, '1': 1},
-         'scope': 'experiment', 'type': 'EnumParameter'},
         {'name': 'switch_channels', 'label': 'Switch ref channel?',
          'compact_label': 'combinations', 'default': 'No',
          'choices': {'No': "False", 'Yes': "True"},
@@ -3200,12 +3180,6 @@ class BinauralAM(WavSet):
          'choices': {'No': "False", 'Yes': "True"},
          'scope': 'experiment', 'type': 'EnumParameter'},
 
-        {'name': 'fs', 'label': 'sampling rate (1/s)', 'default': 44000,
-         'dtype': 'double', 'scope': 'experiment'},
-        {'name': 'ramp', 'label': 'on/off ramp (ms)', 'default': 10,
-         'dtype': 'double', 'scope': 'experiment'},
-        {'name': 'random_seed', 'label': 'random_seed', 'default': 0, 'dtype':
-         'int', 'scope': 'experiment'},
         {'name': 'this_name', 'label': 'N', 'type': 'Result'},
         {'name': 'this_reference_frequency', 'label': 'R', 'type': 'Result'},
         {'name': 'this_reference_am', 'label': 'AM', 'type': 'Result'},
@@ -3376,7 +3350,7 @@ class BinauralAM(WavSet):
              'this_probe_level': row['ref_level']+row['prb_level'],
              'this_snr': row['prb_level'],
              'current_full_rep': self.current_full_rep,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
+             'trial_is_repeat': self.trial_is_repeat[trial_idx-1] if trial_idx is not None else 0,
         }
 
         return d
@@ -3405,10 +3379,6 @@ class BigNat(WavSet):
         {'name': 'post_silence', 'label': 'post-stim silence (s)',
          'default': 1, 'dtype': 'double', 'scope': 'experiment'},
 
-        {'name': 'primary_channel', 'label': 'Primary (contra) channel',
-         'compact_label': 'primary_channel', 'default': '0',
-         'choices': {'0': 0, '1': 1},
-         'scope': 'experiment', 'type': 'EnumParameter'},
         {'name': 'fit_binaural', 'label': 'Fit binaural config', 'default': 'none', 'type': 'EnumParameter',
          'choices': {'None': "'none'", 'One offset': "'oneoffset'", 'Two offset': "'twooffset'",
                      'Diotic': "'diotic'", 'Diotic+1off': "'diotic1off"}},
@@ -3423,10 +3393,6 @@ class BigNat(WavSet):
         {'name': 'atten_set', 'label': 'Attenuate chan 2 (dB)',
          'default': 0, 'dtype': 'double', 'scope': 'experiment'},
 
-        {'name': 'random_seed', 'label': 'Random seed', 'default': 0, 'dtype': 'int'},
-        {'name': 'ramp', 'label': 'on/off ramp (ms)', 'default': 10,
-         'dtype': 'double'},
-        {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, 'group_name': 'Results' },
 
         {'name': 's1_name', 'label': 'S1', 'type': 'Result', 'group_name': 'Results'},
         {'name': 's2_name', 'label': 'S2', 'type': 'Result', 'group_name': 'Results'},
@@ -3612,7 +3578,7 @@ class BigNat(WavSet):
              's1_channel': row['s1_channel'],
              's2_channel': row['s2_channel'],
              'current_full_rep': self.current_full_rep,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx] if trial_idx is not None else 0,
+             'trial_is_repeat': self.trial_is_repeat[trial_idx-1] if trial_idx is not None else 0,
              'event_name': event_name,
              }
 
@@ -3622,10 +3588,6 @@ class BigNat(WavSet):
 class Silence(WavSet):
 
     default_parameters = [
-        {'name': 'equalize', 'label': 'Apply equalizer?',
-         'choices': {'No': "False", 'Yes': "True"}, 'default': 'No',
-         'scope': 'experiment', 'type': 'EnumParameter', 'group_name': 'Silence'},
-        {'name': 'fs', 'label': 'Sampling rate (sec^-1)', 'default': 44000, 'group_name': 'Results' },
     ]
 
     def next(self, samples, channel):

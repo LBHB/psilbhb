@@ -23,7 +23,7 @@ params = BigNat.default_values()
 params.update(primary_channel=0, level=60, sound_path=sound_path,
               fit_binaural='twooffset', test_binaural='oneoffset', include_silence=False,
               fit_range=range(6,51), test_range=range(3,5), test_reps=8, equalize=True,
-              binaural_cross='-6dB')
+              binaural_cross='none')
               #, calfile1 = cf1, calfile2=cf2)
 
 bt = BigNat(**params)
@@ -44,6 +44,6 @@ for trial_idx, a in enumerate(ax):
     d = bt.trial_parameters(trial_idx=trial_idx+1)
     a.plot(w[0, :])
     a.plot(w[1, :]+1)
-    a.set_title(d['s1_name'], fontsize=8)
+    a.set_title(d['s1_name']+"+"+d['s2_name'], fontsize=8)
     print(w.shape)
     plt.tight_layout()

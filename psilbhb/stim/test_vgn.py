@@ -8,17 +8,17 @@ from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet, VowelSet
 pd.set_option('display.width',160)
 
 if os.path.exists('h:/sounds'):
-    soundpath = 'H:/sounds/vowels/v6/'
+    soundpath = 'H:/sounds/vowels/v5/'
 else:
-    soundpath = '/auto/data/sounds/vowels/v6'
+    soundpath = '/auto/data/sounds/vowels/v5'
 
 
 params = VowelSet.default_values()
 params.update(dict(sound_path=soundpath,
-                   target_set= 	['01_AE106+03_AE106', '02_AE151+04_AE151', '13_EH106+15_EH106', '14_EH151+16_EH151'],
-                   non_target_set=['17_OO106+19_OO106', '18_OO151+20_OO151'],
-                   catch_set=['05_AW106+11_EE106'],
-                   switch_channels=False, repeat_count=2,
+                   target_set=['01_AE_106+01_AE_106', '02_AE_151+02_AE_151', '01_AE_106+02_AE_151'],
+                   non_target_set=['04_AW_106+04_AW_106', '05_AW_151+05_AW_151', '04_AW_106+05_AW_151'],
+                   catch_set=['04_AW_106+10_OO_106', '05_AW_151+11_OO_151', '05_AW_151+10_OO_106', '04_AW_106+11_OO_151'], mono_pairs=True,
+                   switch_channels=True, repeat_count=2, n_response=1,
                    random_seed=4234))
 
 v = VowelSet(1, **params)
@@ -33,44 +33,16 @@ for trial_idx in range(N):
     d = v.trial_parameters(trial_idx+1)
     print('score', v.trial_outcomes[trial_idx], 'trial_idx', d['trial_idx'],
           'wav_set_idx', d['wav_set_idx'], 'rep', d['current_full_rep'],
-          d['s1_name'], d['s2_name'], d['response_condition'], d['trial_is_repeat'])
+          d['this_name'], d['response_condition'], d['trial_is_repeat'])
 
-raise ValueError('stopping')
-
-# plot waveforms from an example trial
-for trial_idx in range(1, 5):
-    w = fb.trial_waveform(trial_idx)
-    d = fb.trial_parameters(trial_idx)
-    print(trial_idx, w.shape)
-    if d['this_fg_level'] == 0:
-        fg_scaleby = 0
-    else:
-        fg_scaleby = 10 ** ((d['this_fg_level'] - fb.FgSet.level) / 20)
-    if d['this_bg_level'] == 0:
-        bg_scaleby = 0
-    else:
-        bg_scaleby = 10 ** ((d['this_bg_level'] - fb.BgSet.level) / 20)
-
-    if d['response_condition']==-1:
-        wb = fb.FgSet.waveform(d['bg_i'])*bg_scaleby
-    else:
-        wb = fb.BgSet.waveform(d['bg_i'])*bg_scaleby
-    wf = fb.FgSet.waveform(d['fg_i'])*fg_scaleby
-    print(trial_idx, w.shape, wb.shape, wf.shape)
-
-    f, ax = plt.subplots(2,1, sharex='col', sharey='col')
-    t=np.arange(w.shape[1])/fb.FgSet.fs
-    ax[0].plot(t, w[0, :])
-    if d['bg_channel'] == 0:
-        ax[0].plot(t, wb[:, 0])
-    ax[0].set_title('channel 1')
-    if w.shape[1]>1:
-        ax[1].plot(t, w[1,:], label='f+b')
-    if d['bg_channel']==1:
-        ax[1].plot(t,wb[:,0], label='b')
-    ax[1].legend()
-    ax[1].set_title('channel 2')
-
-    ax[0].set_title(f"trial {trial_idx} fgc={d['fg_channel']} bgc={d['bg_channel']} fgdB={d['this_fg_level']}")
-
+# plot waveforms from example trials
+f, ax = plt.subplots(3, 3, figsize=(8, 8), sharex=True, sharey=True)
+ax = ax.flatten()
+for trial_idx, a in enumerate(ax):
+    w = v.trial_waveform(trial_idx=trial_idx+1)
+    d = v.trial_parameters(trial_idx=trial_idx+1)
+    a.plot(w[0, :])
+    a.plot(w[1, :]+1)
+    a.set_title(d['this_name'], fontsize=8)
+    print(w.shape)
     plt.tight_layout()
