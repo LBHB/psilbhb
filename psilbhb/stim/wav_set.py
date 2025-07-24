@@ -601,9 +601,9 @@ class WavSet:
     # ]
     default_parameters = [
         {'name': 'primary_channel', 'label': 'Primary channel',
-         'compact_label': 'primary_channel', 'default': 0,
+         'compact_label': 'primary_channel', 'default': '0',
          'choices': {'0': 0, '1': 1},
-         'scope': 'experiment', 'type': 'EnumParameter'},
+         'scope': 'experiment', 'type': 'EnumParameter', 'group_name': 'WavSet'},
         {'name': 'random_seed', 'label': 'Random seed', 'default': 0,
          'dtype': 'int', 'scope': 'experiment', 'group_name': 'WavSet'},
         {'name': 'ramp', 'label': 'on/off ramp (ms)', 'default': 10,
@@ -646,6 +646,7 @@ class WavSet:
             self.fs = 20e6 / 200  # 100K samples/s
         else:
             self.fs = fs
+        parameter_dict['primary_channel'] = int(parameter_dict.get('primary_channel', 0))
         self.update_parameters(parameter_dict)
 
     def set_cont_start_time(self, start_time):
@@ -989,7 +990,7 @@ class FgBgSet(WavSet):
         {'name': 'current_full_rep', 'label': 'Rep', 'type': 'Result', 'group_name': 'Results'},
         {'name': 'trial_cat', 'label': 'Type', 'type': 'Result', 'group_name': 'Results'},
         {'name': 'SA', 'label': 'SA', 'type': 'Result', 'group_name': 'Results'},
-    ]
+    ]  + WavSet.default_parameters.copy()
 
     for d in default_parameters:
         # Use `setdefault` so we don't accidentally override a parameter that
@@ -1596,7 +1597,7 @@ class AMFusion(WavSet):
         {'name': 'this_snr', 'label': 'SNR', 'type': 'Result'},
         {'name': 'response_condition', 'label': 'T spout', 'type': 'Result'},
         {'name': 'trial_is_repeat', 'label': 'rep', 'type': 'Result'},
-    ]
+    ] + WavSet.default_parameters.copy()
 
     for d in default_parameters:
         # Use `setdefault` so we don't accidentally override a parameter that
@@ -3588,7 +3589,7 @@ class BigNat(WavSet):
 class Silence(WavSet):
 
     default_parameters = [
-    ]
+    ] + WavSet.default_parameters.copy()
 
     def next(self, samples, channel):
         return np.zeros(samples)

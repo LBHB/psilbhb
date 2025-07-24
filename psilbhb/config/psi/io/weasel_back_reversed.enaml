@@ -15,8 +15,10 @@ from psiaudio.calibration import FlatCalibration
 
 
 # Requested sampling rate must be an integer divisor of the timebase clock.
-ao_fs = 20e6 / 454
-ai_fs = 20e6 / 454
+# ao_fs = 20e6 / 454
+# ai_fs = 20e6 / 454
+ao_fs = 20e6 / 200
+ai_fs = 20e6 / 200
 
 
 from psi.controller.api import Trigger, Toggle

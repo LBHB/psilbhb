@@ -197,7 +197,7 @@ def readpsievents(logpath=None, runclass=None, rawid=None, c=None):
 class celldb():
 
     ENGINE = None
-    user = None
+    user = 'lbhb'
     animal = None
     training = 1
     MYSQL_USER = None
@@ -542,6 +542,8 @@ class celldb():
             animal = self.animal
         if training is None:
             training = self.training
+        if user is None:
+            user = self.user
 
         if siteid is None:
 
