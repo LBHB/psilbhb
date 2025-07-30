@@ -2001,7 +2001,15 @@ class AMDetect(WavSet):
             stim['tar_freq'] = stim['dis_freq']
             stim['dis_freq'] = t_
 
-        hisnr = stim['tar_level']-stim['dis_level']>=60
+        # remove duplicates of single-stim trials
+        stim.loc[stim['tar_level']==0,['tar_depth','tar_channel']]=0
+        stim.loc[stim['tar_level']==0,'go_trial']=False
+        stim.loc[stim['tar_level']==0,'tar_cat']='N'
+        stim.loc[stim['dis_level']==0,['dis_freq','dis_offset','dis_channel']]=0
+        stim = stim.loc[(stim['tar_level']>0) | (stim['dis_level']>0)]
+        stim=stim.drop_duplicates().reset_index(drop=True)
+
+        hisnr = stim['tar_level']-stim['dis_level']>=50
         stim.loc[hisnr, 'dis_freq'] = stim.loc[hisnr,'tar_freq']
         stim.loc[hisnr, 'dis_offset'] = 0
 
