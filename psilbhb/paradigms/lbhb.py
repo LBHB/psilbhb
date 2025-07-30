@@ -248,6 +248,15 @@ ParadigmDescription(
     ],
 )
 
+ParadigmDescription(
+    'AMD-passive', '(AMD) AM detect passive',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'passive.PassiveManifest', },
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True,
+         'attrs': {'stim_class_name': 'AMDetect'}},
+    ],
+)
+
 
 # ParadigmDescription(
 #     'OLP', 'OLP - Overlapping Sounds Passive [Placeholder]',
