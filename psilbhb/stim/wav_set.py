@@ -2096,7 +2096,7 @@ class AMDetect(WavSet):
              'wav_set_idx': row['index'],
              'target_name': tar_name,
              'distractor_name': dis_name,
-            'this_target_frequency': row['tar_freq'],
+             'this_target_frequency': row['tar_freq'],
              'this_target_am': row['tar_am'],
              'this_distractor_offset': row['dis_offset'],
              'this_distractor_frequency': row['dis_freq'],
