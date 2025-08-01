@@ -1846,8 +1846,10 @@ class AMDetect(WavSet):
          'expression': '[20]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'target_bandwidth', 'label': 'Target bandwidth (0=PT)',
          'expression': '0', 'dtype': 'object', 'scope': 'experiment'},
-        {'name': 'target_level', 'label': 'Target dB SPL (list)',
+        {'name': 'target_level', 'label': 'Target (go) dB SPL (list)',
          'expression': '[60]', 'dtype': 'object', 'scope': 'experiment'},
+        {'name': 'nogo_atten', 'label': 'No-go dB attenuation (int)',
+         'default': 0, 'dtype': 'int', 'scope': 'experiment'},
         {'name': 'distractor_offset', 'label': 'Distractor offset octaves (list)',
          'expression': '[-1, 1]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'distractor_am_rate', 'label': 'Distractor AM rate (list)',
@@ -1978,6 +1980,8 @@ class AMDetect(WavSet):
                 slist.append(pd.DataFrame(data))
 
         stim = pd.concat(slist, ignore_index=True)
+        if self.nogo_atten>0:
+            stim.loc[stim['tar_cat']=='N', 'tar_level'] -= self.nogo_atten
         # remove duplicates of very easy ("inf snr") trials
         #stim.loc[stim['tar_level']-stim['dis_level']>=60, ['dis_offset']] = 0
 
