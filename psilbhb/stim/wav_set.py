@@ -1587,9 +1587,9 @@ class AMFusion(WavSet):
          'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}},
 
         {'name': 'response_start', 'label': 'response win start (s)',
-         'default': 0, 'dtype': 'double', 'scope': 'experiment'},
+         'default': 0, 'dtype': 'double', 'scope': 'experiment', 'group_name': 'Trial'},
         {'name': 'response_end', 'label': 'response win end (s)', 'default': 2,
-         'dtype': 'double', 'scope': 'experiment'},
+         'dtype': 'double', 'scope': 'experiment', 'group_name': 'Trial'},
 
         {'name': 'this_target_frequency', 'label': 'T', 'type': 'Result'},
         {'name': 'this_distractor_offset', 'label': 'Doct', 'type': 'Result'},
@@ -1889,11 +1889,11 @@ class AMDetect(WavSet):
          'default': 0.0, 'dtype': 'double', 'scope': 'experiment'},
 
         {'name': 'this_target_frequency', 'label': 'T', 'type': 'Result'},
-        {'name': 'this_distractor_offset', 'label': 'Doct', 'type': 'Result'},
+        {'name': 'this_distractor_offset', 'label': 'Depth', 'type': 'Result'},
         {'name': 'this_distractor_frequency', 'label': 'D', 'type': 'Result'},
         {'name': 'this_snr', 'label': 'SNR', 'type': 'Result'},
         {'name': 'response_condition', 'label': 'T spout', 'type': 'Result'},
-        {'name': 'trial_is_repeat', 'label': 'rep', 'type': 'Result'},
+        {'name': 'current_full_rep', 'label': 'Rep', 'type': 'Result'},
 
     ] + WavSet.default_parameters.copy()
 
@@ -2155,6 +2155,8 @@ class VowelSet(WavSet):
          'default': 5, 'dtype': 'int', 'scope': 'experiment'},
         {'name': 'level', 'label': 'level (dB peSPL)', 'default': 60,
          'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'nogo_attenuation', 'label': 'Attenuate no-go stim (dB)',
+         'default': 0, 'dtype': 'int', 'scope': 'experiment'},
         {'name': 'response_start', 'label': 'response win start (s)',
          'default': 0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'response_end', 'label': 'response win end (s)', 'default': 2,
@@ -2163,9 +2165,10 @@ class VowelSet(WavSet):
          'default': 0.0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'post_silence', 'label': 'post-stim silence (s)',
          'default': 0.0, 'dtype': 'double', 'scope': 'experiment'},
-       {'name': 'this_name', 'label': 'N', 'type': 'Result', 'type': 'Result'},
-        {'name': 's1_name', 'label': 'S1', 'type': 'Result', 'type': 'Result'},
+       {'name': 'this_name', 'label': 'N', 'type': 'Result'},
+        {'name': 's1_name', 'label': 'S1', 'type': 'Result'},
         {'name': 's2_name', 'label': 'S2', 'type': 'Result'},
+        {'name': 'this_level', 'label': 'level', 'type': 'Result'},
         {'name': 'stim_cat', 'label': 'Cat', 'type': 'Result'},
         {'name': 'current_full_rep', 'label': 'R', 'type': 'Result'},
     ] + WavSet.default_parameters.copy()
@@ -2195,6 +2198,7 @@ class VowelSet(WavSet):
 
     @property
     def wav_per_rep(self):
+        return len(self.stim1idx)
         return len(self.stim1idx)
 
     def update(self, trial_idx=None):
@@ -2275,10 +2279,32 @@ class VowelSet(WavSet):
             w2 = self.wavset.waveform(s2idx)
         else:
             w2 = self.wavset.waveform_zero()
-
         w = np.zeros((len(w1), 2))
         w[:, s1c] += w1.flatten()
         w[:, s2c] += w2.flatten()
+
+        stim_cat = self.stim_cat[wav_set_idx]
+
+        if self.n_response == 2:
+            if stim_cat == 'T':
+                response_condition = 1
+            elif stim_cat == 'N':
+                response_condition = 2
+            elif stim_cat == 'C':
+                response_condition = -1
+        elif self.n_response == 1:
+            if stim_cat == 'T':
+                response_condition = 1
+            elif stim_cat == 'N':
+                response_condition = 0
+            elif stim_cat == 'C':
+                if np.random.rand()>=0.5:
+                    response_condition = 0
+                else:
+                    response_condition = 1
+        if response_condition==0:
+            nogo_scaleby = 10 ** ((-self.nogo_attenuation) / 20)
+            w*=nogo_scaleby
 
         if self.repeat_count>1:
             isi_bins = int(self.wavset.fs * self.repeat_isi)
@@ -2336,6 +2362,10 @@ class VowelSet(WavSet):
                     response_condition = 0
                 else:
                     response_condition = 1
+        if response_condition==0:
+            this_level = self.level - self.nogo_attenuation
+        else:
+            this_level = self.level
 
         response_window = self.response_window
         name = s1_name+"+"+s2_name+"+"+stim_cat
@@ -2347,6 +2377,7 @@ class VowelSet(WavSet):
              's1_channel': s1c,
              's2_channel': s2c,
              'this_name': name,
+             'this_level': this_level,
              's1_name': s1_name,
              's2_name': s2_name,
              'stim_cat': stim_cat,
