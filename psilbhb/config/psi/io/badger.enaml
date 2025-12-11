@@ -63,7 +63,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
             name = 'NI'
             hw_ai_monitor_period = 0.1
             hw_ao_monitor_period = 0.1
-            hw_ao_buffer_size = 2
+            hw_ao_buffer_size = 0.25
             #hw_ai_monitor_period = 0.2
             #hw_ao_buffer_size = 5
 

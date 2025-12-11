@@ -199,8 +199,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         o2 = self.get_output('output_2')
 
         with o1.engine.lock:
-            o1.set_waveform(w[0])
-            o2.set_waveform(w[1])
+            o1.set_waveform(w[0], ramp_time=25e-3)
+            o2.set_waveform(w[1], ramp_time=25e-3)
 
         # All parameters in this dictionary get logged to the trial log.
         #context = self.context.get_values()

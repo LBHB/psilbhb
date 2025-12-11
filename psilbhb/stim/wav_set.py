@@ -2,6 +2,7 @@ from pathlib import Path
 from joblib import Memory
 
 from fractions import Fraction
+from functools import lru_cache
 from copy import deepcopy
 import os
 import glob
@@ -404,6 +405,7 @@ class WavFileSet(WaveformSet):
         self.level = level
         super().__init__(level=level, **kwargs)
 
+    @lru_cache(maxsize=1000)
     def waveform(self, idx):
         files = self.filenames[idx]
         if type(files) is str:
@@ -3460,6 +3462,10 @@ class BigNat(WavSet):
 
         self.update_calibration()
         self.update()
+
+        # Code to force wavfiles to load into memory
+        for wav_set_idx in range(len(self.stim_list)):
+            _ = self._trial_waveform(wav_set_idx=wav_set_idx)
 
     def update(self, trial_idx=None):
         """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.

@@ -12,6 +12,7 @@ from psi.context.api import (
 )
 from psi.controller.api import (
     ContinuousInput, ContinuousOutput, ControllerManifest, EpochOutput,
+    RampedEpochOutput,
     ExperimentAction, ExperimentEvent, ExperimentState, TimedTrigger
 )
 from psi.data.sinks.api import EventLog, TrialLog
@@ -225,7 +226,9 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 target_name = f'hw_ao::speaker_{loop_item+1}'
                 configurable = False
 
-            EpochOutput:
+            # Important, this must come last for the ramp to overwrite the
+            # signal.
+            RampedEpochOutput:
                 name = f'output_{loop_item+1}'
                 label = f'Output {loop_item+1}'
                 target_name = f'hw_ao::speaker_{loop_item+1}'

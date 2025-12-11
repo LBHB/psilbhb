@@ -7,6 +7,8 @@ from enaml.application import deferred_call
 from enaml.workbench.api import Extension
 from enaml.workbench.core.api import Command
 
+import numpy as np
+
 from psi.context import api as context_api
 from psi.controller.api import ExperimentAction
 from psi.core.enaml.api import ExperimentManifest
@@ -27,6 +29,9 @@ class ContinuousWavsetChannelWrapper:
 
     def next(self, samples):
         return self.wavset.next(samples, self.channel)
+
+    def get_duration(self):
+        return np.inf
 
 
 def configure_stimuli(manifest, output_type, event):
