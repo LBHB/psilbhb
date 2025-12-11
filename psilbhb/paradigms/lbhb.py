@@ -301,6 +301,14 @@ ParadigmDescription(
 )
 
 ParadigmDescription(
+    'BTF', '(BTF) Binaural Tone Fusion',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'passive.PassiveManifest',},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True, 'attrs': {'stim_class_name': 'BinauralTone'}},
+    ],
+)
+
+ParadigmDescription(
     'BAM', '(BAM) Binaural AM tones',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'passive.PassiveManifest',},

@@ -3,15 +3,20 @@ import numpy as np
 import os
 import pandas as pd
 
-from psilbhb.stim.wav_set import BinauralTone
+from psilbhb.stim.wav_set import BinauralToneFusion
 
 pd.set_option('display.width',160)
 
-params = BinauralTone.default_values()
-params.update(primary_channel=0, switch_channels=False, random_seed=4234,
-              probe_level=[-100, 0], probe_delay=[0,10], include_mono=True)
+params = BinauralToneFusion.default_values()
+params.update(primary_channel=0, switch_channels=True, random_seed=4234, fs=44000,
+              reference_center=[1000,2000],
+              probe_octaves=[-1, -0.3, 0, 0.3, 1],
+              probe_alone_octaves=[-1, -0.6, -0.3, -0.1, 0, 0.1, 0.3, 0.6, 1],
+              probe_level=[0],
+              probe_delay=[0,1],
+              include_mono=True)
 
-bt = BinauralTone(**params)
+bt = BinauralToneFusion(**params)
 bt.update()  # not necessary but illustrative of back-end processing
 
 N = 50
@@ -20,7 +25,7 @@ for trial_idx in range(N):
     print(d['trial_idx'], d['wav_set_idx'], d['current_full_rep'],
           d['this_reference_frequency'], d['this_probe_frequency'],
           d['this_snr'],
-          d['current_full_rep'], d['trial_is_repeat'])
+          d['current_full_rep'])
 
 # plot waveforms from an example trial
 f, ax = plt.subplots(3, 3, figsize=(6, 6), sharex=True, sharey=True)
