@@ -610,6 +610,8 @@ class WavSet:
          'dtype': 'int', 'scope': 'experiment', 'group_name': 'WavSet'},
         {'name': 'ramp', 'label': 'on/off ramp (ms)', 'default': 10,
          'dtype': 'double', 'scope': 'experiment', 'group_name': 'WavSet'},
+        {'name': 'replace_background', 'label': 'Replace cont. BG with FG', 'default': False,
+         'scope': 'experiment', 'group_name': 'WavSet', 'type': 'BoolParameter'},
     ]
 
     def __init__(self, controller=None, n_response=0, output_cal=None,

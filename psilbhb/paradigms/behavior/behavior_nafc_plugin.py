@@ -198,9 +198,15 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         o1 = self.get_output('output_1')
         o2 = self.get_output('output_2')
 
+        if self.context.get_value('replace_background'):
+            # Values are in msec
+            ramp = self.context.get_value('ramp') * 1e-3
+        else:
+            ramp = None
+
         with o1.engine.lock:
-            o1.set_waveform(w[0], ramp_time=25e-3)
-            o2.set_waveform(w[1], ramp_time=25e-3)
+            o1.set_waveform(w[0], ramp_time=ramp)
+            o2.set_waveform(w[1], ramp_time=ramp)
 
         # All parameters in this dictionary get logged to the trial log.
         #context = self.context.get_values()
