@@ -90,9 +90,16 @@ class PassivePlugin(BaseBehaviorPlugin):
         o1 = self.get_output('output_1')
         o2 = self.get_output('output_2')
         st = self.get_output('sync_trigger')
+
+        if self.context.get_value('replace_background'):
+            # Values are in msec
+            ramp = self.context.get_value('ramp') * 1e-3
+        else:
+            ramp = None
+
         with o1.engine.lock:
-            o1.set_waveform(w[0])
-            o2.set_waveform(w[1])
+            o1.set_waveform(w[0], ramp_time=ramp)
+            o2.set_waveform(w[1], ramp_time=ramp)
 
         trial_duration = w.shape[-1] / o1.fs
 
