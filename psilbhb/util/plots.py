@@ -246,6 +246,13 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
         dbias = d_.groupby(['response', 'snr'])['correct'].mean()
         dbias = dbias.unstack(-1)
         width = 12
+    elif runclass in ['AMD']:
+        perfsum = d_.groupby('snr')[['correct']].mean()
+        perfcount = d_.groupby('snr')[['correct']].count()
+
+        dbias = d_.groupby(['response', 'snr'])['correct'].mean()
+        dbias = dbias.unstack(-1)
+        width = 12
     elif runclass in ['AFM', 'AMF', 'DET']:
         #parmlist = ['this_snr', 'this_distractor_offset', 'this_distractor_frequency']
         if runclass=='DET':

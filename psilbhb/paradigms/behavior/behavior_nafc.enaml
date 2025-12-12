@@ -284,6 +284,11 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 compact_label = 'TO'
                 default = 1.0
             Parameter:
+                name = 'early_np_to_duration'
+                label = 'Early NP timeout duration (s)'
+                compact_label = 'TO (NP)'
+                default = 1.0
+            Parameter:
                 name = 'response_duration'
                 label = 'Response duration (s)'
                 compact_label = 'Resp'

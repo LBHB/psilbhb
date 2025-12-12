@@ -2110,6 +2110,7 @@ class AMDetect(WavSet):
              'distractor_name': dis_name,
              'this_target_frequency': row['tar_freq'],
              'this_target_am': row['tar_am'],
+             'this_depth': row['tar_depth'],
              'this_distractor_offset': row['dis_offset'],
              'this_distractor_frequency': row['dis_freq'],
              'this_duration': row['duration'],
