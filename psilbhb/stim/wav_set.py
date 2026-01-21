@@ -1306,7 +1306,14 @@ class FgBgSet(WavSet):
             new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
             while (dd > 3) & (ii < 10) & (len(self.stim_list) > 3):
                 new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
-                dd = np.argwhere(np.diff(self.stim_list.loc[new_trial_wav, 'fg_channel'])!=0).min()
+                log.error(self.stim_list)
+                log.error(self.stim_list.loc[new_trial_wav]['fg_channel'])
+                # Bug when switch FG channel is unchecked. When starting, fg_channel column is all 0, so diff returns nothing.
+                if (self.stim_list.loc[new_trial_wav, 'fg_channel']>0).sum()==0:
+                    dd=0
+                else:
+                    dd = np.argwhere(np.diff(self.stim_list.loc[new_trial_wav, 'fg_channel'])!=0).min()
+
                 ii += 1
             if self.spatial_attention_block>0:
                 new_trial_wav = new_trial_wav[np.argsort(self.stim_list.loc[new_trial_wav,'SA'].values)]
