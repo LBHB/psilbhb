@@ -415,7 +415,7 @@ class WavFileSet(WaveformSet):
         w = [load_wav(self.fs, f, self.level, self.calibration,
                       normalization=self.normalization,
                       norm_fixed_scale=self.norm_fixed_scale,
-                      force_duration=self.force_duration)
+                      force_duration=self.force_duration).copy()
              for f in files]
         return np.stack(w, axis=1)
 
@@ -1326,17 +1326,17 @@ class FgBgSet(WavSet):
         fg_channel = row['fg_channel']
         bg_channel = row['bg_channel']
 
-        wfg = self.FgSet.waveform(row['fg_index']).copy()
+        wfg = self.FgSet.waveform(row['fg_index'])
         if fg_channel == 1:
             wfg = np.concatenate((np.zeros_like(wfg), wfg), axis=1)
 
         if row['fg_go'] == -2:
             # choice trial, FgSet for both channels
-            wbg = self.FgSet.waveform(row['bg_index']).copy()
+            wbg = self.FgSet.waveform(row['bg_index'])
         elif row['fg_go'] == -3:
-            wbg = self.PrbBgSet.waveform(row['bg_index']).copy()
+            wbg = self.PrbBgSet.waveform(row['bg_index'])
         else:
-            wbg = self.BgSet.waveform(row['bg_index']).copy()
+            wbg = self.BgSet.waveform(row['bg_index'])
 
         if bg_channel == 1:
             wbg = np.concatenate((np.zeros_like(wbg), wbg), axis=1)
@@ -2278,11 +2278,11 @@ class VowelSet(WavSet):
         s1c = self.s1_channel[wav_set_idx]
         s2c = self.s2_channel[wav_set_idx]
         if s1idx >= 0:
-            w1 = self.wavset.waveform(s1idx).copy()
+            w1 = self.wavset.waveform(s1idx)
         else:
             w1 = self.wavset.waveform_zero()
         if s2idx >= 0:
-            w2 = self.wavset.waveform(s2idx).copy()
+            w2 = self.wavset.waveform(s2idx)
         else:
             w2 = self.wavset.waveform_zero()
 
@@ -2656,10 +2656,10 @@ class CategorySet(FgBgSet):
 
             wav_set_idx = self.trial_wav_idx[trial_idx]
 
-        wfg = self.FgSet.waveform(self.fg_index[wav_set_idx]).copy()
+        wfg = self.FgSet.waveform(self.fg_index[wav_set_idx])
         if self.fg_channel[wav_set_idx] == 1:
             wfg = np.concatenate((np.zeros_like(wfg), wfg), axis=1)
-        wbg = self.BgSet.waveform(self.bg_index[wav_set_idx]).copy()
+        wbg = self.BgSet.waveform(self.bg_index[wav_set_idx])
         log.info(f"wfg={wfg.shape},wbg={wbg.shape}, bfdur={self.BgSet.duration},fg level: {self.FgSet.level} bg level: {self.BgSet.level} FG RMS: {wfg.std():.3f} BG RMS: {wbg.std():.3f}")
 
         if self.bg_channel[wav_set_idx] == 1:
@@ -3550,13 +3550,13 @@ class BigNat(WavSet):
             log.info(f"**** trial {trial_idx} wavidx {row['index']} chan {row['s1_channel']} s1idx: {row['s1idx']}")
             s1_name = self.SoundSet.names[row['s1idx']]
             log.info(f"**** S1: {s1_name}")
-            w1 = self.SoundSet.waveform(row['s1idx']).copy()
+            w1 = self.SoundSet.waveform(row['s1idx'])
         else:
             w1 = None
         if row['s2idx']>=0:
             s2_name = self.SoundSet.names[row['s2idx']]
             log.info(f"**** S2: {s2_name}")
-            w2 = self.SoundSet.waveform(row['s2idx']).copy()
+            w2 = self.SoundSet.waveform(row['s2idx'])
         else:
             w2 = None
         if w1 is None:
