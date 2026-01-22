@@ -1,12 +1,12 @@
 from enaml.workbench.api import Extension
 from enaml.workbench.core.api import Command
 
-from psi.controller.engines.nidaq import (connect_trigger,
-                                          NIDAQEngine,
+from psi.controller.engines.nidaq import (NIDAQEngine,
                                           NIDAQHardwareAIChannel,
                                           NIDAQHardwareAOChannel,
                                           NIDAQHardwareDOChannel,
                                           NIDAQSoftwareDOChannel,
+                                          connect_trigger,
                                           )
 
 from psi.core.enaml.api import ExperimentManifest
@@ -21,7 +21,7 @@ ai_fs = 20e6 / 454
 #ao_fs = 20e6 / 200
 #ai_fs = 20e6 / 200
 
-# START_TRIGGER = '/PXI1Slot3/ao/StartTrigger'
+
 START_TRIGGER = '/Dev1/ao/StartTrigger'
 
 enamldef IRChannel(NIDAQHardwareAIChannel): irc:

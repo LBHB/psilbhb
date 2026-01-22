@@ -380,6 +380,7 @@ def launch(klass, experiment_type, root_folder='DATA_ROOT', view_klass=None):
             root_folder = get_config(root_folder)
         if view_klass is None:
             view_klass = LauncherView
+        log.info(f"{root_folder} {experiment_type}")
         launcher = klass(root_folder=root_folder, experiment_type=experiment_type)
         view = view_klass(launcher=launcher)
         view.show()

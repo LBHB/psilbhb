@@ -18,6 +18,8 @@ from psi.controller.api import Trigger, Toggle
 # Requested sampling rate must be an integer divisor of the timebase clock.
 ao_fs = 20e6 / 454
 ai_fs = 20e6 / 454
+#ao_fs = 20e6 / 200
+#ai_fs = 20e6 / 200
 
 
 START_TRIGGER = '/Dev1/ao/StartTrigger'
@@ -63,7 +65,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
             name = 'NI'
             hw_ai_monitor_period = 0.1
             hw_ao_monitor_period = 0.05
-            hw_ao_buffer_size = 0.1
+            hw_ao_buffer_size = 0.2
             #hw_ai_monitor_period = 0.2
             #hw_ao_buffer_size = 5
 
@@ -71,7 +73,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 label = 'Speaker 1 monitor'
                 name = 'speaker_1_monitor'
                 channel = 'Dev1/ai3'
-                start_trigger = '/Dev1/ao/StartTrigger'
+                start_trigger = START_TRIGGER
                 fs = ai_fs
                 expected_range = (-10, 10)
                 dtype = 'float64'
@@ -106,7 +108,7 @@ enamldef IOManifest(ExperimentManifest): manifest:
                 label = 'Sync Monitor'
                 name = 'sync_monitor'
                 channel = 'Dev1/ai4'
-                start_trigger = '/Dev1/ao/StartTrigger'
+                start_trigger = START_TRIGGER
                 fs = ai_fs
                 expected_range = (-10, 10)
                 dtype = 'float64'
