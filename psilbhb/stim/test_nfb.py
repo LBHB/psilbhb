@@ -9,17 +9,17 @@ pd.set_option('display.width',160)
 
 if os.path.exists('h:/sounds'):
     soundpath_fg = 'h:/sounds/vocalizations/v4'
-    # soundpath_bg = 'h:/sounds/backgrounds/v3'
-    soundpath_bg = 'h:/sounds/Categories/temp_bgs'
+    soundpath_bg = 'h:/sounds/backgrounds/v3'
+    # soundpath_bg = 'h:/sounds/Categories/temp_bgs'
 
     # Satya testing
     # soundpath_prb = 'h:/sounds/Categories/chimeric_voc'
-    #soundpath_prb_bg = 'h:/sounds/Categories/temp_probes'
+    soundpath_prb_bg = 'h:/sounds/Categories/temp_probes'
     #soundpath_prb_fg = 'h:/sounds/Categories/temp_probes'
-    prb_bg_range = [2, 7, 10, 11, 14, 15]
+    prb_bg_range = [0,1,2,3,4,5]
     # Jonah testing
-    soundpath_prb_bg = ''
-    prb_bg_range=[]
+    #soundpath_prb_bg = ''
+    #prb_bg_range=[]
 else:
     soundpath_fg = '/auto/data/sounds/vocalizations/v4'
     soundpath_bg = '/auto/data/sounds/backgrounds/v3'
@@ -44,15 +44,16 @@ else:
 
 params = FgBgSet.default_values()
 # Update probe trials indices based on the get_stim_list()
-params.update(dict(fg_path=soundpath_fg, fg_range=[6],
-                   bg_path=soundpath_bg, bg_range=[3,4,5],
+params.update(dict(fg_path=soundpath_fg, fg_range=[9, 12],
+                   bg_path=soundpath_bg, bg_range=[0, 1, 2, 3],
                    prb_bg_path=soundpath_prb_bg, prb_bg_range=prb_bg_range,
-                   prb_f=0, fg_choice_trials=0,
-                   fg_switch_channels=False, contra_n=0, ipsi_n=0, diotic_n=1,
-                   combinations='all', migrate_fraction=0.0, fg_delay=0.0, duration=2.0,
+                   prb_f=0.2, fg_choice_trials=0,
+                   fg_switch_channels=True, contra_n=1, ipsi_n=0, diotic_n=0,
+                   combinations='all', migrate_fraction=0.0, fg_delay=0.0, duration=3.0,
                    spatial_attention_block=0, spatial_attention_catch_ratio=0.1,
                    spatial_attention_start_chan=1,
-                   fg_level=[55, 63], bg_level=[55], random_seed=4235))
+                   fg_level=[50, 55, 60], bg_level=[50, 55, 60], random_seed=4235,
+                   reward_ambiguous_frac=.5))
 
 # params.update(dict(fg_path=soundpath_fg, bg_path=soundpath_bg,
 #                    prb_path=soundpath_prb, fg_range=[1,2], bg_range=[0],
@@ -65,10 +66,10 @@ params.update(dict(fg_path=soundpath_fg, fg_range=[6],
 fb = FgBgSet(2, **params)
 fb.update()  # not necessary but illustrative of back-end processing
 
-# simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0,
-#                          2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 0,
-#                          1, 1, 0, 1, 2, 0, 1, 2]
-simulated_performance = [2] * 50
+simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0,
+                         2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 0,
+                         1, 1, 0, 1, 2, 0, 1, 2]
+# simulated_performance = [2] * 50
 
 N=50
 fg_chan = np.zeros(N)
