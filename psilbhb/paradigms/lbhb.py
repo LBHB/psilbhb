@@ -20,35 +20,35 @@ COLORS = {
 
 
 COMMON_PLUGINS = [
-    {'manifest': 'psilbhb.paradigms.video.PSIVideo',
+    {'manifest': PSIBEHAVIOR_PATH + 'video.PSIVideo',
      'attrs': {
          'id': 'psivideo',
          'title': 'Video (top)',
          'port': 33331,
          'filename': 'recording.avi',
      }},
-    {'manifest': 'psilbhb.paradigms.video.PSIVideo',
+    {'manifest': PSIBEHAVIOR_PATH + 'video.PSIVideo',
      'attrs': {
          'id': 'psivideo_side',
          'title': 'Video (side)',
          'port': 33332,
          'filename': 'video_side.avi',
      }},
-    {'manifest': 'psilbhb.paradigms.video.PSIVideo',
+    {'manifest': PSIBEHAVIOR_PATH + 'video.PSIVideo',
      'attrs': {
          'id': 'psivideo_side2',
          'title': 'Video (side2)',
          'port': 33333,
          'filename': 'video_side2.avi',
      }},
-    {'manifest': 'psilbhb.paradigms.video.PSIVideo',
+    {'manifest': PSIBEHAVIOR_PATH + 'video.PSIVideo',
      'attrs': {
          'id': 'psivideo_pupil',
          'title': 'Video (pupil)',
          'port': 33334,
          'filename': 'video_pupil.avi',
      }},
-    {'manifest': 'psilbhb.paradigms.video.PSIVideo',
+    {'manifest': PSIBEHAVIOR_PATH + 'video.PSIVideo',
      'attrs': {
          'id': 'psivideo_side3',
          'title': 'Video (side3)',
