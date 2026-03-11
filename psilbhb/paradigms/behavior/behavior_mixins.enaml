@@ -17,7 +17,6 @@ from psi.controller.api import (ControllerManifest, ControllerPlugin,
                                 ExperimentState)
 
 from psi.core.enaml.api import ExperimentManifest
-from psi.data.sinks.api import EventLog, SDTAnalysis, TrialLog
 from psi.experiment.api import StatusItem
 from psi.util import rpc
 
@@ -90,17 +89,6 @@ enamldef BaseGoNogoMixin(ExperimentManifest): manifest:
                     workbench.get_plugin('psi.controller').experiment_state,
                 )
 
-    Extension:
-        id = manifest.id + '.data'
-        point = 'psi.data.sinks'
-        EventLog:
-            show_widget = True
-            exclude = ['np_contact_digital_acquired',
-                       'reward_contact_digital_acquired']
-        TrialLog:
-            show_widget = True
-        SDTAnalysis:
-            pass
 
     Extension:
         id = manifest.id + '.commands'

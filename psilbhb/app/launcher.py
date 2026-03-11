@@ -21,7 +21,7 @@ with enaml.imports():
 
 from psi import get_config
 from psi.util import get_tagged_values
-from psi.application import (get_default_io, list_calibrations, list_io,
+from psi.application import (get_default_io, list_io,
                              list_preferences, load_paradigm_descriptions)
 
 from psi.experiment.api import ParadigmDescription, paradigm_manager
@@ -106,22 +106,7 @@ class CellDbLauncher(Atom):
         return list_io()
 
     def _update_choices(self):
-        self._update_available_calibrations()
         self._update_available_preferences()
-
-    def _update_available_calibrations(self):
-        self.available_calibrations = list_calibrations(self.io)
-        if not self.available_calibrations:
-            self.calibration = None
-            return
-
-        if self.calibration not in self.available_calibrations:
-            for calibration in self.available_calibrations:
-                if calibration.stem == 'default':
-                    self.calibration = calibration
-                    break
-            else:
-                self.calibration = self.available_calibrations[0]
 
     def _update_available_preferences(self):
         if not self.experiment:

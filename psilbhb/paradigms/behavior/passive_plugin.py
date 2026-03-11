@@ -76,7 +76,7 @@ class PassivePlugin(BaseBehaviorPlugin):
     def prepare_trial(self):
         self.start_trial()
 
-    def start_trial(self):
+    def start_trial(self, delay=0.5):
         # Figure out next trial and set up selector.
         log.info(f'Starting next trial ts={self.get_ts()}')
         self.trial += 1
@@ -109,10 +109,10 @@ class PassivePlugin(BaseBehaviorPlugin):
 
         with o1.engine.lock:
             ts = self.get_ts()
-            o1.start_waveform(ts + 0.1, False)
-            o2.start_waveform(ts + 0.1, True)
+            o1.start_waveform(ts + delay, False)
+            o2.start_waveform(ts + delay, True)
             log.error('starting sync trigger')
-            st.trigger(ts + 0.1, 0.05)
+            st.trigger(ts + delay, 0.05)
 
         self.trial_info = {
             'trial_number': self.trial,

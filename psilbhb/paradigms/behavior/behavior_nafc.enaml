@@ -15,7 +15,6 @@ from psi.controller.api import (
     RampedEpochOutput,
     ExperimentAction, ExperimentEvent, ExperimentState, TimedTrigger
 )
-from psi.data.sinks.api import EventLog, TrialLog
 from psi.experiment.api import StatusItem
 from psi.data.plots import (TimeContainer, ChannelPlot, ViewBox)
 from psi.data.sinks.api import BinaryStore
@@ -207,11 +206,6 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
                 'np_contact_analog',
                 'microphone', 'microphone_2'
             ] + [f'spout_contact_{i+1}_analog' for i in range(N_response)]
-        EventLog:
-            show_widget = True
-            exclude = ['*contact*digital_acquired*']
-        TrialLog:
-            show_widget = True
 
     Extension:
         id = 'io'
