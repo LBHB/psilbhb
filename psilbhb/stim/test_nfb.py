@@ -8,15 +8,21 @@ from psilbhb.stim.wav_set import MCWavFileSet, FgBgSet, VowelSet
 pd.set_option('display.width',160)
 
 if os.path.exists('h:/sounds'):
-    soundpath_fg = 'h:/sounds/vocalizations/v4'
+    # soundpath_fg = 'h:/sounds/vocalizations/v4'
+    soundpath_fg = 'h:/sounds/vocalizations/v6/NN_Voc_v6'
     soundpath_bg = 'h:/sounds/backgrounds/v3'
     # soundpath_bg = 'h:/sounds/Categories/temp_bgs'
 
     # Satya testing
     # soundpath_prb = 'h:/sounds/Categories/chimeric_voc'
-    soundpath_prb_bg = 'h:/sounds/Categories/temp_probes'
+    # soundpath_prb_bg = 'h:/sounds/Categories/temp_probes'
+    # prb_bg_range = [0,1,2,3,4,5]
+
+    soundpath_prb_bg = 'h:/sounds/vocalizations/v6/NNN_ENV_voc_v6'
+    prb_bg_range = [162,164,166,169,171,173]
+
     #soundpath_prb_fg = 'h:/sounds/Categories/temp_probes'
-    prb_bg_range = [0,1,2,3,4,5]
+    # prb_bg_range = [0,1,2,3,4,5]
     # Jonah testing
     #soundpath_prb_bg = ''
     #prb_bg_range=[]
@@ -44,7 +50,7 @@ else:
 
 params = FgBgSet.default_values()
 # Update probe trials indices based on the get_stim_list()
-params.update(dict(fg_path=soundpath_fg, fg_range=[9, 12],
+params.update(dict(fg_path=soundpath_fg, fg_range=[23,24],
                    bg_path=soundpath_bg, bg_range=[0, 1, 2, 3],
                    prb_bg_path=soundpath_prb_bg, prb_bg_range=prb_bg_range,
                    prb_f=0.2, fg_choice_trials=0,
@@ -66,10 +72,10 @@ params.update(dict(fg_path=soundpath_fg, fg_range=[9, 12],
 fb = FgBgSet(2, **params)
 fb.update()  # not necessary but illustrative of back-end processing
 
-simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0,
-                         2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 0,
-                         1, 1, 0, 1, 2, 0, 1, 2]
-# simulated_performance = [2] * 50
+# simulated_performance = [0, 0, 2, 2, 2, 1, 2, 2, 1, 2, 2, 1, 1, 2, 0,
+#                          2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 1, 1, 2, 0,
+#                          1, 1, 0, 1, 2, 0, 1, 2]
+simulated_performance = [2] * 50
 
 N=50
 fg_chan = np.zeros(N)
