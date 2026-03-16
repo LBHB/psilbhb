@@ -1237,9 +1237,9 @@ class FgBgSet(WavSet):
         iprb = stim['fg_go'] == -3
         if iprb.sum()>0:
             # remove invalid matches
-            max_fg_to_bg_snr = 4
+            max_abs_fg_to_bg_snr = 4
             stim = stim[(stim['fg_go'] != -3) |
-                        ((stim['fg_go'] == -3) & ((stim['fg_level'] - stim['bg_level']) < max_fg_to_bg_snr))]
+                        ((stim['fg_go'] == -3) & (np.abs(stim['fg_level'] - stim['bg_level']) < max_abs_fg_to_bg_snr))]
 
             # adjust relative frequency of reglar vs. probe.
             iregular = stim['fg_go'] != -3

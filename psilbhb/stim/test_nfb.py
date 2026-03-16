@@ -80,7 +80,7 @@ for trial_idx in range(len(simulated_performance)):
     d = fb.trial_parameters(trial_idx+1)
     print(d['trial_idx'], d['wav_set_idx'], d['current_full_rep'],
           d['fg_name'], d['fg_channel'],
-          d['bg_name'], d['bg_channel'], d['this_snr'],
+          d['bg_name'], d['bg_channel'], 'snr:', d['this_snr'],
           d['trial_cat'], d['response_condition'], d['current_full_rep'], d['trial_is_repeat'],
           simulated_performance[trial_idx])
     fg_chan[trial_idx] = d['fg_channel']
