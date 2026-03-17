@@ -10,7 +10,7 @@ pd.set_option('display.width',160)
 params = BinauralToneFusion.default_values()
 params.update(primary_channel=0, switch_channels=True, random_seed=4234, fs=44000,
               reference_center=[1000,2000],
-              probe_octaves=[-1, -0.3, 0, 0.3, 1],
+              probe_octaves=[-1, -0.3, -0.1, 0.1, 0.3, 1],
               probe_alone_octaves=[-1, -0.6, -0.3, -0.1, 0, 0.1, 0.3, 0.6, 1],
               probe_level=[0],
               probe_delay=[0,1],

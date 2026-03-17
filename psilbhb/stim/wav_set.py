@@ -3020,7 +3020,7 @@ class BinauralToneFusion(WavSet):
 
     default_parameters = [
          {'name': 'reference_center', 'label': 'Reference frequency',
-          'expression': '[1000,2000]', 'dtype': 'object', 'scope': 'experiment'},
+          'expression': '[1000, 2000]', 'dtype': 'object', 'scope': 'experiment'},
          {'name': 'probe_octaves', 'label': 'Tone octaves (above/below ref)',
           'expression': '[-0.8, -0.5, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.5, 0.8]',
           'dtype': 'object', 'scope': 'experiment'},
@@ -3030,7 +3030,7 @@ class BinauralToneFusion(WavSet):
          {'name': 'probe_level', 'label': 'Probe SNR(s) (list, dB RE ref)',
           'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
          {'name': 'reference_level', 'label': 'Reference dB SPL',
-          'expression': '50', 'dtype': 'object', 'scope': 'experiment'},
+          'default': 50, 'dtype': 'double', 'scope': 'experiment'},
          {'name': 'probe_delay', 'label': 'Probe onset delays (list, ms)',
           'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
 
