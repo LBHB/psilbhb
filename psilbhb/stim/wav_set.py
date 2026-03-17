@@ -3492,21 +3492,24 @@ class BinauralAM(WavSet):
         manage trials separately to allow for repeats, etc."""
         _rng = np.random.RandomState(self.random_seed)
 
-        logref = np.log2(self.reference_center)
-        loglo = logref - self.probe_octaves
-        loghi = logref + self.probe_octaves
-        frequency_range = np.round(2**np.linspace(loglo, loghi, self.probe_count))
+        # logref = np.log2(self.reference_center)
+        # loglo = logref - self.probe_octaves
+        # loghi = logref + self.probe_octaves
+        # frequency_range = np.round(2**np.linspace(loglo, loghi, self.probe_count))
+        #
+        # ref_range = self.reference_center
 
-        param_matrix = np.meshgrid(frequency_range, frequency_range, self.am_rate, self.modulation_depth, self.reference_level, self.probe_level, self.probe_delay)
+        param_matrix = np.meshgrid(self.reference_center, self.probe_octaves, self.am_rate, self.modulation_depth, self.reference_level, self.probe_level, self.probe_delay)
 
-        ref, probe, am_rate, mod_depth, ref_level, prb_level, prb_delay = [
+        ref, probe_oct, am_rate, mod_depth, ref_level, prb_level, prb_delay = [
             x.flatten() for x in param_matrix
         ]
+        probe = 2**(np.log2(ref) + probe_oct)
 
         # ref only trials, when probe SNR < -60dB
-        ref_only = (ref_level - prb_level) > 60
+        ref_only = (prb_level==0)
         probe[ref_only] = ref[ref_only]
-        prb_only = (ref_level - prb_level) < -60
+        prb_only = (ref_level==0)
         ref[prb_only] = probe[prb_only]
 
         data = {
@@ -3580,7 +3583,7 @@ class BinauralAM(WavSet):
         prb_channel = row['prb_channel']
 
         ref_level = row['ref_level']
-        prb_level = ref_level + row['prb_level']
+        prb_level = row['prb_level']
 
         wbins = int(self.duration*self.fs)
         bgduration = row['duration'] - row['prb_delay'] / 1000
