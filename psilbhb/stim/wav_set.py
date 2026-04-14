@@ -648,6 +648,7 @@ class WavSet:
         self.tonal_stim = False
         self.output_cal = output_cal
         if fs is None:
+            raise ValueError(f"WavSet classes: fs parameter required")
             self.fs = 20e6 / 200  # 100K samples/s
         else:
             self.fs = fs
@@ -711,6 +712,10 @@ class WavSet:
         for cal in self.output_cal:
             #self.output_filt.append(make_filter(self.fs, cal, rms=5/np.sqrt(2)))
             self.output_filt.append(make_filter(self.fs, cal, rms=1))
+
+    @property
+    def runclass(self):
+        return 'XXX'
 
     @property
     def wav_per_rep(self):
@@ -972,6 +977,7 @@ class FgBgSet(WavSet):
         {'name': 'migrate_start', 'label': "migrate_start (s)", 'default': 0.5, 'dtype': 'float', 'group_name': 'Results'},
         {'name': 'migrate_stop', 'label': "migrate_stop (s)", 'default': 1.0, 'dtype': 'float', 'group_name': 'Results'},
 
+        # TODO - delete this? Not used
         {'name': 'spatial_attention_locus', 'label': 'S.A. state', 'default': 'R', 'type': 'EnumParameter',
          'choices': {'R': 0, 'L': 1}, 'group_name': 'Results'},
         {'name': 'spatial_attention_block', 'label': 'S.A. block trials', 'default': 0, 'dtype': 'int',
@@ -1001,6 +1007,12 @@ class FgBgSet(WavSet):
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
         d.setdefault('group_name', 'FgBgSet')
+
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'NFB'
+    # [AGENT EDIT END]
 
     def __init__(self, *args, **kwargs):
         """
@@ -1057,6 +1069,10 @@ class FgBgSet(WavSet):
 
         self.update_calibration()
         self.update()
+
+        # special backward-compatibility settings for wav regeneration
+        self.fg_duration = self.duration
+        self.bg_duration = self.duration
 
     def update(self, trial_idx=None):
         """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.
@@ -1378,8 +1394,8 @@ class FgBgSet(WavSet):
         # combine fg and bg waveforms
         total_bins = int(self.duration*self.FgSet.fs)
         offsetbins = int(row['fg_delay'] * self.FgSet.fs)
-        if wbg.shape[0]>total_bins:
-            wbg=wbg[:total_bins]
+        if wbg.shape[0] > total_bins:
+            wbg = wbg[:total_bins]
         w = np.zeros((total_bins,wbg.shape[1]))
         w[:wbg.shape[0], :] = wbg
 
@@ -1499,12 +1515,14 @@ class FgBgSet(WavSet):
         fg_name = d['fg_name']
         bg_name = d['bg_name']
         snr = d['snr']
+        fg_delay = d['fg_delay']
         fg_channel = d['fg_channel'] + 1
         bg_channel = d['bg_channel'] + 1
         #target_delay = d['target_delay']
-        # fg_duration=info['result']['fg_duration']
-        #fg_duration = int(np.round(d['fg_duration'])) \
-        #    if np.round(d['fg_duration']) == d['fg_duration'] else d['fg_duration']
+        fg_delay = d['fg_delay']
+        fg_delay = int(fg_delay) if np.round(fg_delay) == fg_delay else fg_delay
+        fg_duration = d['fg_delay'] + d['fg_duration']
+        fg_duration = int(fg_duration) if np.round(fg_duration) == fg_duration else fg_duration
         bg_duration = int(np.round(d['bg_duration'])) \
             if np.round(d['bg_duration']) == d['bg_duration'] else d['bg_duration']
         max_snr = np.max(row['fg_level'])-np.min(row['bg_level'])
@@ -1538,7 +1556,7 @@ class FgBgSet(WavSet):
                 fg_str = 'null'
             else:
                 # fg_str=f"{fg_name.replace('.wav','')}-{target_delay}-{target_off}-{fg_channel}-{s_snr}dB"
-                fg_str = f"{fg_name.replace('.wav', '')}-{0}-{bg_duration}-{fg_channel}-{s_snr}dB"
+                fg_str = f"{fg_name.replace('.wav', '')}-{fg_delay}-{bg_duration}-{fg_channel}-{s_snr}dB"
 
         d['event_name'] = f"{bg_str}_{fg_str}"
 
@@ -1555,8 +1573,6 @@ class FgBgSet(WavSet):
 class AMFusion(WavSet):
 
     default_parameters = [
-        {'name': 'runclass', 'label': 'Run class [AFM]',
-         'expression': '''AFM''', 'dtype': 'str', 'scope': 'experiment'},
         {'name': 'target_frequency', 'label': 'Target center frequenc(ies) (list)',
          'expression': '[1000]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'target_am_rate', 'label': 'Target AM rate (list)',
@@ -1592,9 +1608,9 @@ class AMFusion(WavSet):
          'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}},
 
         {'name': 'response_start', 'label': 'response win start (s)',
-         'default': 0, 'dtype': 'double', 'scope': 'experiment'},
+         'default': 0, 'dtype': 'double', 'scope': 'experiment', 'group_name': 'Trial'},
         {'name': 'response_end', 'label': 'response win end (s)', 'default': 2,
-         'dtype': 'double', 'scope': 'experiment'},
+         'dtype': 'double', 'scope': 'experiment', 'group_name': 'Trial'},
 
         {'name': 'this_target_frequency', 'label': 'T', 'type': 'Result'},
         {'name': 'this_distractor_offset', 'label': 'Doct', 'type': 'Result'},
@@ -1608,6 +1624,12 @@ class AMFusion(WavSet):
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
         d.setdefault('group_name', 'AMFusion')
+
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'AMF'
+    # [AGENT EDIT END]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1836,8 +1858,6 @@ class AMFusion(WavSet):
 class AMDetect(WavSet):
 
     default_parameters = [
-        {'name': 'runclass', 'label': 'Run class [AMD]',
-         'default': 'AMD', 'dtype': 'str', 'scope': 'experiment'},
         {'name': 'go_frequency', 'label': 'Go center frequenc(ies) (list)',
          'expression': '[1000]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'go_depth', 'label': 'Go modulation depth(s) (list)',
@@ -1896,11 +1916,11 @@ class AMDetect(WavSet):
          'default': 0.0, 'dtype': 'double', 'scope': 'experiment'},
 
         {'name': 'this_target_frequency', 'label': 'T', 'type': 'Result'},
-        {'name': 'this_distractor_offset', 'label': 'Doct', 'type': 'Result'},
+        {'name': 'this_distractor_offset', 'label': 'Depth', 'type': 'Result'},
         {'name': 'this_distractor_frequency', 'label': 'D', 'type': 'Result'},
         {'name': 'this_snr', 'label': 'SNR', 'type': 'Result'},
         {'name': 'response_condition', 'label': 'T spout', 'type': 'Result'},
-        {'name': 'trial_is_repeat', 'label': 'rep', 'type': 'Result'},
+        {'name': 'current_full_rep', 'label': 'Rep', 'type': 'Result'},
 
     ] + WavSet.default_parameters.copy()
 
@@ -1908,6 +1928,12 @@ class AMDetect(WavSet):
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
         d.setdefault('group_name', 'AMDetect')
+
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'AMD'
+    # [AGENT EDIT END]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -2165,6 +2191,8 @@ class VowelSet(WavSet):
          'default': 5, 'dtype': 'int', 'scope': 'experiment'},
         {'name': 'level', 'label': 'level (dB peSPL)', 'default': 60,
          'dtype': 'double', 'scope': 'experiment'},
+        {'name': 'nogo_attenuation', 'label': 'Attenuate no-go stim (dB)',
+         'default': 0, 'dtype': 'int', 'scope': 'experiment'},
         {'name': 'response_start', 'label': 'response win start (s)',
          'default': 0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'response_end', 'label': 'response win end (s)', 'default': 2,
@@ -2173,9 +2201,10 @@ class VowelSet(WavSet):
          'default': 0.0, 'dtype': 'double', 'scope': 'experiment'},
         {'name': 'post_silence', 'label': 'post-stim silence (s)',
          'default': 0.0, 'dtype': 'double', 'scope': 'experiment'},
-       {'name': 'this_name', 'label': 'N', 'type': 'Result', 'type': 'Result'},
-        {'name': 's1_name', 'label': 'S1', 'type': 'Result', 'type': 'Result'},
+       {'name': 'this_name', 'label': 'N', 'type': 'Result'},
+        {'name': 's1_name', 'label': 'S1', 'type': 'Result'},
         {'name': 's2_name', 'label': 'S2', 'type': 'Result'},
+        {'name': 'this_level', 'label': 'level', 'type': 'Result'},
         {'name': 'stim_cat', 'label': 'Cat', 'type': 'Result'},
         {'name': 'current_full_rep', 'label': 'R', 'type': 'Result'},
     ] + WavSet.default_parameters.copy()
@@ -2184,6 +2213,17 @@ class VowelSet(WavSet):
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
         d.setdefault('group_name', 'VowelSet')
+
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        if self.n_response == 0:
+            return 'BVP'
+        elif self.n_response == 1:
+            return 'VGN'
+        else:
+            return 'VOW'
+    # [AGENT EDIT END]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -2205,6 +2245,7 @@ class VowelSet(WavSet):
 
     @property
     def wav_per_rep(self):
+        return len(self.stim1idx)
         return len(self.stim1idx)
 
     def update(self, trial_idx=None):
@@ -2240,7 +2281,7 @@ class VowelSet(WavSet):
         stimcount = len(self.stim1idx)
         self.s1_channel = [self.primary_channel] * stimcount
         self.s2_channel = [1-self.primary_channel] * stimcount
-        if self.mono_pairs:
+        if (self.mono_pairs is True) | (self.mono_pairs=='True'):
             for ii in range(stimcount):
                 t1=self.stim1idx[ii]
                 t2=self.stim2idx[ii]
@@ -2258,6 +2299,15 @@ class VowelSet(WavSet):
 
         self.duration = self.repeat_count * self.wavset.duration + \
                         (self.repeat_count-1) * self.repeat_isi
+
+        self.stim_list = pd.DataFrame({'index': np.arange(len(self.stim1idx)),
+                                       'stim1idx': self.stim1idx,
+                                       'stim2idx': self.stim2idx,
+                                       's1_channel': self.s1_channel,
+                                       's2_channel': self.s2_channel,
+                                       'stim_cat': self.stim_cat,
+                                      })   
+        
         # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
         if trial_idx is None:
             trial_idx = self.current_trial_idx
@@ -2285,10 +2335,32 @@ class VowelSet(WavSet):
             w2 = self.wavset.waveform(s2idx)
         else:
             w2 = self.wavset.waveform_zero()
-
         w = np.zeros((len(w1), 2))
         w[:, s1c] += w1.flatten()
         w[:, s2c] += w2.flatten()
+
+        stim_cat = self.stim_cat[wav_set_idx]
+
+        if self.n_response == 2:
+            if stim_cat == 'T':
+                response_condition = 1
+            elif stim_cat == 'N':
+                response_condition = 2
+            elif stim_cat == 'C':
+                response_condition = -1
+        elif self.n_response == 1:
+            if stim_cat == 'T':
+                response_condition = 1
+            elif stim_cat == 'N':
+                response_condition = 0
+            elif stim_cat == 'C':
+                if np.random.rand()>=0.5:
+                    response_condition = 0
+                else:
+                    response_condition = 1
+        if response_condition==0:
+            nogo_scaleby = 10 ** ((-self.nogo_attenuation) / 20)
+            w*=nogo_scaleby
 
         if self.repeat_count>1:
             isi_bins = int(self.wavset.fs * self.repeat_isi)
@@ -2346,6 +2418,13 @@ class VowelSet(WavSet):
                     response_condition = 0
                 else:
                     response_condition = 1
+        else:
+            response_condition = 0
+
+        if response_condition==0:
+            this_level = self.level - self.nogo_attenuation
+        else:
+            this_level = self.level
 
         response_window = self.response_window
         name = s1_name+"+"+s2_name+"+"+stim_cat
@@ -2357,6 +2436,7 @@ class VowelSet(WavSet):
              's1_channel': s1c,
              's2_channel': s2c,
              'this_name': name,
+             'this_level': this_level,
              's1_name': s1_name,
              's2_name': s2_name,
              'stim_cat': stim_cat,
@@ -2365,7 +2445,7 @@ class VowelSet(WavSet):
              'response_window': response_window,
              'current_full_rep': self.current_full_rep,
              'primary_channel': self.primary_channel,
-             'trial_is_repeat': self.trial_is_repeat[trial_idx-1] if (trial_idx is not None) & (trial_idx<len(self.trial_is_repeat)) else 0,
+             'trial_is_repeat': self.trial_is_repeat[trial_idx-1] if (trial_idx is not None) else 0,
              }
         return d
 
@@ -2473,6 +2553,12 @@ class CategorySet(FgBgSet):
         Background = Non-target.
 
     """
+
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'CAT'
+    # [AGENT EDIT END]
 
     def __init__(self, FgSet=None, BgSet=None, CatchFgSet=None, CatchBgSet=None, OAnoiseSet=None,
                  combinations='custom',fg_switch_channels=True, bg_switch_channels=False, primary_channel=0,
@@ -2785,6 +2871,12 @@ class OverlappingSounds(FgBgSet):
             response_end=params['response_end'],
             random_seed=params['random_seed'])
     """
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'OLP'
+    # [AGENT EDIT END]
+
     def __init__(self, n_response, **parameter_dict):
         raise NotImplementedError('Placeholder')
 
@@ -2832,6 +2924,12 @@ class BinauralTone(WavSet):
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
         d.setdefault('group_name', 'BinauralTone')
+
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'BLT'
+    # [AGENT EDIT END]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -2969,8 +3067,233 @@ class BinauralTone(WavSet):
         return d
 
 
+class BinauralToneFusion(WavSet):
+    """ Passive runclass = BTF """
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'BTF'
+    # [AGENT EDIT END]
+
+    # TODO: Add AM dimension
+
+    default_parameters = [
+         {'name': 'reference_center', 'label': 'Reference frequency',
+          'expression': '[1000, 2000]', 'dtype': 'object', 'scope': 'experiment'},
+         {'name': 'probe_octaves', 'label': 'Tone octaves (above/below ref)',
+          'expression': '[-0.8, -0.5, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.5, 0.8]',
+          'dtype': 'object', 'scope': 'experiment'},
+         {'name': 'probe_alone_octaves', 'label': 'Single probe octaves (above/below ref)',
+          'expression': '[-0.8, -0.5, -0.3, -0.2, -0.1, 0, 0.1, 0.2, 0.3, 0.5, 0.8]',
+          'dtype': 'object', 'scope': 'experiment'},
+         {'name': 'probe_level', 'label': 'Probe SNR(s) (list, dB RE ref)',
+          'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
+         {'name': 'reference_level', 'label': 'Reference dB SPL',
+          'default': 50, 'dtype': 'double', 'scope': 'experiment'},
+         {'name': 'probe_delay', 'label': 'Probe onset delays (list, ms)',
+          'expression': '[0]', 'dtype': 'object', 'scope': 'experiment'},
+
+         {'name': 'duration', 'label': 'duration of each sample (s)',
+          'default': 0.1, 'dtype': 'double', 'scope': 'experiment'},
+         {'name': 'pre_silence', 'label': 'pre-stim silence (s)',
+          'default': 0.05, 'dtype': 'double', 'scope': 'experiment'},
+         {'name': 'post_silence', 'label': 'post-stim silence (s)',
+          'default': 0.05, 'dtype': 'double', 'scope': 'experiment'},
+
+         {'name': 'switch_channels', 'label': 'Switch ref channel?',
+          'compact_label': 'combinations', 'default': 'No',
+          'choices': {'No': "False", 'Yes': "True"},
+          'scope': 'experiment', 'type': 'EnumParameter'},
+         {'name': 'include_mono', 'label': 'Include mono condition?',
+          'compact_label': 'combinations', 'default': 'No',
+          'choices': {'No': "False", 'Yes': "True"},
+          'scope': 'experiment', 'type': 'EnumParameter'},
+
+         {'name': 'this_name', 'label': 'N', 'type': 'Result'},
+         {'name': 'this_reference_frequency', 'label': 'R', 'type': 'Result'},
+         {'name': 'this_probe_frequency', 'label': 'P', 'type': 'Result'},
+         {'name': 'this_snr', 'label': 'level', 'type': 'Result'},
+         {'name': 'current_full_rep', 'label': 'rep', 'type': 'Result'},
+     ] + WavSet.default_parameters.copy()
+
+    for d in default_parameters:
+        # Use `setdefault` so we don't accidentally override a parameter that
+        # wants to use a different group.
+        d.setdefault('group_name', 'BinauralTone')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.tonal_stim = True
+
+    def update(self, trial_idx=None):
+        """figure out indexing to map wav_set idx to specific members of FgSet and BgSet.
+        manage trials separately to allow for repeats, etc."""
+        _rng = np.random.RandomState(self.random_seed)
+        dlist=[]
+        for r in self.reference_center:
+            logref = np.log2(r)
+
+            frequency_range = np.round(2 ** (logref + self.probe_octaves))
+            frequency_alone_range = np.round(2 ** (logref + self.probe_alone_octaves))
+
+            w, x, y, z = np.meshgrid(np.array(r), frequency_range, self.probe_level, self.probe_delay)
+            ref = w.flatten()
+            probe = x.flatten()
+            level = y.flatten()
+            delay = z.flatten()
+
+            data = {
+                'name': "",
+                'ref_frequency': ref,
+                'prb_frequency': probe,
+                'prb_level': level,
+                'prb_delay': delay,
+                'duration': self.duration,
+                'ref_channel': self.primary_channel,
+                'prb_channel': 1 - self.primary_channel,
+            }
+            d1 = pd.DataFrame(data)
+            dlist.append(d1)
+            if self.include_mono:
+                d2=d1.copy()
+                d2['prb_channel']=d2['ref_channel']
+                dlist.append(d2)
+            if self.switch_channels:
+                d3 = d1.copy()
+                x = d3['prb_channel'].copy()
+                d3['prb_channel'] = d3['ref_channel']
+                d3['ref_channel'] = x
+                dlist.append(d3)
+                if self.include_mono:
+                    d4=d2.copy()
+                    d4[['prb_channel','ref_channel']]=1-self.primary_channel
+                    dlist.append(d4)
+
+            # single stimuli
+            z_ = np.zeros_like(frequency_alone_range,dtype=int)
+            if self.switch_channels:
+                r_ = np.concatenate([frequency_alone_range,frequency_alone_range,frequency_alone_range])
+                p_ = np.concatenate([z_,frequency_alone_range,z_])
+                rc_ = np.concatenate([z_+self.primary_channel, z_+self.primary_channel, z_+1-self.primary_channel])
+                pc_ = np.concatenate([z_+1-self.primary_channel, z_+1-self.primary_channel, z_+self.primary_channel])
+            else:
+                r_ = np.concatenate([frequency_alone_range, frequency_alone_range])
+                p_ = np.concatenate([z_, frequency_alone_range])
+                rc_ = np.concatenate([z_ + self.primary_channel, z_ + self.primary_channel])
+                pc_ = np.concatenate([z_ + 1 - self.primary_channel, z_ + 1 - self.primary_channel])
+
+            data = {
+                'name': "",
+                'ref_frequency': r_,
+                'prb_frequency': p_,
+                'prb_level': 0,
+                'prb_delay': 0,
+                'duration': self.duration,
+                'ref_channel': rc_,
+                'prb_channel': pc_,
+            }
+            d1 = pd.DataFrame(data)
+            dlist.append(d1)
+
+        stim = pd.concat(dlist, ignore_index=True)
+
+        stim = stim.drop_duplicates().reset_index(drop=True)
+        stim['ref_level'] = self.reference_level
+        stim['name'] = ''
+        for i, r in stim.iterrows():
+            if r['prb_frequency']==0:
+                name = f"{r['ref_frequency']:.0f}:{r['ref_channel']}"
+            else:
+                # <refhz>-<chan>:<prbhz>-<chan>:<prblevel dB>:<prbdelay ms>
+                name = f"{r['ref_frequency']:.0f}:{r['ref_channel']}+{r['prb_frequency']:.0f}:{r['prb_channel']}:{r['prb_level']}:{r['prb_delay']}"
+            stim.loc[i, 'name'] = name
+            print(i, name)
+
+        stim['index'] = stim.index
+        self.stim_list = stim.copy()
+
+        total_wav_set = len(stim)
+        # log.info(f"len {total_wav_set} shape {stim.shape}")
+
+        # set up wav_set_idx to trial_idx mapping  -- self.trial_wav_idx
+        if trial_idx is None:
+            trial_idx = self.current_trial_idx
+
+        if trial_idx > len(self.trial_wav_idx):
+            # hack to prevent identical sequences from repeating
+            for t in range(trial_idx):
+                _ = _rng.permutation(np.arange(total_wav_set, dtype=int))
+            new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
+            self.trial_wav_idx = np.concatenate((self.trial_wav_idx, new_trial_wav))
+            log.info(f'Added {len(new_trial_wav)}/{len(self.trial_wav_idx)} trials to trial_wav_idx')
+            self.current_full_rep += 1
+            self.trial_is_repeat = np.concatenate((self.trial_is_repeat, np.zeros_like(new_trial_wav)))
+
+    def _trial_waveform(self, trial_idx=None, wav_set_idx=None):
+
+        row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
+        # log.info(f"**** trial {trial_idx} {row}")
+        # log.info(f"****   wavidx {row['index']}")
+        # log.info(f"****   ref channel: {row['ref_channel']}")
+
+        ref_channel = row['ref_channel']
+        prb_channel = row['prb_channel']
+
+        ref_level = self.reference_level
+        prb_level = self.reference_level + row['prb_level']
+        wfg = generate_tone(row['duration'], row['ref_frequency'], ref_level,
+                            fs=self.fs, ramp=self.ramp,
+                            calibration=self.output_cal[ref_channel])
+
+        if ref_level - prb_level > 60:
+            # put fg tone condition
+            wbg = np.zeros_like(wfg)
+        else:
+            duration = row['duration'] - row['prb_delay'] / 1000
+            wbg = generate_tone(duration, row['prb_frequency'], prb_level,
+                                fs=self.fs, ramp=self.ramp,
+                                calibration=self.output_cal[prb_channel])
+            padbins = len(wfg) - len(wbg)
+            if padbins > 0:
+                wbg = np.concatenate((np.zeros(padbins, dtype=wbg.dtype), wbg))
+
+        # combine fg and bg waveforms
+        w = np.zeros((len(wfg), 2), dtype=wfg.dtype)
+        w[:, row['ref_channel']] = wfg
+        w[:, row['prb_channel']] += wbg
+
+        prebins, postbins = int(self.fs * self.pre_silence), int(self.fs * self.post_silence)
+        wpre, wpost = np.zeros((prebins, 2)), np.zeros((postbins, 2))
+        w = np.concatenate([wpre, w, wpost], axis=0)
+
+        return w.T
+
+    def _trial_parameters(self, trial_idx=None, wav_set_idx=None):
+
+        row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
+
+        d = {'trial_idx': trial_idx,
+             'wav_set_idx': row['index'],
+             'this_name': row['name'],
+             'this_reference_frequency': row['ref_frequency'],
+             'this_probe_frequency': row['prb_frequency'],
+             'this_ref_channel': row['ref_channel'],
+             'this_probe_channel': row['prb_channel'],
+             'this_snr': row['prb_level'],
+             'current_full_rep': self.current_full_rep,
+             }
+
+        return d
+
+
 class RandomTone(BinauralTone):
     """ Passive runclass = FTC """
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'FTC'
+    # [AGENT EDIT END]
+
     default_parameters = [
         {'name': 'reference_center', 'label': 'Reference frequency',
          'expression': '1000', 'dtype': 'object', 'scope': 'experiment'},
@@ -3015,6 +3338,12 @@ class RandomTone(BinauralTone):
 
 class BandpassNoise(WavSet):
     """ Passive runclass = BNB """
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'BNB'
+    # [AGENT EDIT END]
+
     default_parameters = [
         {'name': 'center', 'label': 'Base center frequency',
          'expression': '1000', 'dtype': 'object', 'scope': 'experiment'},
@@ -3110,7 +3439,7 @@ class BandpassNoise(WavSet):
 
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
         if self.bandwidth > 0:
-            Noffsets = self.bandwidth * 400 + 1
+            Noffsets = int(self.bandwidth * 400 + 1)
             f_offsets = np.linspace(-self.bandwidth/2, self.bandwidth/2, Noffsets)
             with temp_seed(wav_set_idx):
                 phases = np.random.uniform(0, 2*np.pi, size=len(f_offsets))
@@ -3167,6 +3496,11 @@ class BandpassNoise(WavSet):
 class BinauralAM(WavSet):
     """ passive - runclass: BAM
     """
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'BAM'
+    # [AGENT EDIT END]
 
     default_parameters = [
         # FROM BLT
@@ -3234,21 +3568,24 @@ class BinauralAM(WavSet):
         manage trials separately to allow for repeats, etc."""
         _rng = np.random.RandomState(self.random_seed)
 
-        logref = np.log2(self.reference_center)
-        loglo = logref - self.probe_octaves
-        loghi = logref + self.probe_octaves
-        frequency_range = np.round(2**np.linspace(loglo, loghi, self.probe_count))
+        # logref = np.log2(self.reference_center)
+        # loglo = logref - self.probe_octaves
+        # loghi = logref + self.probe_octaves
+        # frequency_range = np.round(2**np.linspace(loglo, loghi, self.probe_count))
+        #
+        # ref_range = self.reference_center
 
-        param_matrix = np.meshgrid(frequency_range, frequency_range, self.am_rate, self.modulation_depth, self.reference_level, self.probe_level, self.probe_delay)
+        param_matrix = np.meshgrid(self.reference_center, self.probe_octaves, self.am_rate, self.modulation_depth, self.reference_level, self.probe_level, self.probe_delay)
 
-        ref, probe, am_rate, mod_depth, ref_level, prb_level, prb_delay = [
+        ref, probe_oct, am_rate, mod_depth, ref_level, prb_level, prb_delay = [
             x.flatten() for x in param_matrix
         ]
+        probe = 2**(np.log2(ref) + probe_oct)
 
         # ref only trials, when probe SNR < -60dB
-        ref_only = (ref_level - prb_level) > 60
+        ref_only = (prb_level==0)
         probe[ref_only] = ref[ref_only]
-        prb_only = (ref_level - prb_level) < -60
+        prb_only = (ref_level==0)
         ref[prb_only] = probe[prb_only]
 
         data = {
@@ -3322,7 +3659,7 @@ class BinauralAM(WavSet):
         prb_channel = row['prb_channel']
 
         ref_level = row['ref_level']
-        prb_level = ref_level + row['prb_level']
+        prb_level = row['prb_level']
 
         wbins = int(self.duration*self.fs)
         bgduration = row['duration'] - row['prb_delay'] / 1000
@@ -3443,6 +3780,12 @@ class BigNat(WavSet):
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
         d.setdefault('group_name', 'BigNat')
+
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'BNT'
+    # [AGENT EDIT END]
 
     def __init__(self, n_response=0, output_cal=None, **kwargs):
         """
