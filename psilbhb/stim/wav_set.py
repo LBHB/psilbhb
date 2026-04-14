@@ -709,6 +709,10 @@ class WavSet:
             self.output_filt.append(make_filter(self.fs, cal, rms=1))
 
     @property
+    def runclass(self):
+        return 'XXX'
+
+    @property
     def wav_per_rep(self):
         return len(self.stim_list)
 
@@ -968,6 +972,7 @@ class FgBgSet(WavSet):
         {'name': 'migrate_start', 'label': "migrate_start (s)", 'default': 0.5, 'dtype': 'float', 'group_name': 'Results'},
         {'name': 'migrate_stop', 'label': "migrate_stop (s)", 'default': 1.0, 'dtype': 'float', 'group_name': 'Results'},
 
+        # TODO - delete this? Not used
         {'name': 'spatial_attention_locus', 'label': 'S.A. state', 'default': 'R', 'type': 'EnumParameter',
          'choices': {'R': 0, 'L': 1}, 'group_name': 'Results'},
         {'name': 'spatial_attention_block', 'label': 'S.A. block trials', 'default': 0, 'dtype': 'int',
@@ -997,6 +1002,12 @@ class FgBgSet(WavSet):
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
         d.setdefault('group_name', 'FgBgSet')
+
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'NFB'
+    # [AGENT EDIT END]
 
     def __init__(self, *args, **kwargs):
         """
@@ -1557,8 +1568,6 @@ class FgBgSet(WavSet):
 class AMFusion(WavSet):
 
     default_parameters = [
-        {'name': 'runclass', 'label': 'Run class [AFM]',
-         'expression': '''AFM''', 'dtype': 'str', 'scope': 'experiment'},
         {'name': 'target_frequency', 'label': 'Target center frequenc(ies) (list)',
          'expression': '[1000]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'target_am_rate', 'label': 'Target AM rate (list)',
@@ -1610,6 +1619,12 @@ class AMFusion(WavSet):
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
         d.setdefault('group_name', 'AMFusion')
+
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'AMF'
+    # [AGENT EDIT END]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -1838,8 +1853,6 @@ class AMFusion(WavSet):
 class AMDetect(WavSet):
 
     default_parameters = [
-        {'name': 'runclass', 'label': 'Run class [AMD]',
-         'default': 'AMD', 'dtype': 'str', 'scope': 'experiment'},
         {'name': 'go_frequency', 'label': 'Go center frequenc(ies) (list)',
          'expression': '[1000]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'go_depth', 'label': 'Go modulation depth(s) (list)',
@@ -1910,6 +1923,12 @@ class AMDetect(WavSet):
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
         d.setdefault('group_name', 'AMDetect')
+
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'AMD'
+    # [AGENT EDIT END]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -2188,6 +2207,17 @@ class VowelSet(WavSet):
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
         d.setdefault('group_name', 'VowelSet')
+
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        if self.n_response == 0:
+            return 'BVP'
+        elif self.n_response == 1:
+            return 'VGN'
+        else:
+            return 'VOW'
+    # [AGENT EDIT END]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -2518,6 +2548,12 @@ class CategorySet(FgBgSet):
 
     """
 
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'CAT'
+    # [AGENT EDIT END]
+
     def __init__(self, FgSet=None, BgSet=None, CatchFgSet=None, CatchBgSet=None, OAnoiseSet=None,
                  combinations='custom',fg_switch_channels=True, bg_switch_channels=False, primary_channel=0,
                  fg_delay=0.0, fg_snr=0.0, response_window=None, random_seed=0, catch_ferret_id=4,
@@ -2829,6 +2865,12 @@ class OverlappingSounds(FgBgSet):
             response_end=params['response_end'],
             random_seed=params['random_seed'])
     """
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'OLP'
+    # [AGENT EDIT END]
+
     def __init__(self, n_response, **parameter_dict):
         raise NotImplementedError('Placeholder')
 
@@ -2876,6 +2918,12 @@ class BinauralTone(WavSet):
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
         d.setdefault('group_name', 'BinauralTone')
+
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'BLT'
+    # [AGENT EDIT END]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -3015,6 +3063,11 @@ class BinauralTone(WavSet):
 
 class BinauralToneFusion(WavSet):
     """ Passive runclass = BTF """
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'BTF'
+    # [AGENT EDIT END]
 
     # TODO: Add AM dimension
 
@@ -3229,6 +3282,12 @@ class BinauralToneFusion(WavSet):
 
 class RandomTone(BinauralTone):
     """ Passive runclass = FTC """
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'FTC'
+    # [AGENT EDIT END]
+
     default_parameters = [
         {'name': 'reference_center', 'label': 'Reference frequency',
          'expression': '1000', 'dtype': 'object', 'scope': 'experiment'},
@@ -3273,6 +3332,12 @@ class RandomTone(BinauralTone):
 
 class BandpassNoise(WavSet):
     """ Passive runclass = BNB """
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'BNB'
+    # [AGENT EDIT END]
+
     default_parameters = [
         {'name': 'center', 'label': 'Base center frequency',
          'expression': '1000', 'dtype': 'object', 'scope': 'experiment'},
@@ -3368,7 +3433,7 @@ class BandpassNoise(WavSet):
 
         row = self.stim_row(trial_idx=trial_idx, wav_set_idx=wav_set_idx)
         if self.bandwidth > 0:
-            Noffsets = self.bandwidth * 400 + 1
+            Noffsets = int(self.bandwidth * 400 + 1)
             f_offsets = np.linspace(-self.bandwidth/2, self.bandwidth/2, Noffsets)
             with temp_seed(wav_set_idx):
                 phases = np.random.uniform(0, 2*np.pi, size=len(f_offsets))
@@ -3425,6 +3490,11 @@ class BandpassNoise(WavSet):
 class BinauralAM(WavSet):
     """ passive - runclass: BAM
     """
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'BAM'
+    # [AGENT EDIT END]
 
     default_parameters = [
         # FROM BLT
@@ -3704,6 +3774,12 @@ class BigNat(WavSet):
         # Use `setdefault` so we don't accidentally override a parameter that
         # wants to use a different group.
         d.setdefault('group_name', 'BigNat')
+
+    # [AGENT EDIT START | agent: claude-sonnet-4-6 | user: svd | reason: add runclass property per lbhb.py paradigm mapping | date: 2026-04-14]
+    @property
+    def runclass(self):
+        return 'BNT'
+    # [AGENT EDIT END]
 
     def __init__(self, n_response=0, output_cal=None, **kwargs):
         """
