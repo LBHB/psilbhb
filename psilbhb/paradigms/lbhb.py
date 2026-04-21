@@ -3,38 +3,52 @@ from psi.experiment.api import ParadigmDescription
 
 PATH = 'psilbhb.paradigms.behavior.'
 CORE_PATH = 'psi.paradigms.core.'
+PSIBEHAVIOR_PATH = 'psibehavior.paradigms.'
+
+COLORS = {
+    # Used for TrialLog
+    ('go', None): 'lightgreen',
+    ('target', None): 'lightgreen',
+    ('go', 'remind'): 'limegreen',
+    ('target', 'remind'): 'limegreen',
+
+    ('nogo', None): 'lightpink',
+    ('reference', None): 'lightpink',
+    ('nogo', 'remind'): 'pink',
+    ('reference', 'remind'): 'pink',
+}
 
 
 COMMON_PLUGINS = [
-    {'manifest': 'psilbhb.paradigms.video.PSIVideo',
+    {'manifest': PSIBEHAVIOR_PATH + 'video.PSIVideo',
      'attrs': {
          'id': 'psivideo',
          'title': 'Video (top)',
          'port': 33331,
          'filename': 'recording.avi',
      }},
-    {'manifest': 'psilbhb.paradigms.video.PSIVideo',
+    {'manifest': PSIBEHAVIOR_PATH + 'video.PSIVideo',
      'attrs': {
          'id': 'psivideo_side',
          'title': 'Video (side)',
          'port': 33332,
          'filename': 'video_side.avi',
      }},
-    {'manifest': 'psilbhb.paradigms.video.PSIVideo',
+    {'manifest': PSIBEHAVIOR_PATH + 'video.PSIVideo',
      'attrs': {
          'id': 'psivideo_side2',
          'title': 'Video (side2)',
          'port': 33333,
          'filename': 'video_side2.avi',
      }},
-    {'manifest': 'psilbhb.paradigms.video.PSIVideo',
+    {'manifest': PSIBEHAVIOR_PATH + 'video.PSIVideo',
      'attrs': {
          'id': 'psivideo_pupil',
          'title': 'Video (pupil)',
          'port': 33334,
          'filename': 'video_pupil.avi',
      }},
-    {'manifest': 'psilbhb.paradigms.video.PSIVideo',
+    {'manifest': PSIBEHAVIOR_PATH + 'video.PSIVideo',
      'attrs': {
          'id': 'psivideo_side3',
          'title': 'Video (side3)',
@@ -73,6 +87,34 @@ COMMON_PLUGINS = [
          'source_name': 'microphone_2',
          },
      },
+    {
+        # Trial log
+        'manifest': 'psibehavior.paradigms.trial_log.TrialLogManifest',
+        'required': True,
+        'attrs': {'colors': COLORS,},
+    },
+    {
+        # Event log
+        'manifest': 'psi.data.sinks.event_log.EventLogManifest',
+        'required': True,
+        'attrs': {
+            'show_widget': True,
+            'exclude': ['*contact*digital_acquired*', 'trial_ready'],
+        },
+    },
+    {
+        # Copy experiment log file over to data folder upon experiment complete.
+        'manifest': PSIBEHAVIOR_PATH + 'logger.Logger',
+        'attrs': {},
+        'required': True,
+    },
+    {
+        # Inject some metadata into the metadata file that is created with
+        # information about code versions, etc.
+        'manifest': PSIBEHAVIOR_PATH + 'metadata.Metadata',
+        'attrs': {},
+        'required': True,
+    },
 ]
 
 ParadigmDescription(

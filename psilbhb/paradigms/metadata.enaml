@@ -1,0 +1,119 @@
+import os
+
+from enaml.workbench.api import Extension
+from enaml.workbench.core.api import Command
+
+from psi import get_config
+from psi.core.enaml.api import ExperimentManifest
+from psi.experiment.api import MetadataItem
+
+
+def pre_celldb(event):
+    workbench = event.workbench
+    plugin = workbench.get_plugin('psi.controller')
+    # Get info from env vars as needed
+    # os.environ.get(var_name, 'UNKNOWN')
+
+def post_celldb(event):
+    workbench = event.workbench
+    data_plugin = workbench.get_plugin('psi.data')
+
+    # This should hopefully work ...
+    trial_log = data_plugin.find_sink('trial_log')
+
+    # How to set up db connection?
+
+
+enamldef CellDbMetdata(ExperimentManifest): manifest:
+
+    Extension:
+        id = 'psilbhb.commands'
+        point = 'enaml.workbench.core.commands'
+
+        Command:
+            id = manifest.id + '.pre_celldb'
+            handler = pre_celldb
+
+        Command:
+            id = manifest.id + '.post_celldb'
+            handler = post_celldb
+
+    Extension:
+        id = 'psilbhb.actions'
+        point = 'psi.controller.actions'
+
+        ExperimentAction:
+            event = 'plugins_started'
+            command = manifest.id + '.pre_celldb'
+
+        ExperimentAction:
+            event = 'experiment_end'
+            command = manifest.id + '.post_celldb'
+
+    Extension:
+        id = 'psilbhb.metadata'
+        point = 'psi.experiment.metadata'
+
+        MetadataItem:
+            name = 'PSILBHB_EXPERIMENTER'
+            value = os.environ.get(self.name, 'UNKNOWN')
+
+        MetadataItem:
+            name = 'PSILBHB_ANIMAL'
+            value = os.environ.get(self.name, 'UNKNOWN')
+
+        MetadataItem:
+            name = 'PSILBHB_TRAINING'
+            value = os.environ.get(self.name, 'UNKNOWN')
+
+        MetadataItem:
+            name = 'PSILBHB_RUNCLASS'
+            value = os.environ.get(self.name, 'UNKNOWN')
+
+        MetadataItem:
+            name = 'PSILBHB_BASE_FOLDER'
+            value = os.environ.get(self.name, 'UNKNOWN')
+
+        MetadataItem:
+            name = 'PSILBHB_iO'
+            value = os.environ.get(self.name, 'UNKNOWN')
+
+        MetadataItem:
+            name = 'DATA_ROOT'
+            value = get_config(self.name)
+
+        MetadataItem:
+            name = 'OPENEPHYS_ROOT'
+            value = get_config(self.name)
+
+        MetadataItem:
+            name = 'CACHE_ROOT'
+            value = get_config(self.name)
+
+        MetadataItem:
+            name = 'TRAINING_ROOT'
+            value = get_config(self.name)
+
+        MetadataItem:
+            name = 'VIDEO_ROOT'
+            value = get_config(self.name)
+
+        MetadataItem:
+            name = 'PREFERENCES_ROOT'
+            value = get_config(self.name)
+
+        MetadataItem:
+            name = 'LAYOUT_ROOT'
+            value = get_config(self.name)
+
+        MetadataItem:
+            name = 'OPENEPHYS_URI'
+            value = get_config(self.name)
+
+        MetadataItem:
+            name = 'MYSQL_HOST'
+            value = get_config(self.name)
+
+        MetadataItem:
+            name = 'MYSQL_DB'
+            value = get_config(self.name)

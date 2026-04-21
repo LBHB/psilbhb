@@ -14,7 +14,6 @@ from psi.controller.api import (
     ContinuousInput, ContinuousOutput, ControllerManifest, RampedEpochOutput,
     ExperimentAction, ExperimentEvent, ExperimentState, TimedTrigger
 )
-from psi.data.sinks.api import EventLog, TrialLog
 from psi.experiment.api import StatusItem
 from psi.data.plots import (TimeContainer, ChannelPlot, ViewBox)
 from psi.data.sinks.api import BinaryStore
@@ -72,10 +71,6 @@ enamldef PassiveManifest(ControllerManifest): manifest:
     # Template that is formatted to generate the channel name each output is
     # linked to.
     attr output_template = 'hw_ao::speaker_{}'
-
-    # Template that is formatted to generate the channel name each input is
-    # linked to.
-    attr input_template = 'hw_ai::microphone_{}'
 
     factory = lambda: PassivePlugin()
 
@@ -155,10 +150,6 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             # Make sure we save all the spout contact data
             name = 'initiated_data'
             continuous_inputs << manifest.input_list
-        EventLog:
-            show_widget = False
-        TrialLog:
-            show_widget = True
 
     Extension:
         id = 'io'
@@ -182,14 +173,6 @@ enamldef PassiveManifest(ControllerManifest): manifest:
         ContinuousInput:
             name = 'speaker_1_monitor'
             source_name = 'hw_ai::speaker_1_monitor'
-
-        #ContinuousInput:
-        #    name = 'microphone'
-        #    source_name = 'hw_ai::microphone_calibration'
-
-        ContinuousInput:
-            name = 'microphone2'
-            source_name = 'hw_ai::microphone_2'
 
         TimedTrigger:
             # This is a hardware-timed trigger that allows us to schedule a
@@ -284,14 +267,3 @@ enamldef PassiveManifest(ControllerManifest): manifest:
                 ChannelPlot:
                     source_name = 'sync_trigger_monitor'
                     pen_color = 'green'
-
-            #Looper:
-            #    iterable << manifest.input_list
-
-            #    ViewBox:
-            #        name = loop_item
-            #        y_min = -1
-            #        y_max = 1
-
-            #        ChannelPlot:
-            #            source_name = loop_item
