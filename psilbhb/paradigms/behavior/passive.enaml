@@ -32,11 +32,6 @@ def get_status(trial, experiment_state):
     return 'Trial {}'.format(trial)
 
 
-def update_trial_log(event):
-    core = event.workbench.get_plugin('enaml.workbench.core')
-    core.invoke_command('trial_log.save', {'data': event.parameters['result']})
-
-
 def check_microphones(workbench, manifest):
     controller = workbench.get_plugin('psi.controller')
     data = workbench.get_plugin('psi.data')
@@ -90,9 +85,6 @@ enamldef PassiveManifest(ControllerManifest): manifest:
         id = manifest.id + '.behavior_commands'
         point = 'enaml.workbench.core.commands'
         Command:
-            id = 'psi.controller.update_trial_log'
-            handler = update_trial_log
-        Command:
             id = 'psi.controller.prepare_trial'
             handler = lambda x: controller.prepare_trial()
         Command:
@@ -139,9 +131,6 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             event = 'experiment_initialize'
             command = 'psi.context.initialize'
             kwargs = {'selector': None}
-        ExperimentAction:
-            event = 'trial_end'
-            command = 'psi.controller.update_trial_log'
 
     Extension:
         id = manifest.id + '.data'

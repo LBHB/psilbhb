@@ -275,8 +275,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         st = self.get_output('sync_trigger')
         with o1.engine.lock:
             ts = self.get_ts()
-            o1.start_waveform(ts + target_delay, False)
-            o2.start_waveform(ts + target_delay, True)
+            o1.start_waveform(ts + target_delay)
+            o2.start_waveform(ts + target_delay)
             st.trigger(ts + target_delay, 0.5)
 
         self.invoke_actions('trial_start', ts)
@@ -381,8 +381,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             o2 = self.get_output('output_2')
             with o1.engine.lock:
                 ts = self.get_ts()
-                o1.stop_waveform(ts + 0.1, False)
-                o2.stop_waveform(ts + 0.1, True)
+                o1.stop_waveform(ts + 0.1)
+                o2.stop_waveform(ts + 0.1)
             self.advance_state('to', ts)
             self.trial_state = getattr(NAFCTrialState, f'waiting_for_to')
             self.invoke_actions(f'to_start', ts)

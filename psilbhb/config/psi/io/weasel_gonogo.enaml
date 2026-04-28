@@ -64,8 +64,8 @@ enamldef IOManifest(ExperimentManifest): manifest:
         NIDAQEngine:
             name = 'NI'
             hw_ai_monitor_period = 0.1
-            hw_ao_monitor_period = 0.1
-            hw_ao_buffer_size = 2
+            hw_ao_monitor_period = 0.05
+            hw_ao_buffer_size = 0.2
             master_clock = True
 
             NIDAQHardwareAIChannel:

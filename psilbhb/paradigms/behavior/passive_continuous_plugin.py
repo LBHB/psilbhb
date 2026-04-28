@@ -102,8 +102,8 @@ class PassivePlugin(BaseBehaviorPlugin):
 
         with o1.engine.lock:
             ts = self.get_ts()
-            o1.start_waveform(ts + 0.1, False)
-            o2.start_waveform(ts + 0.1, True)
+            o1.start_waveform(ts + 0.1)
+            o2.start_waveform(ts + 0.1)
             st.trigger(ts + 0.1, 0.1)
 
         self.trial_info = {

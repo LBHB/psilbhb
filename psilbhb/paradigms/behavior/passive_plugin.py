@@ -98,6 +98,7 @@ class PassivePlugin(BaseBehaviorPlugin):
             ramp = None
 
         with o1.engine.lock:
+            log.error(f'set waveform {w.shape} with ramp {ramp}')
             o1.set_waveform(w[0], ramp_time=ramp)
             o2.set_waveform(w[1], ramp_time=ramp)
 
@@ -109,9 +110,8 @@ class PassivePlugin(BaseBehaviorPlugin):
 
         with o1.engine.lock:
             ts = self.get_ts()
-            o1.start_waveform(ts + delay, False)
-            o2.start_waveform(ts + delay, True)
-            log.error('starting sync trigger')
+            o1.start_waveform(ts + delay)
+            o2.start_waveform(ts + delay)
             st.trigger(ts + delay, 0.05)
 
         self.trial_info = {

@@ -64,12 +64,6 @@ def process_et(event):
         plugin.et_callback(name, edge, ts)
 
 
-def update_trial_log(event):
-    core = event.workbench.get_plugin('enaml.workbench.core')
-    core.invoke_command('trial_log.save', {'data': event.parameters['result']})
-    core.invoke_command('sdt_analysis.update', {'data': event.parameters['result']})
-
-
 enamldef BaseGoNogoMixin(ExperimentManifest): manifest:
 
     id = 'base_gonogo_mixin'
@@ -97,9 +91,6 @@ enamldef BaseGoNogoMixin(ExperimentManifest): manifest:
             id = 'psi.controller.process_et'
             handler = process_et
         Command:
-            id = 'psi.controller.update_trial_log'
-            handler = update_trial_log
-        Command:
             id = 'psi.controller.prepare_trial'
             handler = rpc('psi.controller', 'prepare_trial')
         Command:
@@ -120,9 +111,6 @@ enamldef BaseGoNogoMixin(ExperimentManifest): manifest:
             event = 'experiment_initialize'
             command = 'psi.context.initialize'
             kwargs = {'selector': None}
-        ExperimentAction:
-            event = 'trial_end'
-            command = 'psi.controller.update_trial_log'
 
 
 ################################################################################
