@@ -122,8 +122,6 @@ class PassivePlugin(BaseBehaviorPlugin):
     def end_trial(self):
         ts = self.get_ts()
         self.invoke_actions('trial_end', ts, kw={'result': self.trial_info.copy()})
-        self.trial_state = PassiveTrialState.waiting_for_iti
-        self.start_event_timer('iti_duration', PassiveEvent.iti_duration_elapsed)
 
         # Apply pending changes that way any parameters (such as repeat_FA or
         # go_probability) are reflected in determining the next trial type.
@@ -132,6 +130,11 @@ class PassivePlugin(BaseBehaviorPlugin):
 
         if self.wavset.current_full_rep > self.context.get_value('trial_reps'):
             self.invoke_actions('experiment_end')
+
+        if self.experiment_state == 'running':
+            self.trial_state = PassiveTrialState.waiting_for_iti
+            self.start_event_timer('iti_duration', PassiveEvent.iti_duration_elapsed)
+
 
     def advance_state(self, state, timestamp):
         log.info(f'Advancing to {state}')
