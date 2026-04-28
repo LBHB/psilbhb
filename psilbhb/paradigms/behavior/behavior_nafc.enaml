@@ -12,7 +12,7 @@ from psi.context.api import (
 )
 from psi.controller.api import (
     ContinuousInput, ContinuousOutput, ControllerManifest, EpochOutput,
-    RampedEpochOutput,
+    WaveformOutput,
     ExperimentAction, ExperimentEvent, ExperimentState, TimedTrigger
 )
 from psi.experiment.api import StatusItem
@@ -128,20 +128,6 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
         ExperimentEvent:
             name = 'trial_ready'
 
-        ExperimentAction:
-            # This schedules a TTL pulse to be sent via the channel linked to
-            # the sync_trigger output. The TTL pulse will start at the exact
-            # same time as target_start and last for 0.5 sec. Whenever an
-            # ExperimentAction is triggered, kwargs will automatically include
-            # the event name (in this case, "target_start") and the timestamp
-            # the event occurred (this is how the sync_trigger.trigger command
-            # knows when to schedule the trigger to begin). If the event was
-            # hardware-timed, then the timestamp will be accurate down to the
-            # sample).
-            event = 'output_1_start'
-            command = 'sync_trigger.trigger'
-            kwargs = {'duration': 0.5}
-
         Looper:
             # Set up the actions and events for each lick spout that the animal
             # will provide a response at.
@@ -211,7 +197,7 @@ enamldef BehaviorManifest(ControllerManifest): manifest:
 
             # Important, this must come last for the ramp to overwrite the
             # signal.
-            RampedEpochOutput:
+            WaveformOutput:
                 name = f'output_{loop_item+1}'
                 label = f'Output {loop_item+1}'
                 target_name = f'hw_ao::speaker_{loop_item+1}'

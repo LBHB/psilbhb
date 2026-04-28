@@ -9,6 +9,7 @@ from enaml.core.api import d_
 import numpy as np
 
 from psilbhb.stim.wav_set import WavSet
+from psi.controller.api import EpochWaveform
 from .behavior_mixins import (BaseBehaviorPlugin, TrialState)
 
 ################################################################################
@@ -54,6 +55,7 @@ class PassivePlugin(BaseBehaviorPlugin):
 
     wavset = Typed(WavSet)
     continuous_wavset = Typed(WavSet)
+    waveforms = Dict(Typed(EpochWaveform))
 
     def _default_rng(self):
         return np.random.RandomState()
@@ -99,8 +101,9 @@ class PassivePlugin(BaseBehaviorPlugin):
 
         with o1.engine.lock:
             log.error(f'set waveform {w.shape} with ramp {ramp}')
-            o1.set_waveform(w[0], ramp_time=ramp)
-            o2.set_waveform(w[1], ramp_time=ramp)
+            w1 = o1.add_waveform(w[0], ramp_time=ramp)
+            w2 = o2.add_waveform(w[1], ramp_time=ramp)
+            self.waveforms = [w1, w2]
 
         trial_duration = w.shape[-1] / o1.fs
 
@@ -110,8 +113,8 @@ class PassivePlugin(BaseBehaviorPlugin):
 
         with o1.engine.lock:
             ts = self.get_ts()
-            o1.start_waveform(ts + delay)
-            o2.start_waveform(ts + delay)
+            self.waveforms[0].start(ts + delay, allow_belated=True)
+            self.waveforms[1].start(ts + delay, allow_belated=True)
             st.trigger(ts + delay, 0.05)
 
         self.trial_info = {
@@ -129,6 +132,14 @@ class PassivePlugin(BaseBehaviorPlugin):
 
     def end_trial(self):
         ts = self.get_ts()
+        actual_ts = [w.actual_ts for w in self.waveforms]
+        log.error('Timestamps %r', actual_ts)
+        for ts in actual_ts[1:]:
+            if ts != actual_ts[0]:
+                log.error('Timestamps %r', actual_ts)
+                raise ValueError("Timestamps don't match for stim")
+        self.trial_info['ts_stim'] = actual_ts[0]
+
         self.invoke_actions('trial_end', ts, kw={'result': self.trial_info.copy()})
 
         # Apply pending changes that way any parameters (such as repeat_FA or

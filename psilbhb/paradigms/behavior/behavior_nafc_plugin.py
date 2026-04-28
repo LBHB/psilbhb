@@ -3,12 +3,13 @@ log = logging.getLogger(__name__)
 
 import enum
 
-from atom.api import Bool, Dict, Int, Str, Typed
+from atom.api import Bool, Dict, List, Int, Str, Typed
 from enaml.application import timed_call
 from enaml.core.api import d_
 import numpy as np
 
 from psilbhb.stim.wav_set import WavSet
+from psi.controller.api import EpochWaveform
 from .behavior_mixins import (BaseBehaviorPlugin, TrialState)
 
 ################################################################################
@@ -135,6 +136,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
     #: True if nose-poke is active
     np_active = Bool(False)
 
+    waveforms = List(Typed(EpochWaveform))
+
     def handle_event(self, event, timestamp=None):
         if event in (NAFCEvent.np_start, NAFCEvent.digital_np_start):
             self.np_active = True
@@ -205,8 +208,9 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             ramp = None
 
         with o1.engine.lock:
-            o1.set_waveform(w[0], ramp_time=ramp)
-            o2.set_waveform(w[1], ramp_time=ramp)
+            w1 = o1.add_waveform(w[0], ramp_time=ramp)
+            w2 = o2.add_waveform(w[1], ramp_time=ramp)
+            self.waveforms = [w1, w2]
 
         # All parameters in this dictionary get logged to the trial log.
         #context = self.context.get_values()
@@ -275,8 +279,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         st = self.get_output('sync_trigger')
         with o1.engine.lock:
             ts = self.get_ts()
-            o1.start_waveform(ts + target_delay)
-            o2.start_waveform(ts + target_delay)
+            self.waveforms[0].start(ts + target_delay, True)
+            self.waveforms[1].start(ts + target_delay, True)
             st.trigger(ts + target_delay, 0.5)
 
         self.invoke_actions('trial_start', ts)
@@ -352,6 +356,13 @@ class BehaviorPlugin(BaseBehaviorPlugin):
     def end_trial(self, response, score):
         self.stop_event_timer()
         ts = self.get_ts()
+        actual_ts = [w.actual_ts for w in self.waveforms]
+        for ts in actual_ts[1:]:
+            if ts != actual_ts[0]:
+                log.error('Timestamps %r', actual_ts)
+                raise ValueError("Timestamps don't match for stim")
+        self.trial_info['ts_stim'] = actual_ts[0]
+
         log.info(f'Ending trial with {response} scored as {score}')
 
         response_time = self.trial_info['response_ts']-self.trial_info['trial_start']
@@ -381,8 +392,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             o2 = self.get_output('output_2')
             with o1.engine.lock:
                 ts = self.get_ts()
-                o1.stop_waveform(ts + 0.1)
-                o2.stop_waveform(ts + 0.1)
+                #o1.stop_waveform(ts + 0.1)
+                #o2.stop_waveform(ts + 0.1)
             self.advance_state('to', ts)
             self.trial_state = getattr(NAFCTrialState, f'waiting_for_to')
             self.invoke_actions(f'to_start', ts)

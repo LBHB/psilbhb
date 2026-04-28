@@ -11,7 +11,7 @@ from psi.context.api import (
     ContextGroup, Parameter, Result
 )
 from psi.controller.api import (
-    ContinuousInput, ContinuousOutput, ControllerManifest, RampedEpochOutput,
+    ContinuousInput, ContinuousOutput, ControllerManifest, WaveformOutput,
     ExperimentAction, ExperimentEvent, ExperimentState, TimedTrigger
 )
 from psi.experiment.api import StatusItem
@@ -106,20 +106,6 @@ enamldef PassiveManifest(ControllerManifest): manifest:
             name = 'trial_ready'
 
         ExperimentAction:
-            # This schedules a TTL pulse to be sent via the channel linked to
-            # the sync_trigger output. The TTL pulse will start at the exact
-            # same time as target_start and last for 0.5 sec. Whenever an
-            # ExperimentAction is triggered, kwargs will automatically include
-            # the event name (in this case, "target_start") and the timestamp
-            # the event occurred (this is how the sync_trigger.trigger command
-            # knows when to schedule the trigger to begin). If the event was
-            # hardware-timed, then the timestamp will be accurate down to the
-            # sample).
-            event = 'output_1_start'
-            command = 'sync_trigger.trigger'
-            kwargs = {'duration': 0.5}
-
-        ExperimentAction:
             #event = 'engines_configured'
             event = 'engines_started'
             command = 'psi.controller.prepare_trial'
@@ -153,7 +139,7 @@ enamldef PassiveManifest(ControllerManifest): manifest:
                 target_name = f'hw_ao::speaker_{loop_item+1}'
                 configurable = False
 
-            RampedEpochOutput:
+            WaveformOutput:
                 name = f'output_{loop_item+1}'
                 label = f'Output {loop_item+1}'
                 target_name = manifest.output_template.format(loop_item + 1)
