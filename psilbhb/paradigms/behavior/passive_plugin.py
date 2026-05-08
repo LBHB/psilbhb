@@ -3,7 +3,7 @@ log = logging.getLogger(__name__)
 
 import enum
 
-from atom.api import Bool, Dict, Int, Str, Typed
+from atom.api import Bool, Dict, Int, List, Str, Typed
 from enaml.application import timed_call
 from enaml.core.api import d_
 import numpy as np
@@ -55,7 +55,7 @@ class PassivePlugin(BaseBehaviorPlugin):
 
     wavset = Typed(WavSet)
     continuous_wavset = Typed(WavSet)
-    waveforms = Dict(Typed(EpochWaveform))
+    waveforms = List(Typed(EpochWaveform))
 
     def _default_rng(self):
         return np.random.RandomState()
@@ -78,7 +78,7 @@ class PassivePlugin(BaseBehaviorPlugin):
     def prepare_trial(self):
         self.start_trial()
 
-    def start_trial(self, delay=0.5):
+    def start_trial(self, delay=0.3):
         # Figure out next trial and set up selector.
         log.info(f'Starting next trial ts={self.get_ts()}')
         self.trial += 1
@@ -100,9 +100,13 @@ class PassivePlugin(BaseBehaviorPlugin):
             ramp = None
 
         with o1.engine.lock:
+            ts = self.get_ts()
             log.error(f'set waveform {w.shape} with ramp {ramp}')
-            w1 = o1.add_waveform(w[0], ramp_time=ramp)
-            w2 = o2.add_waveform(w[1], ramp_time=ramp)
+            w1 = o1.add_waveform(w[0], ramp_time=ramp, requested_ts=ts + delay,
+                                 allow_belated=True)
+            w2 = o2.add_waveform(w[1], ramp_time=ramp, requested_ts=ts + delay,
+                                 allow_belated=True)
+            st.trigger(ts + delay, 0.05)
             self.waveforms = [w1, w2]
 
         trial_duration = w.shape[-1] / o1.fs
@@ -110,12 +114,6 @@ class PassivePlugin(BaseBehaviorPlugin):
         # Now trigger any callbacks that are listening for the trial_ready
         # event.
         self.invoke_actions('trial_ready')
-
-        with o1.engine.lock:
-            ts = self.get_ts()
-            self.waveforms[0].start(ts + delay, allow_belated=True)
-            self.waveforms[1].start(ts + delay, allow_belated=True)
-            st.trigger(ts + delay, 0.05)
 
         self.trial_info = {
             'trial_number': self.trial,
@@ -134,6 +132,8 @@ class PassivePlugin(BaseBehaviorPlugin):
         ts = self.get_ts()
         actual_ts = [w.actual_ts for w in self.waveforms]
         log.error('Timestamps %r', actual_ts)
+        if actual_ts[0] is None:
+            raise ValueError("Wavform not played")
         for ts in actual_ts[1:]:
             if ts != actual_ts[0]:
                 log.error('Timestamps %r', actual_ts)
