@@ -357,11 +357,14 @@ class BehaviorPlugin(BaseBehaviorPlugin):
         self.stop_event_timer()
         ts = self.get_ts()
         actual_ts = [w.actual_ts for w in self.waveforms]
-        for ts in actual_ts[1:]:
-            if ts != actual_ts[0]:
-                log.error('Timestamps %r', actual_ts)
-                raise ValueError("Timestamps don't match for stim")
+        #for ts in actual_ts[1:]:
+        #    if ts != actual_ts[0]:
+        #        log.error('Timestamps %r', actual_ts)
+        #        raise ValueError("Timestamps don't match for stim")
+        # In case code is looking for `ts_stim` and not one of the other stim.
         self.trial_info['ts_stim'] = actual_ts[0]
+        self.trial_info['ts_stim_1'] = actual_ts[0]
+        self.trial_info['ts_stim_2'] = actual_ts[1]
 
         log.info(f'Ending trial with {response} scored as {score}')
 
@@ -391,9 +394,8 @@ class BehaviorPlugin(BaseBehaviorPlugin):
             o1 = self.get_output('output_1')
             o2 = self.get_output('output_2')
             with o1.engine.lock:
-                ts = self.get_ts()
-                #o1.stop_waveform(ts + 0.1)
-                #o2.stop_waveform(ts + 0.1)
+                self.waveforms[0].cancel()
+                self.waveforms[1].cancel()
             self.advance_state('to', ts)
             self.trial_state = getattr(NAFCTrialState, f'waiting_for_to')
             self.invoke_actions(f'to_start', ts)
