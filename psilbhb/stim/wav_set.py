@@ -3575,12 +3575,12 @@ class BinauralAM(WavSet):
         #
         # ref_range = self.reference_center
 
-        param_matrix = np.meshgrid(self.reference_center, self.probe_octaves, self.am_rate, self.modulation_depth, self.reference_level, self.probe_level, self.probe_delay)
+        param_matrix = np.meshgrid(np.array(self.reference_center).astype(float), self.probe_octaves, self.am_rate, self.modulation_depth, self.reference_level, self.probe_level, self.probe_delay)
 
         ref, probe_oct, am_rate, mod_depth, ref_level, prb_level, prb_delay = [
             x.flatten() for x in param_matrix
         ]
-        probe = 2**(np.log2(ref) + probe_oct)
+        probe = np.round(2**(np.log2(ref) + probe_oct))
 
         # ref only trials, when probe SNR < -60dB
         ref_only = (prb_level==0)
@@ -3602,7 +3602,7 @@ class BinauralAM(WavSet):
             'prb_channel': 1-self.primary_channel,
         }
         stim = pd.DataFrame(data)
-
+        stim = stim.loc[(stim['ref_level']>0) | (stim['prb_level']>0)]
         if self.include_mono:
             d2 = stim.copy()
             d2['prb_channel'] = d2['ref_channel']
