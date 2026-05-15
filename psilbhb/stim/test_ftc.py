@@ -9,7 +9,8 @@ from nems0.analysis.gammatone.gtgram import gtgram, chunked_gtgram
 pd.set_option('display.width',160)
 
 params = RandomTone.default_values()
-params.update(primary_channel=1, reference_frequency=2000, switch_channels=False, random_seed=4234)
+params.update(primary_channel=1, reference_frequency=2000, switch_channels=False,
+              random_seed=4234, fs=20e6/200)
 
 bt = RandomTone(**params)
 bt.update()  # not necessary but illustrative of back-end processing
@@ -35,7 +36,8 @@ for trial_idx, a in enumerate(ax):
 
 
 params = BandpassNoise.default_values()
-params.update(primary_channel=0, center=2000, switch_channels=True, random_seed=4234)
+params.update(primary_channel=0, center=2000, switch_channels=True,
+              random_seed=4234, fs=20e6/200)
 
 bn = BandpassNoise(**params)
 bn.update()  # not necessary but illustrative of back-end processing
