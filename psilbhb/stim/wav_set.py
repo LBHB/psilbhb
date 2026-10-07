@@ -1505,9 +1505,18 @@ class FgBgSet(WavSet):
                 d[f'dispense_2_duration'] = self.reward_durations[fg_i]
                 d[f'dispense_1_duration'] = self.reward_durations[bg_i]
 
-        elif fg_i < len(self.reward_durations):
+        else:
+            #elif fg_i < len(self.reward_durations):
             # Override dispense durations
-            d[f'dispense_duration'] = self.reward_durations[fg_i]
+            try:
+                if len(self.reward_durations)>fg_i:
+                    d[f'dispense_duration'] = self.reward_durations[fg_i]
+                else:
+                    d[f'dispense_duration'] = self.reward_durations[0]
+
+            except:
+                d[f'dispense_duration'] = self.reward_durations[0]
+
             d[f'dispense_1_duration'] = -1
             d[f'dispense_2_duration'] = -1
 
