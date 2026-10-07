@@ -1176,6 +1176,7 @@ class FgBgSet(WavSet):
         if iprb.sum()>0:
             fg_names = stim.loc[iprb,'fg_index'].apply(lambda x: self.FgSet.names[x].replace('.wav',''))
             prb_names = stim.loc[iprb,'bg_index'].apply(lambda x: self.PrbBgSet.names[x])
+            # remove preceding NN index (like 00stim.wav -> stim.wav)
             fg_names = fg_names.str.replace(r'^\d+_', '', regex=True)
             prb_names = prb_names.str.replace(r'^\d+_', '', regex=True)
 
