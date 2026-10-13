@@ -91,3 +91,6 @@ celldblauncher.json
 !*/config/psi/preferences/*/default.preferences
 
 
+
+# joblib cache
+cachedir/
