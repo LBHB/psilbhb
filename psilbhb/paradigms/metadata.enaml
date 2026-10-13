@@ -7,12 +7,52 @@ from psi import get_config
 from psi.core.enaml.api import ExperimentManifest
 from psi.experiment.api import MetadataItem
 
+from psilbhb.util.celldb import celldb, readpsievents
 
 def pre_celldb(event):
+    """
+    Create celldb.gDataRaw entry for this run
+    Pull metadata from psi config and env variables set by the psilbhb launcher
+    (use PSILBHB prefix)
+    """
     workbench = event.workbench
     plugin = workbench.get_plugin('psi.controller')
+
+    ### COPIED/REFACTORED FROM launcher.py
+
     # Get info from env vars as needed
-    # os.environ.get(var_name, 'UNKNOWN')
+    training = os.environ.get('PSILBHB_TRAINING', 'Yes')
+    siteid = os.environ.get('PSILBHB_SITEID', 'Yes')
+    runnumber = int(os.environ.get('PSILBHB_RUNNUMBER', '0'))
+    note = int(os.environ.get('PSILBHB_NOTE', ''))
+
+    oeroot = get_config('OPENEPHYS_ROOT')
+    #oeroot2 = get_config('OPENEPHYS_ROOT')
+
+    # TODO : figure out how to reach current WavSet instance
+    # runclass = current_wav_set.runclass
+
+    if training == 'Yes':
+        behavior = 'active'
+        ephys = False
+        dataroot = get_config('DATA_ROOT')
+        #dataroot = get_config('TRAINING_ROOT')
+    elif training == 'Physiology+behavior':
+        behavior = 'active'
+        ephys = True
+        dataroot = get_config('DATA_ROOT')
+    else:
+        behavior = 'passive'
+        ephys = True
+        dataroot = get_config('DATA_ROOT')
+
+    db = celldb()
+    rawdata = db.create_rawfile(
+        siteid=siteid, runclass=runclass, filenum=runnumber,
+        behavior=behavior, note=note, pupil=True, psi_format=True,
+        dataroot=dataroot, rawroot=oeroot)
+    log.info('Created raw data entry')
+
 
 def post_celldb(event):
     workbench = event.workbench
@@ -21,10 +61,53 @@ def post_celldb(event):
     # This should hopefully work ...
     trial_log = data_plugin.find_sink('trial_log')
 
+    ### COPIED FROM launcher.py
+    # references to "self" are for properties of the CellDbLauncher class
+    """
     # How to set up db connection?
+    db = celldb()
+
+    # need to define siteid
+    rawdata = db.get_rawdata(siteid=siteid)
+
+    print('returned from subprocess')
+    print(f'psipath: {psipath}')
+    print(rawdata)
+
+    # save global parameters
+    filename = psipath + "globalparams.json"
+    print(f"params file: {filename}")
+
+    save_parms = ['experimenter','animal','training','runclass','base_folder','io']
+    d = {k: str(getattr(self, k)) for k in save_parms}
+    for k in rawdata.keys():
+        d[k] = str(rawdata[k])
+
+    config_parms = ['DATA_ROOT','OPENEPHYS_ROOT','CACHE_ROOT',
+                    'TRAINING_ROOT','VIDEO_ROOT',
+                    'PREFERENCES_ROOT','LAYOUT_ROOT',
+                    'OPENEPHYS_URI',
+                    'MYSQL_HOST','MYSQL_DB']
+    for k in config_parms:
+        d[k] = str(get_config(k))
+
+    with open(filename, 'w') as file:
+        file.write(json.dumps(d))
+
+    d, dataparm, dataperf = readpsievents(psipath, rawdata['runclass'])
+    dataparm['audio'] = self.audio
+    dataparm['io'] = self.io
+    #if 'runclass' in d.keys():
+    #    rawdata['runclass'] = d['runclass']
+    db.sqlupdate('gDataRaw', rawdata['rawid'], d=d, idfield='id')
+    db.save_data(rawdata['rawid'], dataparm, parmtype=0, keep_existing=False)
+    db.save_data(rawdata['rawid'], dataperf, parmtype=1, keep_existing=False)
+
+    plot_behavior(rawdata['rawid'])
+    """
 
 
-enamldef CellDbMetdata(ExperimentManifest): manifest:
+enamldef CellDbMetadata(ExperimentManifest): manifest:
 
     Extension:
         id = 'psilbhb.commands'
@@ -63,6 +146,10 @@ enamldef CellDbMetdata(ExperimentManifest): manifest:
             value = os.environ.get(self.name, 'UNKNOWN')
 
         MetadataItem:
+            name = 'PSILBHB_SITEID'
+            value = os.environ.get(self.name, 'UNKNOWN')
+
+        MetadataItem:
             name = 'PSILBHB_TRAINING'
             value = os.environ.get(self.name, 'UNKNOWN')
 
@@ -71,11 +158,19 @@ enamldef CellDbMetdata(ExperimentManifest): manifest:
             value = os.environ.get(self.name, 'UNKNOWN')
 
         MetadataItem:
+            name = 'PSILBHB_RUNNUMBER'
+            value = os.environ.get(self.name, '0')
+
+        MetadataItem:
+            name = 'PSILBHB_NOTE'
+            value = os.environ.get(self.name, '')
+
+        MetadataItem:
             name = 'PSILBHB_BASE_FOLDER'
             value = os.environ.get(self.name, 'UNKNOWN')
 
         MetadataItem:
-            name = 'PSILBHB_iO'
+            name = 'PSILBHB_IO'
             value = os.environ.get(self.name, 'UNKNOWN')
 
         MetadataItem:
