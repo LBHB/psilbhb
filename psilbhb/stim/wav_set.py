@@ -2954,22 +2954,31 @@ class BinauralTone(WavSet):
         loghi = logref + self.probe_octaves
 
         frequency_range = np.round(2**np.linspace(loglo, loghi, self.probe_count))
+        # [AGENT EDIT START | agent: claude-opus-5-5 | user: svd | reason: accept scalar or list levels (RandomTone/BinauralTone defaults are scalar expressions) | date: 2026-10-13]
+        probe_level=list(np.atleast_1d(self.probe_level))
+        reference_level=list(np.atleast_1d(self.reference_level))
+        # [AGENT EDIT END]
 
-        w, x, y, z = np.meshgrid(frequency_range, frequency_range, self.probe_level, self.probe_delay)
-        ref = w.flatten()
-        probe = x.flatten()
-        level = y.flatten()
+        v, w, x, y, z = np.meshgrid(frequency_range, frequency_range, probe_level, reference_level, self.probe_delay)
+        ref = v.flatten()
+        probe = w.flatten()
+        prb_level = x.flatten()
+        ref_level = y.flatten()
         delay = z.flatten()
 
         # ref only trials, when probe SNR < -60dB
-        ref_only = (self.reference_level - level) > 60
+        # [AGENT EDIT START | agent: claude-opus-5-5 | user: svd | reason: prb_level is dB re ref, so test it directly (was ref_level - prb_level > 60, which flagged audible probes, e.g. -20 dB with a 50 dB ref, as ref-only); same criterion as _trial_waveform. Zero the delay too so ref-only rows dedupe across probe_delay | date: 2026-10-13]
+        ref_only = prb_level < -60
         probe[ref_only] = ref[ref_only]
+        delay[ref_only] = 0
+        # [AGENT EDIT END]
 
         data = {
             'name': "",
             'ref_frequency': ref,
+            'ref_level': ref_level,
             'prb_frequency': probe,
-            'prb_level': level,
+            'prb_level': prb_level,
             'prb_delay': delay,
             'duration': self.duration,
             'ref_channel': self.primary_channel,
@@ -2991,10 +3000,13 @@ class BinauralTone(WavSet):
         single_tone_only = (stim['prb_level'].max()<=-100)
         for i, r in stim.iterrows():
             if single_tone_only:
-                name = f"{r['ref_frequency']:.0f}:{r['ref_channel']}"
+                # [AGENT EDIT START | agent: claude-opus-5-5 | user: svd | reason: single-tone (RandomTone/FTC) names carry ref_level, same format as the BLT reference segment | date: 2026-10-13]
+                # <refhz>:<chan>:<reflevel dB>
+                name = f"{r['ref_frequency']:.0f}:{r['ref_channel']}:{r['ref_level']}"
+                # [AGENT EDIT END]
             else:
                 # <refhz>-<chan>:<prbhz>-<chan>:<prblevel dB>:<prbdelay ms>
-                name = f"{r['ref_frequency']:.0f}:{r['ref_channel']}+{r['prb_frequency']:.0f}:{r['prb_channel']}:{r['prb_level']}:{r['prb_delay']}"
+                name = f"{r['ref_frequency']:.0f}:{r['ref_channel']}:{r['ref_level']}+{r['prb_frequency']:.0f}:{r['prb_channel']}:{r['prb_level']}:{r['prb_delay']}"
             stim.loc[i, 'name'] = name
 
         stim=stim.reset_index()
@@ -3029,8 +3041,8 @@ class BinauralTone(WavSet):
         ref_channel = row['ref_channel']
         prb_channel = row['prb_channel']
 
-        ref_level = self.reference_level
-        prb_level = self.reference_level + row['prb_level']
+        ref_level = row['ref_level']
+        prb_level = ref_level + row['prb_level']
         wfg = generate_tone(row['duration'], row['ref_frequency'], ref_level,
                             fs=self.fs, ramp=self.ramp,
                             calibration=self.output_cal[ref_channel])
@@ -3066,7 +3078,9 @@ class BinauralTone(WavSet):
              'wav_set_idx': row['index'],
              'this_name': row['name'],
              'this_reference_frequency': row['ref_frequency'],
+             'this_ref_level': row['ref_level'],
              'this_probe_frequency': row['prb_frequency'],
+             'this_probe_level': row['prb_level'],
              'this_ref_channel': row['ref_channel'],
              'this_probe_channel': row['prb_channel'],
              'this_snr': row['prb_level'],
@@ -3306,8 +3320,10 @@ class RandomTone(BinauralTone):
     default_parameters = [
         {'name': 'reference_center', 'label': 'Reference frequency',
          'expression': '1000', 'dtype': 'object', 'scope': 'experiment'},
-        {'name': 'reference_level', 'label': 'Reference dB SPL',
-         'expression': '50', 'dtype': 'object', 'scope': 'experiment'},
+        # [AGENT EDIT START | agent: claude-opus-5-5 | user: svd | reason: reference_level may be a list -> stim_list tiles freq x ref_level; level Result reports this_ref_level (was this_snr, always -100 for FTC) | date: 2026-10-13]
+        {'name': 'reference_level', 'label': 'Reference dB SPL (list)',
+         'expression': '[50]', 'dtype': 'object', 'scope': 'experiment'},
+        # [AGENT EDIT END]
         {'name': 'probe_octaves', 'label': 'Tone octaves (above/below ref)',
          'expression': '[1]', 'dtype': 'object', 'scope': 'experiment'},
         {'name': 'probe_count', 'label': 'Tone count (tiled over octaves)',
@@ -3328,7 +3344,9 @@ class RandomTone(BinauralTone):
         {'name': 'this_name', 'label': 'N', 'type': 'Result'},
         {'name': 'this_reference_frequency', 'label': 'R', 'type': 'Result'},
         {'name': 'this_probe_frequency', 'label': 'P', 'type': 'Result'},
-        {'name': 'this_snr', 'label': 'level', 'type': 'Result'},
+        # [AGENT EDIT START | agent: claude-opus-5-5 | user: svd | reason: replace level Result this_snr with this_ref_level | date: 2026-10-13]
+        {'name': 'this_ref_level', 'label': 'level', 'type': 'Result'},
+        # [AGENT EDIT END]
         {'name': 'current_full_rep', 'label': 'rep', 'type': 'Result'},
     ] + WavSet.default_parameters.copy()
 
@@ -3471,12 +3489,14 @@ class BandpassNoise(WavSet):
             w = np.stack((w, np.zeros_like(w)), axis=1)
         else:
             w = np.stack((np.zeros_like(w), w), axis=1)
-        if self.ramp>0:
-            ramplen=int(self.ramp*self.fs)
+        # [AGENT EDIT START | agent: claude-opus-5-5 | user: svd | reason: ramp is in ms (WavSet parameter label, generate_tone); was read as seconds, so the default 10 gave a ramp longer than the waveform -> broadcast ValueError. Cap at half the waveform so on/off ramps can't overlap or exceed it | date: 2026-10-13]
+        ramplen = min(int(self.ramp * self.fs / 1000), w.shape[0] // 2)
+        if ramplen > 0:
             r = np.linspace(0,1,ramplen)
             w[:ramplen] *= r[:,np.newaxis]
             roff = np.linspace(1,0,ramplen)
             w[-ramplen:] *= roff[:,np.newaxis]
+        # [AGENT EDIT END]
 
         prebins, postbins = int(self.fs*self.pre_silence), int(self.fs*self.post_silence)
         wpre, wpost = np.zeros((prebins, 2)), np.zeros((postbins, 2))
