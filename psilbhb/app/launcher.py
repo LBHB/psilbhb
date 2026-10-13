@@ -252,6 +252,16 @@ class CellDbLauncher(Atom):
 
     # overload from SimpleLauncher so we can save info to celldb
     def launch_subprocess(self):
+
+        # moved this up from other psi stuff so that OE check will happen before
+        # celldb is advanced.
+        plugins = [p.id for p in self.experiment.plugins if p.selected]
+        if ephys & ('openephys' not in plugins):
+            log.error('Need to turn on openephy plugin!!!')
+            #plugins.append('openephys')
+            return
+
+        # TODO Move to metadata.enaml for processing by psi
         if self.training == 'Yes':
             behavior = 'active'
             ephys=False
@@ -266,16 +276,8 @@ class CellDbLauncher(Atom):
             ephys=True
             dataroot = get_config('DATA_ROOT')
 
-        # moved this up from other psi stuff so that OE check will happen before
-        # celldb is advanced.
-        plugins = [p.id for p in self.experiment.plugins if p.selected]
-        if ephys & ('openephys' not in plugins):
-            log.error('Need to turn on openephy plugin!!!')
-            #plugins.append('openephys')
-            return
-
         oeroot = get_config('OPENEPHYS_ROOT')
-        oeroot2 = get_config('OPENEPHYS_ROOT2')
+        #oeroot2 = get_config('OPENEPHYS_ROOT2')
 
         rawdata = self.db.create_rawfile(siteid=self.siteid, runclass=self.runclass,
                                filenum=int(self.runnumber), behavior=behavior,
@@ -294,8 +296,21 @@ class CellDbLauncher(Atom):
         except OSError as error:
             print(error)
 
-        args = ['psi', self.experiment.name]
+        ## Pass user settings to psi via environment variables.
+        # 1. Copy the existing environment
+        my_env = os.environ.copy()
 
+        # TODO: add variables with PSILBHB_ prefix, corresponding to those
+        # in metadata.enaml
+        save_parms = ['experimenter', 'animal', 'training', 'runclass',
+                      'siteid', 'runnumber', 'note', 'base_folder', 'io']
+        for k in save_parms:
+            my_env[f"PSILBHB_{k.upper()}"] = str(getattr(self, k))
+
+        # 3. Pass the custom environment to check_output
+        #output = subprocess.check_output(["echo", "$MY_VAR"], env=my_env, shell=True)
+
+        args = ['psi', self.experiment.name]
 
         if self.save_data:
             args.append(str(self.base_folder))
@@ -314,6 +329,7 @@ class CellDbLauncher(Atom):
         log.info('Launching subprocess: %s', ' '.join(args))
         print(' '.join(args))
         subprocess.check_output(args)
+        #subprocess.check_output(args, env=my_env)
 
         try:
             print('returned from subprocess')

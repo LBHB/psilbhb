@@ -14,7 +14,7 @@ plt.ion()
 
 params = BinauralAM.default_values()
 params.update(primary_channel=0, switch_channels=False, random_seed=4234,
-              reference_level=[55], modulation_depth=[0, 10, 20], probe_level=[0, 55], probe_delay=[0], include_mono=True,
+              reference_level=[0, 55], modulation_depth=[0, 10, 20], probe_level=[0, 55], probe_delay=[0], include_mono=True,
               reference_center=[1000,1500], probe_octaves=[-1,-0.5, -0.2, -0.1, 0, 0.1, 0.2, 0.5, 1],
               fs=20e6 / 200)
 
