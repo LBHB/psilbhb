@@ -497,7 +497,7 @@ class MCWavFileSet(WavFileSet):
         '''
         all_wav = list(sorted(Path(path).glob('*.wav')))
 
-        # force Windows (case-insensitive) sorting
+        # force old Windows (case-insensitive) sorting
         filelist = pd.DataFrame({'file': all_wav})
         filelist['lfile']=filelist['file'].apply(lambda x: str(x).lower())
         filelist=filelist.sort_values(by='lfile').reset_index()

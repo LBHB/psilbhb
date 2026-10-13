@@ -32,9 +32,14 @@ def readlogs(logpath=None, rawid=None, c=None):
             logpath = logpath.replace('/auto/data/daq', 'h:/daq')
     eventlogfile = os.path.join(logpath, 'event_log.csv')
     triallogfile = os.path.join(logpath, 'trial_log.csv')
-    df_trial = pd.read_csv(triallogfile)
-    df_event = pd.read_csv(eventlogfile)
+    if os.path.exists(triallogfile):
+        df_trial = pd.read_csv(triallogfile)
+        df_event = pd.read_csv(eventlogfile)
+    else:
+        df_trial, df_event = None, None
+        log.info(f"psi trial log file not found: {triallogfile}")
     return df_trial, df_event
+
 
 
 def readpsievents(logpath=None, runclass=None, rawid=None, c=None):
