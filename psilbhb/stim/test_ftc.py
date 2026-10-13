@@ -4,13 +4,13 @@ import os
 import pandas as pd
 
 from psilbhb.stim.wav_set import BinauralTone, RandomTone, BandpassNoise
-from nems0.analysis.gammatone.gtgram import gtgram, chunked_gtgram
+from nems.preprocessing.spectrogram.gammatone import gtgram, chunked_gtgram
 
 pd.set_option('display.width',160)
 
 params = RandomTone.default_values()
 params.update(primary_channel=1, reference_frequency=2000, switch_channels=False,
-              random_seed=4234, fs=20e6/200)
+              random_seed=4234, fs=20e6/200, reference_level=[30,40,50])
 
 bt = RandomTone(**params)
 bt.update()  # not necessary but illustrative of back-end processing

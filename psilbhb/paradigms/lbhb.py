@@ -318,6 +318,14 @@ ParadigmDescription(
 )
 
 ParadigmDescription(
+    'FRA', '(FRA) Frequency response area',
+    'animal', COMMON_PLUGINS + [
+        {'manifest': PATH + 'passive.PassiveManifest',},
+        {'manifest': PATH + 'wav_set_manifest.WavSetManifest', 'required': True, 'attrs': {'stim_class_name': 'RandomTone'}},
+    ],
+)
+
+ParadigmDescription(
     'BNB', '(BNB) Bandpass noise burst',
     'animal', COMMON_PLUGINS + [
         {'manifest': PATH + 'passive.PassiveManifest',},
