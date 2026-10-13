@@ -255,26 +255,27 @@ class CellDbLauncher(Atom):
 
         # moved this up from other psi stuff so that OE check will happen before
         # celldb is advanced.
+        # TODO Move to metadata.enaml for processing by psi
+        if self.training == 'Yes':
+            behavior = 'active'
+            ephys = False
+            dataroot = get_config('DATA_ROOT')
+            # dataroot = get_config('TRAINING_ROOT')
+        elif self.training == 'Physiology+behavior':
+            behavior = 'active'
+            ephys = True
+            dataroot = get_config('DATA_ROOT')
+        else:
+            behavior = 'passive'
+            ephys = True
+            dataroot = get_config('DATA_ROOT')
+
         plugins = [p.id for p in self.experiment.plugins if p.selected]
         if ephys & ('openephys' not in plugins):
             log.error('Need to turn on openephy plugin!!!')
             #plugins.append('openephys')
             return
 
-        # TODO Move to metadata.enaml for processing by psi
-        if self.training == 'Yes':
-            behavior = 'active'
-            ephys=False
-            dataroot = get_config('DATA_ROOT')
-            #dataroot = get_config('TRAINING_ROOT')
-        elif self.training == 'Physiology+behavior':
-            behavior = 'active'
-            ephys=True
-            dataroot = get_config('DATA_ROOT')
-        else:
-            behavior = 'passive'
-            ephys=True
-            dataroot = get_config('DATA_ROOT')
 
         oeroot = get_config('OPENEPHYS_ROOT')
         #oeroot2 = get_config('OPENEPHYS_ROOT2')
