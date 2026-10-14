@@ -22,6 +22,9 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[project.optional-dependencies]
+test = ["pytest"]
+
 [project.scripts]
 psi-celldb = "psilbhb.app.launcher:main_db"
 
@@ -35,3 +38,8 @@ write_to = "psilbhb/version.py"
 
 [tool.setuptools.packages.find]
 include = ["psilbhb*"]
+
+[tool.pytest.ini_options]
+# Limit collection to tests/. The psilbhb/stim/test_*.py files are manual
+# scripts that need the rig sound libraries and would fail if collected.
+testpaths = ["tests"]
