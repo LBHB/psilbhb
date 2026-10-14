@@ -21,7 +21,6 @@ from psi import get_config
 from pathlib import Path
 from joblib import Memory
 
-from fractions import Fraction
 from copy import deepcopy
 import os
 import glob
@@ -970,7 +969,7 @@ class FgBgSet(WavSet):
         {'name': 'contra_n', 'label': 'Contra BG portion (int)', 'default': 1, 'dtype': 'int'},
         {'name': 'diotic_n', 'label': 'Diotic BG portion (int)', 'default': 0, 'dtype': 'int'},
         {'name': 'ipsi_n', 'label': 'Ipsi BG portion (int)', 'default': 0, 'dtype': 'int'},
-        {'name': 'prb_f', 'label': 'Regular to probe ratio', 'default': -1, 'dtype': 'int'},
+        {'name': 'prb_f', 'label': 'Probe fraction', 'default': -1, 'dtype': 'int'},
 
         {'name': 'migrate_fraction', 'label': 'Percent migrate trials', 'default': '0', 'type': 'EnumParameter',
          'choices': {'0': 0.0, '25': 0.25, '50': 0.5}, 'group_name': 'Results'},
@@ -988,8 +987,9 @@ class FgBgSet(WavSet):
          'group_name': 'Results'},
 
         {'name': 'response_window', 'label': 'Response start,stop (s)', 'expression': '(0, 1)', 'group_name': 'Results'},
-        {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 'all', 'type': 'EnumParameter',
-         'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}, 'group_name': 'Results'},
+        # {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 'all', 'type': 'EnumParameter',
+        #  'choices': {'all': 1.0, 'random 50%': 0.5, 'never': 0.0}, 'group_name': 'Results'},
+        {'name': 'reward_ambiguous_frac', 'label': 'Frac. reward ambiguous', 'default': 0.5, 'dtype': 'float', 'group_name': 'Results'},
         {'name': 'reward_durations', 'label': 'FG reward durations', 'expression': '()', 'group_name': 'Results'},
 
         {'name': 'fg_channel', 'label': 'FG chan', 'type': 'Result', 'group_name': 'Results'},
@@ -1190,11 +1190,17 @@ class FgBgSet(WavSet):
         log.info('****************************')
         log.info('****************************')
 
-        # TODO - remove invalid Probe trials -- is this still a TODO?
+        # Remove invalid Probe trials
+        # This is to avoid playing matched Fg and Probe
+        # TODO: Does this work with variable SNRs
         iprb = stim['fg_go'] == -3
         if iprb.sum()>0:
             fg_names = stim.loc[iprb,'fg_index'].apply(lambda x: self.FgSet.names[x].replace('.wav',''))
             prb_names = stim.loc[iprb,'bg_index'].apply(lambda x: self.PrbBgSet.names[x])
+            # remove preceding NN index (like 00stim.wav -> stim.wav)
+            fg_names = fg_names.str.replace(r'^\d+_', '', regex=True)
+            prb_names = prb_names.str.replace(r'^\d+_', '', regex=True)
+
             invalid_row = [fg_names.index[i] for i in range(len(fg_names)) if fg_names.iloc[i] in prb_names.iloc[i]]
             stim = stim.drop(index=invalid_row)
 
@@ -1255,17 +1261,33 @@ class FgBgSet(WavSet):
         # 2. After that, make sure regular to probe ratio matches prb_f
         iprb = stim['fg_go'] == -3
         if iprb.sum()>0:
-            max_fg_to_bg_snr = 5
+            # remove invalid matches
+            max_abs_fg_to_bg_snr = 4
             stim = stim[(stim['fg_go'] != -3) |
-                        ((stim['fg_go'] == -3) & ((stim['fg_level'] - stim['bg_level']) < max_fg_to_bg_snr))]
+                        ((stim['fg_go'] == -3) & (np.abs(stim['fg_level'] - stim['bg_level']) < max_abs_fg_to_bg_snr))]
 
+            # adjust relative frequency of reglar vs. probe.
             iregular = stim['fg_go'] != -3
             iprb = stim['fg_go'] == -3
 
             stim_regular = stim.loc[iregular]
             stim_prb = stim.loc[iprb]
-            n_reg_reps = int(self.prb_f * len(stim_prb) / len(stim_prb))
-            stim = pd.concat([pd.concat([stim_regular] * n_reg_reps), stim_prb], ignore_index=True)
+
+            # let's use the following notations:
+            # R, P = number of regular and probe trials
+            # r, p = how many times we need to repeat the trials such that
+            R, P = len(stim_regular), len(stim_prb)
+
+            # f = pP/(rR+pP) => p/r = Rf/[P(1-f)]
+            target_ratio = (R * self.prb_f) / (P * (1 - self.prb_f))
+            frac_res = Fraction(target_ratio).limit_denominator(100)
+            p, r = frac_res.numerator, frac_res.denominator
+
+            # n_reg_reps = int(np.ceil((1/self.prb_f-1) * len(stim_prb) / len(stim_regular)))
+            # n_reg_reps = 1
+            print(f"************\nr={r}, p={p}")
+            stim = pd.concat([pd.concat([stim_regular] * r), pd.concat([stim_prb] * p)],
+                             ignore_index=True)
 
         # check if any stims are labeled catch, and set fg_go accordingly:
         for b in set(stim.loc[(stim['fg_go']==1),'bg_index'].values):
@@ -1327,7 +1349,14 @@ class FgBgSet(WavSet):
             new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
             while (dd > 3) & (ii < 10) & (len(self.stim_list) > 3):
                 new_trial_wav = _rng.permutation(np.arange(total_wav_set, dtype=int))
-                dd = np.argwhere(np.diff(self.stim_list.loc[new_trial_wav, 'fg_channel'])!=0).min()
+                log.error(self.stim_list)
+                log.error(self.stim_list.loc[new_trial_wav]['fg_channel'])
+                # Bug when switch FG channel is unchecked. When starting, fg_channel column is all 0, so diff returns nothing.
+                if (self.stim_list.loc[new_trial_wav, 'fg_channel']>0).sum()==0:
+                    dd=0
+                else:
+                    dd = np.argwhere(np.diff(self.stim_list.loc[new_trial_wav, 'fg_channel'])!=0).min()
+
                 ii += 1
             if self.spatial_attention_block>0:
                 new_trial_wav = new_trial_wav[np.argsort(self.stim_list.loc[new_trial_wav,'SA'].values)]
@@ -1350,6 +1379,7 @@ class FgBgSet(WavSet):
             # choice trial, FgSet for both channels
             wbg = self.FgSet.waveform(row['bg_index'])
         elif row['fg_go'] == -3:
+            # use bg_index to index into Probe Set
             wbg = self.PrbBgSet.waveform(row['bg_index'])
         else:
             wbg = self.BgSet.waveform(row['bg_index'])
@@ -1413,11 +1443,13 @@ class FgBgSet(WavSet):
 
         is_go_trial = row['fg_go']
         if is_go_trial == -2:
-            # choice trial - 2 fgs with different reward
+            # choice trial - 2 fgs with different reward. Jonah choice trial?
             response_condition = -1
 
-        elif is_go_trial == -1:
-            # -1 means either port
+        elif is_go_trial in [-1, -3]:
+            # -1 = BG only trial
+            # -3 = probe + FG trial
+            # reward condition (all, random, none) determined by reward_ambiguous_frac
             if (self.reward_ambiguous_frac==0.5):
                 response_condition = int(np.ceil(np.random.uniform(0, 2)))
             elif (self.reward_ambiguous_frac==0):
@@ -1425,14 +1457,14 @@ class FgBgSet(WavSet):
             else:
                 response_condition = -1
 
-        elif is_go_trial == -3:
-            # -3 means either port, for probe trials
-            if (self.reward_ambiguous_frac==0.5):
-                response_condition = int(np.ceil(np.random.uniform(0, 2)))
-            elif (self.reward_ambiguous_frac==0):
-                response_condition = 0
-            else:
-                response_condition = -1
+        # elif is_go_trial == -3:
+        #     # -3 means either port, for probe trials
+        #     if (self.reward_ambiguous_frac==0.5):
+        #         response_condition = int(np.ceil(np.random.uniform(0, 2)))
+        #     elif (self.reward_ambiguous_frac==0):
+        #         response_condition = 0
+        #     else:
+        #         response_condition = -1
 
         elif is_go_trial==1:
             # 1=spout 1, 2=spout 2
