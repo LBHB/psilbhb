@@ -1505,7 +1505,9 @@ class FgBgSet(WavSet):
                 d[f'dispense_2_duration'] = self.reward_durations[fg_i]
                 d[f'dispense_1_duration'] = self.reward_durations[bg_i]
 
-        else:
+        # [AGENT EDIT START | agent: claude-opus-5-5 | user: svd | reason: passive sessions save reward_durations=() so reward_durations[0] raised IndexError (broke nems_db loading of passive NFB files); skip the override when empty, as the old elif did | date: 2026-10-13]
+        elif len(self.reward_durations) > 0:
+        # [AGENT EDIT END]
             #elif fg_i < len(self.reward_durations):
             # Override dispense durations
             try:
