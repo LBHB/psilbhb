@@ -1,6 +1,6 @@
 # WavSet classes: parameters, stim_list, event names
 
-Line numbers refer to `psilbhb/stim/wav_set.py` as of 2026-10 and drift over time. Search for the class name.
+Line numbers refer to `src/psilbhb/stim/wav_set.py` as of 2026-10 and drift over time. Search for the class name.
 "Enums" lists the parameters whose `default_values()` result is a label string that must be
 overridden offline (see SKILL.md gotcha #1). `primary_channel` (`'0'`) is the exception:
 `WavSet.__init__` casts it to int.

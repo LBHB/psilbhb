@@ -1,9 +1,9 @@
 ---
 name: psilbhb-stimuli
-description: Use when working with psilbhb stimulus generation (psilbhb/stim/wav_set.py) - WavSet subclasses such as FgBgSet, BigNat, VowelSet, BinauralTone, AMDetect; MCWavFileSet/load_wav; generating or plotting trial waveforms outside psiexperiment; adding a new stimulus class or parameter; or matching psi event names, trial_log.csv columns, or runclass codes (NFB, NFC, BNT, BLT, AMD, VOW, ...) to the stimuli that played.
+description: Use when working with psilbhb stimulus generation (src/psilbhb/stim/wav_set.py) - WavSet subclasses such as FgBgSet, BigNat, VowelSet, BinauralTone, AMDetect; MCWavFileSet/load_wav; generating or plotting trial waveforms outside psiexperiment; adding a new stimulus class or parameter; or matching psi event names, trial_log.csv columns, or runclass codes (NFB, NFC, BNT, BLT, AMD, VOW, ...) to the stimuli that played.
 ---
 
-# psilbhb stimuli (`psilbhb/stim/wav_set.py`)
+# psilbhb stimuli (`src/psilbhb/stim/wav_set.py`)
 
 ## Overview
 

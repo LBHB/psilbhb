@@ -39,12 +39,13 @@ requires = ["setuptools>=61.2", "wheel", "setuptools_scm[toml]>=3.4.3"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools_scm]
-write_to = "psilbhb/version.py"
+write_to = "src/psilbhb/version.py"
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["psilbhb*"]
 
 [tool.pytest.ini_options]
-# Limit collection to tests/. The psilbhb/stim/test_*.py files are manual
+# Limit collection to tests/. The src/psilbhb/stim/test_*.py files are manual
 # scripts that need the rig sound libraries and would fail if collected.
 testpaths = ["tests"]
