@@ -1,7 +1,7 @@
 [project]
 name = "psilbhb"
 description = "Module for running LBHB experiments using psiexperiment framework"
-requires-python = ">=3.7"
+requires-python = ">=3.11"
 license = {file = "LICENSE.txt"}
 authors = [
     {name = "Brad Buran", email="buran@ohsu.edu"},
@@ -14,7 +14,7 @@ maintainers = [
 dependencies = [
 	"enaml[qt6-pyside]",
     "psiexperiment[ni,zarr]",
-    "psiopenephys",
+    "psiopenephys[psi]",
     "psivideo",
     "pymysql",
     "sqlalchemy",
@@ -27,6 +27,11 @@ test = ["pytest"]
 
 [project.scripts]
 psi-celldb = "psilbhb.app.launcher:main_db"
+
+[project.entry-points."psi.settings"]
+# Lets psi-config (and anything else built on psi) see this
+# package's settings without importing the package itself.
+psilbhb = "psilbhb.config_defaults:DEFAULTS"
 
 
 [build-system]

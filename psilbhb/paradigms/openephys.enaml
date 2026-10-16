@@ -1,162 +1,36 @@
 '''
 This file defines how experiments for LBHB communicate with OpenEphys. The
-OpenEphys client is provided by the psiopenephys package.
+plugin itself is psiopenephys's `OpenEphysManifest`; only what is specific to
+LBHB is here:
 
-Right now, the following behaviors are defined:
+* When an experiment starts, OpenEphys records to the experiment's data
+  folder moved from drive e: to d:, under raw/<date and time>.
+* Every trial_start and trial_end is sent to OpenEphys as a message
+  containing the timestamp and event name (e.g., "0.321 trial_start").
 
-* When an experiment starts, the folder to save data in will be sent to
-  OpenEphys and OpenEphys will switch to recording mode.
-* When an experiment ends, OpenEphys will switch to acquire mode.
-* Whenever an experiment event occurs, the experiment event will be formatted
-  as a message containing the timestamp and event name (e.g., "0.321
-  background_pause").
-
+The server is the PSIOPENEPHYS_URI setting.
 '''
-
-import logging
-log = logging.getLogger(__name__)
-
 import datetime as dt
-import threading
 from pathlib import Path
 
-from atom.api import Typed, Value
-from enaml.workbench.api import Extension, Plugin
-from enaml.workbench.core.api import Command
+from enaml.workbench.api import Extension
 
-from psi import get_config
-from psi.controller.api import ExperimentAction
-from psi.core.enaml.api import ExperimentManifest
-
-from psiopenephys.client import OpenEphysClient
+from psiopenephys.manifest import OpenEphysManifest
+from psiopenephys.plugin import OpenEphysTarget, TARGET_POINT
 
 
-OPENEPHYS_RUNNING_ERROR = '''Could not connect to OpenEphys. Is the program
-open? If you are not planning to record with OpenEphys, you need to deselect
-the OpenEphys plugin before starting the experiment.'''
+enamldef LBHBOpenEphysManifest(OpenEphysManifest): manifest:
 
-OPENEPHYS_CONFIG_ERROR = '''The config file needs configuration key, OPENEPHYS_URI, set to the OpenEphys hostname (or IP address) and port in the format {{IP ADDRESS}}:{{PORT}}. Valid examples include "localhost:37497", "tateril.ohsu.edu:37497" or "192.168.0.321:37497".''' +\
-   ''' Config file also needs OPENEPHYS_ROOT and OPENEPHYS_ROOT2, which are the path(s) on the HOST computer where data should be stored.'''+\
-   ''' OPENEPHYS_ROOT2 is used if two Neuropixels probes are being used (channel count > 384).'''
-
-try:
-    OPENEPHYS_URI = get_config('OPENEPHYS_URI')
-    OPENEPHYS_HOST, OPENEPHYS_PORT = OPENEPHYS_URI.split(':')
-    OPENEPHYS_ROOT = get_config('OPENEPHYS_ROOT')
-    OPENEPHYS_ROOT2 = get_config('OPENEPHYS_ROOT2')
-    DATA_ROOT = get_config('DATA_ROOT')
-except Exception:
-    raise KeyError(OPENEPHYS_CONFIG_ERROR)
-
-
-class OpenEphysPlugin(Plugin):
-    '''
-    This plugin is a thin wrapper around the OpenEphysClient provided by
-    psiopenephys.
-    '''
-    client = Typed(OpenEphysClient, {})
-    _thread = Value()
-
-    def _default_client(self):
-        return OpenEphysClient(OPENEPHYS_HOST, OPENEPHYS_PORT)
-
-    def start(self):
-        # The start method is automatically called when a plugin is first
-        # loaded. For example, you load a plugin when you call
-        # `workbench.get_plugin(plugin_id)`. 
-
-        # All we are doing here is checking to se if OpenEphys is open and the
-        # HTTP server running. It will return an error if unable to connect.
-        # This is an example of why we need a thin wrapper around the client
-        # rather than using the client directly (i.e., we can do some
-        # LBHB-specific checks and translate error messages into something more
-        # meaningful to a student in LBHB).
-        try:
-            status = self.client.status
-            log.info('Starting OpenEphys plugin. OpenEphys client status {status}.')
-        except Exception as e:
-            raise SystemError(OPENEPHYS_RUNNING_ERROR) from e
-
-    def start_recording(self):
-        self.client.record()
-
-    def stop_recording(self):
-        self.client.acquire()
-
-    def set_recording_filename(self, filename):
-        # TODO: set record node for second NP probe to use OPENEPHYS_ROOT2
-        self.client.set_recording_filename(filename)
-
-    def send_message(self, message):
-        self._thread = threading.Thread(
-            target=self.client.send_message,
-            args=(message,)
-        )
-        self._thread.start()
-
-
-def start_recording(event):
-    data = event.workbench.get_plugin('psi.data')
-    plugin = event.workbench.get_plugin('openephys')
-
-    # Once we have the correct filename conventions in place, we can start
-    # using this.
-    dt_str = dt.datetime.now().strftime('%Y-%m-%d_%H_%M_%S')
-    #base_path = Path(str(data.base_path).replace(str(DATA_ROOT), str(OPENEPHYS_ROOT)))
-    base_path = Path(str(data.base_path).replace('e:','d:'))
-
-    plugin.set_recording_filename(base_path / 'raw' / dt_str)
-    plugin.start_recording()
-
-
-def stop_recording(event):
-    plugin = event.workbench.get_plugin('openephys')
-    plugin.stop_recording()
-
-
-def log_experiment_event(event):
-    plugin = event.workbench.get_plugin('openephys')
-    #data = event.parameters['data']
-    try:
-        mesg = f'{event.parameters["timestamp"]:f} {event.parameters["event"]}'
-        plugin.send_message(mesg)
-    except Exception as e:
-        log.error(f'{event.parameters}')
-        log.exception(e)
-
-
-enamldef OpenEphysManifest(ExperimentManifest): manifest:
-
-    id = 'openephys'
-    title = 'Open Ephys'
-
-    factory = OpenEphysPlugin
+    message_events = ['trial_start', 'trial_end']
+    default_target = False
 
     Extension:
-        id = manifest.id + '.commands'
-        point = 'enaml.workbench.core.commands'
-        Command:
-            id = manifest.id + '.start_recording'
-            handler = start_recording
-        Command:
-            id = manifest.id + '.stop_recording'
-            handler = stop_recording
-        Command:
-            id = manifest.id + '.log_experiment_event'
-            handler = log_experiment_event
-
-    Extension:
-        id = manifest.id + '.actions'
-        point = 'psi.controller.actions'
-        ExperimentAction:
-            event = 'experiment_prepare'
-            command = manifest.id + '.start_recording'
-        ExperimentAction:
-            event = 'experiment_end'
-            command = manifest.id + '.stop_recording'
-        ExperimentAction:
-            event = 'trial_start'
-            command = manifest.id + '.log_experiment_event'
-        ExperimentAction:
-            event = 'trial_end'
-            command = manifest.id + '.log_experiment_event'
+        id = manifest.id + '.lbhb_target'
+        point = TARGET_POINT
+        OpenEphysTarget:
+            name = 'lbhb'
+            recording_path => (base_path):
+                # TODO: set record node for second NP probe to use
+                # PSILBHB_OPENEPHYS_ROOT2
+                dt_str = dt.datetime.now().strftime('%Y-%m-%d_%H_%M_%S')
+                return Path(str(base_path).replace('e:', 'd:')) / 'raw' / dt_str

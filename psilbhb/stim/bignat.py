@@ -17,7 +17,7 @@ from psi import get_config
 import logging
 log = logging.getLogger(__name__)
 
-memory = Memory(get_config('CACHE_ROOT'))
+memory = Memory(get_config('PSILBHB_CACHE_ROOT'))
 
 
 class NatWavFileFactory(FixedWaveform):

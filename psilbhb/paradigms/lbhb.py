@@ -55,7 +55,7 @@ COMMON_PLUGINS = [
          'port': 33335,
          'filename': 'video_pupil.avi',
      }},
-    {'manifest': 'psilbhb.paradigms.openephys.OpenEphysManifest'},
+    {'manifest': 'psilbhb.paradigms.openephys.LBHBOpenEphysManifest'},
     {'manifest': PATH + 'behavior_mixins.SignalFFTViewManifest',
      'attrs': {
          'fft_time_span': 1,

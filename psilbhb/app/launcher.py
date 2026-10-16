@@ -19,17 +19,54 @@ with enaml.imports():
     from enaml.stdlib.message_box import critical
     from psilbhb.app.launcher_view import LauncherView
 
-from psi import get_config
+from psi import get_config, save_config
 from psi.util import get_tagged_values
-from psi.application import (get_default_io, list_io,
-                             list_preferences, load_paradigm_descriptions)
+from psi.application import get_default_io, list_io, list_preferences
 
 from psi.experiment.api import ParadigmDescription, paradigm_manager
 
+from psilbhb.config_defaults import recorded_settings
 from psilbhb.util.celldb import celldb, readpsievents
 from psilbhb.util.plots import plot_behavior
 
 plt.ion()
+
+
+#: Name each setting had before psiexperiment's configuration rework, for
+#: the settings that globalparams.json carried then. Each is saved under
+#: both names so analyses still looking up the old key keep working.
+NEW_OLD = {
+    'PSI_DATA_ROOT': 'DATA_ROOT',
+    'PSILBHB_OPENEPHYS_ROOT': 'OPENEPHYS_ROOT',
+    'PSILBHB_CACHE_ROOT': 'CACHE_ROOT',
+    'PSILBHB_TRAINING_ROOT': 'TRAINING_ROOT',
+    'PSILBHB_VIDEO_ROOT': 'VIDEO_ROOT',
+    'PSIOPENEPHYS_URI': 'OPENEPHYS_URI',
+    'PSILBHB_MYSQL_HOST': 'MYSQL_HOST',
+    'PSILBHB_MYSQL_DB': 'MYSQL_DB',
+}
+
+
+#: Launcher fields remembered between sessions, each as the setting
+#: PSILBHB_LAUNCHER_<FIELD>.
+LAUNCHER_SETTINGS = ['experimenter', 'animal', 'training', 'runclass']
+
+
+def legacy_settings(settings):
+    '''
+    Add the old name of each setting in `settings` that had one.
+    '''
+    result = dict(settings)
+    for new, old in NEW_OLD.items():
+        if new in settings:
+            result[old] = settings[new]
+    # Not a rename: PSI_SETTINGS_ROOT replaced a pair of folders, which are
+    # its preferences and layout subfolders.
+    if 'PSI_SETTINGS_ROOT' in settings:
+        root = Path(settings['PSI_SETTINGS_ROOT'])
+        result['PREFERENCES_ROOT'] = str(root / 'preferences')
+        result['LAYOUT_ROOT'] = str(root / 'layout')
+    return result
 
 
 class CellDbLauncher(Atom):
@@ -37,7 +74,6 @@ class CellDbLauncher(Atom):
     io = Value()
     experiment = Typed(ParadigmDescription).tag(template=True, required=True)
     audio = Str().tag(template=True, required=True)
-    calibration = Typed(Path)
     preferences = Typed(Path)
     save_data = Bool(True)
     #experimenter = Str().tag(template=True)
@@ -56,7 +92,6 @@ class CellDbLauncher(Atom):
     can_launch = Bool(False)
 
     available_io = List()
-    available_calibrations = List()
     available_preferences = List()
 
     db = celldb()
@@ -128,7 +163,7 @@ class CellDbLauncher(Atom):
         return get_default_io()
 
     def _default_root_folder(self):
-        return get_config('DATA_ROOT')
+        return get_config('PSI_DATA_ROOT')
 
     def _observe_io(self, event):
         self._update_choices()
@@ -166,7 +201,7 @@ class CellDbLauncher(Atom):
         raise ValueError(m)
 
     def _default_training_folder(self):
-        return get_config('TRAINING_ROOT')
+        return get_config('PSILBHB_TRAINING_ROOT')
 
     def _observe_animal(self, event):
         self._update_site()
@@ -180,21 +215,23 @@ class CellDbLauncher(Atom):
     def _observe_siteid(self, event):
         self._update()
 
-    def load_settings(self, configfile="celldblauncher.json"):
-        filename = get_config('PREFERENCES_ROOT') / configfile
-        if os.path.exists(filename):
-            with open(filename, 'r') as file:
-                d = json.loads(file.read())
-            for k, v in d.items():
-                setattr(self, k, v)
+    def load_settings(self):
+        # Read everything before setting anything: each setattr fires
+        # observers that call save_settings, which would otherwise write the
+        # fields not loaded yet back over their saved values.
+        values = {k: get_config(f'PSILBHB_LAUNCHER_{k.upper()}')
+                  for k in LAUNCHER_SETTINGS}
+        for k, v in values.items():
+            setattr(self, k, v)
 
-    def save_settings(self, configfile="celldblauncher.json"):
-        filename = get_config('PREFERENCES_ROOT') / configfile
-        save_parms = ['experimenter','animal','training', 'runclass']
-        d = {k: getattr(self, k) for k in save_parms}
-
-        with open(filename, 'w') as file:
-            file.write(json.dumps(d))
+    def save_settings(self):
+        # Called on every update, so only touch config.toml when something
+        # actually changed.
+        updates = {f'PSILBHB_LAUNCHER_{k.upper()}': getattr(self, k)
+                   for k in LAUNCHER_SETTINGS}
+        updates = {k: v for k, v in updates.items() if v != get_config(k)}
+        if updates:
+            save_config(updates)
 
     def _update_site(self):
         log.info('Running celldb launcher full update')
@@ -259,26 +296,26 @@ class CellDbLauncher(Atom):
         if self.training == 'Yes':
             behavior = 'active'
             ephys = False
-            dataroot = get_config('DATA_ROOT')
-            # dataroot = get_config('TRAINING_ROOT')
+            dataroot = get_config('PSI_DATA_ROOT')
+            # dataroot = get_config('PSILBHB_TRAINING_ROOT')
         elif self.training == 'Physiology+behavior':
             behavior = 'active'
             ephys = True
-            dataroot = get_config('DATA_ROOT')
+            dataroot = get_config('PSI_DATA_ROOT')
         else:
             behavior = 'passive'
             ephys = True
-            dataroot = get_config('DATA_ROOT')
+            dataroot = get_config('PSI_DATA_ROOT')
 
         plugins = [p.id for p in self.experiment.plugins if p.selected]
-        if ephys & ('openephys' not in plugins):
+        if ephys & ('psiopenephys' not in plugins):
             log.error('Need to turn on openephy plugin!!!')
-            #plugins.append('openephys')
+            #plugins.append('psiopenephys')
             return
 
 
-        oeroot = get_config('OPENEPHYS_ROOT')
-        #oeroot2 = get_config('OPENEPHYS_ROOT2')
+        oeroot = get_config('PSILBHB_OPENEPHYS_ROOT')
+        #oeroot2 = get_config('PSILBHB_OPENEPHYS_ROOT2')
 
         rawdata = self.db.create_rawfile(siteid=self.siteid, runclass=self.runclass,
                                filenum=int(self.runnumber), behavior=behavior,
@@ -311,7 +348,9 @@ class CellDbLauncher(Atom):
         # 3. Pass the custom environment to check_output
         #output = subprocess.check_output(["echo", "$MY_VAR"], env=my_env, shell=True)
 
-        args = ['psi', self.experiment.name]
+        # psi finds the paradigm by importing the module named in the dotted
+        # path.
+        args = ['psi', f'psilbhb.paradigms.lbhb.{self.experiment.name}']
 
         if self.save_data:
             args.append(str(self.base_folder))
@@ -319,8 +358,6 @@ class CellDbLauncher(Atom):
             args.extend(['--preferences', str(self.get_preferences())])
         if self.io:
             args.extend(['--io', str(self.io)])
-        if self.calibration:
-            args.extend(['--calibration', str(self.calibration)])
         for plugin in plugins:
             args.extend(['--plugins', plugin])
 
@@ -329,8 +366,7 @@ class CellDbLauncher(Atom):
 
         log.info('Launching subprocess: %s', ' '.join(args))
         print(' '.join(args))
-        subprocess.check_output(args)
-        #subprocess.check_output(args, env=my_env)
+        subprocess.check_output(args, env=my_env)
 
         try:
             print('returned from subprocess')
@@ -346,13 +382,7 @@ class CellDbLauncher(Atom):
             for k in rawdata.keys():
                 d[k] = str(rawdata[k])
 
-            config_parms = ['DATA_ROOT','OPENEPHYS_ROOT','CACHE_ROOT',
-                            'TRAINING_ROOT','VIDEO_ROOT',
-                            'PREFERENCES_ROOT','LAYOUT_ROOT',
-                            'OPENEPHYS_URI',
-                            'MYSQL_HOST','MYSQL_DB']
-            for k in config_parms:
-                d[k] = str(get_config(k))
+            d.update(legacy_settings(recorded_settings()))
 
             with open(filename, 'w') as file:
                 file.write(json.dumps(d))
@@ -374,9 +404,10 @@ class CellDbLauncher(Atom):
         self._update_site()
 
 
-def launch(klass, experiment_type, root_folder='DATA_ROOT', view_klass=None):
+def launch(klass, experiment_type, root_folder='PSI_DATA_ROOT', view_klass=None):
     app = QtApplication()
-    load_paradigm_descriptions()
+    # Importing the module registers the LBHB paradigms with paradigm_manager.
+    import psilbhb.paradigms.lbhb
     try:
         if root_folder.endswith('_ROOT'):
             root_folder = get_config(root_folder)

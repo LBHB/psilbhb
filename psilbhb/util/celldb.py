@@ -213,12 +213,12 @@ class celldb():
     TESTMODE = False
 
     def __init__(self):
-        self.MYSQL_USER = get_config('MYSQL_USER')
-        self.MYSQL_PASS = get_config('MYSQL_PASS')
-        self.MYSQL_HOST = get_config('MYSQL_HOST')
-        self.MYSQL_PORT = get_config('MYSQL_PORT')
-        self.MYSQL_DB = get_config('MYSQL_DB')
-        self.TESTMODE = get_config('MYSQL_TESTMODE')
+        self.MYSQL_USER = get_config('PSILBHB_MYSQL_USER')
+        self.MYSQL_PASS = get_config('PSILBHB_MYSQL_PASS')
+        self.MYSQL_HOST = get_config('PSILBHB_MYSQL_HOST')
+        self.MYSQL_PORT = get_config('PSILBHB_MYSQL_PORT')
+        self.MYSQL_DB = get_config('PSILBHB_MYSQL_DB')
+        self.TESTMODE = get_config('PSILBHB_MYSQL_TESTMODE')
 
     def Engine(self):
         '''Returns a mysql engine object. Creates the engine if necessary.
@@ -663,8 +663,8 @@ class celldb():
                 evpfilename = f"{resppath}{parmbase}/reward_contact_analog.zarr"
                 rawpath = f'{resppath}{parmbase}/raw/'
                 if pupil:
-                    pupilpath = resppath.replace(str(get_config('DATA_ROOT')),
-                                                 str(get_config('VIDEO_ROOT')))
+                    pupilpath = resppath.replace(get_config('PSI_DATA_ROOT').as_posix(),
+                                                 get_config('PSILBHB_VIDEO_ROOT').as_posix())
                     pupilfile = f"{pupilpath}{parmbase}/recording.avi"
 
             else:

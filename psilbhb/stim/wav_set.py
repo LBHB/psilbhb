@@ -38,7 +38,7 @@ from psiaudio.calibration import FlatCalibration
 from psi import get_config
 
 log = logging.getLogger(__name__)
-memory = Memory(get_config('CACHE_ROOT'))
+memory = Memory(get_config('PSILBHB_CACHE_ROOT'))
 
 def get_stim_list(FgSet, BgSet, catch_ferret_id=3, n_env_bands=[2, 8, 32], reg2catch_ratio=7):
     be_verbose = 1

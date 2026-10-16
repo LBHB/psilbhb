@@ -17,7 +17,7 @@ scripts, notebooks, and nems_db post-processing (`nems_lbhb.psi_tools.wav_set_fr
 rebuilds them from a saved `initial.preferences` to regenerate the stimuli).
 
 **Keep it that way:** stimulus logic belongs in `wav_set.py` and must not import enaml
-or the psi controller. The only psi dependency is `psi.get_config('CACHE_ROOT')`,
+or the psi controller. The only psi dependency is `psi.get_config('PSILBHB_CACHE_ROOT')`,
 plus psiaudio for calibration and resampling.
 
 ## Class → runclass → paradigm

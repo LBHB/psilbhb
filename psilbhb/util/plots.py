@@ -325,7 +325,7 @@ def plot_behavior(rawid=None, parmfile=None, save_fig=True):
     #plt.show()
 
     if save_fig:
-        remote_root=get_config('REMOTE_ROOT')
+        remote_root=get_config('PSILBHB_REMOTE_ROOT')
         year = pendata.loc[0,'pendate'].split("-")[0]
         savepath = remote_root / 'web' / 'behaviorcharts' / name / year
         savepath.mkdir(parents=True, exist_ok=True)

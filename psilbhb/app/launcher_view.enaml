@@ -1,7 +1,6 @@
 import logging
 log = logging.getLogger(__name__)
 
-import json
 from pathlib import Path
 
 import enaml
@@ -13,56 +12,31 @@ from enaml.widgets.api import (Action, ActionGroup, CheckBox, Container, Field,
                                MenuBar, ObjectCombo, PopupView, PushButton,
                                VGroup)
 
-from psi import get_config, get_config_folder
-from psi.util import get_tagged_values
+from psi import config_source, get_config, save_config
 from psi.controller.api import Channel
 from psi.core.enaml.api import load_manifest_from_file
 from psi.experiment.api import main_icon
 
 
-def load_defaults(launcher, experiments):
-    path = get_config_folder() / 'experiment_launcher.json'
-    try:
-        with path.open('r') as fh:
-            settings = json.load(fh)
-
-        es_settings = settings.pop('experiment', {})
-        for experiment in experiments:
-            t_settings = es_settings.get(experiment.experiment_type, {})
-            e_settings = t_settings.get(experiment.name, {})
-            for plugin in experiment.plugins:
-                p_settings = e_settings.get(plugin.id, {})
-                plugin.selected = p_settings.get('selected', plugin.selected)
-
-        for attr, value in settings.items():
-            setattr(launcher, attr, value)
-    except:
-        log.warn('%s does not exist', path)
-
-
-def set_defaults(launcher, experiments):
-    path = get_config_folder() / 'experiment_launcher.json'
-    path.parent.mkdir(exist_ok=True)
-    try:
-        with path.open('r') as fh:
-            settings = json.load(fh)
-    except:
-        settings = {}
-
-    # Save all simple attributes that might be defined on the launcher
-    settings.update(get_tagged_values(launcher, 'persist'))
-
-    # Now, handle the experiment-specific settings
-    es_settings = settings.setdefault('experiment', {})
+def load_defaults(experiments):
+    selected = get_config('PSILBHB_LAUNCHER_PLUGINS')
     for experiment in experiments:
-        t_settings = es_settings.setdefault(experiment.experiment_type, {})
-        e_settings = t_settings.setdefault(experiment.name, {})
+        e_selected = selected.get(experiment.name, {})
         for plugin in experiment.plugins:
-            p_settings = e_settings.setdefault(plugin.id, {})
-            p_settings['selected'] = plugin.selected
+            plugin.selected = e_selected.get(plugin.id, plugin.selected)
 
-    with path.open('w') as fh:
-        json.dump(settings, fh, indent=2)
+
+def set_defaults(experiments):
+    # Merged into what is saved, so the selections for paradigms this
+    # launcher does not list are kept.
+    selected = get_config('PSILBHB_LAUNCHER_PLUGINS')
+    for experiment in experiments:
+        selected[experiment.name] = {p.id: p.selected
+                                     for p in experiment.plugins}
+    save_config({'PSILBHB_LAUNCHER_PLUGINS': selected})
+    if config_source('PSILBHB_LAUNCHER_PLUGINS') == 'environment':
+        log.warning('PSILBHB_LAUNCHER_PLUGINS is set in the environment, '
+                    'which overrides the defaults just saved.')
 
 
 enamldef PluginPopup(PopupView): popup:
@@ -84,7 +58,7 @@ enamldef LauncherView(MainWindow): main:
     icon = main_icon
 
     initialized ::
-        load_defaults(launcher, launcher.experiment_choices)
+        load_defaults(launcher.experiment_choices)
 
     MenuBar:
         Menu:
@@ -92,7 +66,7 @@ enamldef LauncherView(MainWindow): main:
             Action:
                 text = 'Set as default\tCtrl+D'
                 triggered ::
-                    set_defaults(launcher, launcher.experiment_choices)
+                    set_defaults(launcher.experiment_choices)
         Menu:
             title = '&Debug'
             ActionGroup:
