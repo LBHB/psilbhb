@@ -2369,6 +2369,10 @@ class VowelSet(WavSet):
                     response_condition = 0
                 else:
                     response_condition = 1
+        # [AGENT EDIT START | agent: claude-opus-5-5 | user: svd | reason: passive (n_response=0, eg BVP) left response_condition unset -> UnboundLocalError when rebuilding waveforms; passive trials are never no-go attenuated (BVP trial_log.csv: response_condition 1/2/-1, constant level) | date: 2026-10-19]
+        else:
+            response_condition = -1
+        # [AGENT EDIT END]
         if response_condition==0:
             nogo_scaleby = 10 ** ((-self.nogo_attenuation) / 20)
             w*=nogo_scaleby
