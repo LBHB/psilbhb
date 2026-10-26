@@ -2,6 +2,7 @@ import logging
 
 import datetime
 import json
+import ast  # [AGENT EDIT | agent: claude-opus-5-5 | user: svd | reason: literal_eval in read_data | date: 2026-10-26]
 import numpy as np
 import os
 import shutil
@@ -737,15 +738,21 @@ class celldb():
         siteid = rawdata.loc[0,'cellid']
         penid = rawdata.loc[0,'penid']
         d = pd.DataFrame()
+        # [AGENT EDIT START | agent: claude-opus-5-5 | user: svd | reason: save strings as datatype=2 (baphy string convention) instead of datatype=1 (array), and penid was set to masterid -- mirrors nems_db db.save_data fix | date: 2026-10-26]
         for i,(k,v) in enumerate(datadict.items()):
-            jv = json.dumps(v, cls=PSIJsonEncoder)
             d.loc[i,'name']=k
-            d.loc[i,'svalue']=jv
+            if isinstance(v, str):
+                d.loc[i,'svalue']=v
+                d.loc[i,'datatype']=2
+            else:
+                d.loc[i,'svalue']=json.dumps(v, cls=PSIJsonEncoder)
+                d.loc[i,'datatype']=1
+        d['datatype']=d['datatype'].astype(int)
         d['siteid']=siteid
-        d['penid']=masterid
+        d['penid']=penid
         d['masterid']=masterid
         d['rawid']=rawid
-        d['datatype']=1
+        # [AGENT EDIT END]
         d['parmtype']=parmtype
         d['addedby']=self.user
         d['info']='psilbhb.celldb'
@@ -762,15 +769,27 @@ class celldb():
         d['value'] = d['value'].astype(object)
         #d.loc[sidx, 'value'] = d.loc[sidx, 'svalue']
 
-        try:
-            d.loc[sidx,'value'] = d.loc[sidx,'svalue'].apply(json.loads)
-        except:
-            pass
+        # [AGENT EDIT START | agent: claude-opus-5-5 | user: svd | reason: decode per row -- one non-JSON svalue (eg bare path or string) made the whole apply fail and left every datatype=1 value at 0; lists of strings are stored as python repr, not JSON | date: 2026-10-26]
+        def _loads(s):
+            try:
+                return json.loads(s)
+            except (TypeError, ValueError):
+                pass
+            try:
+                return ast.literal_eval(s)
+            except (ValueError, SyntaxError, MemoryError, RecursionError, TypeError):
+                return s
+        d.loc[sidx,'value'] = d.loc[sidx,'svalue'].apply(_loads)
+        # [AGENT EDIT END]
         try:
             sidx = np.isnan(d['value'].astype(float))
             d.loc[sidx, 'value'] = d.loc[sidx, 'svalue']
         except:
             pass
+        # [AGENT EDIT START | agent: claude-opus-5-5 | user: svd | reason: datatype=2 (string) rows have value=0, not NaN, so the string never reached 'value' | date: 2026-10-26]
+        sidx = d['datatype'] == 2
+        d.loc[sidx, 'value'] = d.loc[sidx, 'svalue']
+        # [AGENT EDIT END]
         return d
 
     def refresh_rawdata(self, rawid):
