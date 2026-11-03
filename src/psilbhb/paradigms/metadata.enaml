@@ -1,3 +1,6 @@
+import logging
+log = logging.getLogger(__name__)
+
 import os
 
 from enaml.core.api import Looper
@@ -5,6 +8,7 @@ from enaml.workbench.api import Extension
 from enaml.workbench.core.api import Command
 
 from psi import get_config
+from psi.controller.api import ExperimentAction
 from psi.core.enaml.api import ExperimentManifest
 from psi.experiment.api import MetadataItem
 
