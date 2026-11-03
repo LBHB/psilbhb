@@ -14,6 +14,8 @@ maintainers = [
 dependencies = [
 	"enaml[qt6-pyside]",
     "psiexperiment[ni,zarr]",
+    "psibehavior",
+    "cftscal",
     "psiopenephys[psi]",
     "psivideo",
     "pymysql",
