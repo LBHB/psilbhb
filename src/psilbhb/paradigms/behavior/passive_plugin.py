@@ -109,7 +109,9 @@ class PassivePlugin(BaseBehaviorPlugin):
             st.trigger(ts + delay, 0.05)
             self.waveforms = [w1, w2]
 
-        trial_duration = w.shape[-1] / o1.fs
+        # The waveform starts `delay` from now, so the trial lasts until it
+        # ends.
+        trial_duration = delay + w.shape[-1] / o1.fs
 
         # Now trigger any callbacks that are listening for the trial_ready
         # event.
