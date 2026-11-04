@@ -45,10 +45,8 @@ def process_et(event):
 def check_microphones(workbench, manifest):
     controller = workbench.get_plugin('psi.controller')
     data = workbench.get_plugin('psi.data')
-    channels = []
-    for engine in controller._engines.values():
-        engine_channels = engine.get_channels(mode='analog', direction='input', active=False)
-        channels.extend(engine_channels)
+    channels = controller.get_channels(mode='analog', direction='input',
+                                       active=False)
 
     channel_names = [c.name for c in channels if 'microphone' in c.name]
     manifest.input_list = channel_names
