@@ -1,0 +1,6678 @@
+{
+ "columns": [
+  "correct",
+  "current_full_rep",
+  "distractor_am_rate",
+  "distractor_level",
+  "distractor_name",
+  "distractor_offset",
+  "duration",
+  "early_np_to_duration",
+  "event_name",
+  "go_depth",
+  "go_frequency",
+  "go_multiplier",
+  "harmonics",
+  "hold_duration",
+  "include_mono",
+  "iti_duration",
+  "keep_lights_on",
+  "level",
+  "manual_control",
+  "nogo_atten",
+  "nogo_depth",
+  "nogo_frequency",
+  "np_duration",
+  "np_start",
+  "post_silence",
+  "pre_silence",
+  "primary_channel",
+  "ramp",
+  "random_seed",
+  "repeat_incorrect",
+  "replace_background",
+  "response",
+  "response_condition",
+  "response_duration",
+  "response_end",
+  "response_side",
+  "response_start",
+  "response_time",
+  "response_ts",
+  "response_window",
+  "reward_ambiguous_frac",
+  "score",
+  "snr",
+  "swap_carriers",
+  "switch_channels",
+  "target_am_rate",
+  "target_bandwidth",
+  "target_delay",
+  "target_level",
+  "target_name",
+  "this_depth",
+  "this_distractor_channel",
+  "this_distractor_frequency",
+  "this_distractor_level",
+  "this_distractor_offset",
+  "this_duration",
+  "this_name",
+  "this_snr",
+  "this_target_am",
+  "this_target_channel",
+  "this_target_frequency",
+  "this_target_level",
+  "to_duration",
+  "training_mode",
+  "trial_idx",
+  "trial_is_repeat",
+  "trial_number",
+  "trial_start",
+  "ts_stim",
+  "ts_stim_1",
+  "ts_stim_2",
+  "water_dispense_1_duration",
+  "wav_set_idx"
+ ],
+ "constant": {
+  "distractor_am_rate": [
+   0
+  ],
+  "distractor_level": [
+   0
+  ],
+  "distractor_name": "1000.0:0:0:0",
+  "distractor_offset": [
+   -1,
+   1
+  ],
+  "duration": 1.0,
+  "early_np_to_duration": 1.0,
+  "event_name": "1000.0:60:20:100:0+1000.0:0:0:0",
+  "go_depth": [
+   100
+  ],
+  "go_frequency": [
+   1000
+  ],
+  "go_multiplier": 1,
+  "harmonics": [
+   0
+  ],
+  "hold_duration": 0.0,
+  "include_mono": 0,
+  "iti_duration": 0.1,
+  "keep_lights_on": false,
+  "level": 60,
+  "manual_control": false,
+  "nogo_atten": 0,
+  "nogo_depth": [
+   100
+  ],
+  "nogo_frequency": [
+   1000
+  ],
+  "np_duration": 0.25,
+  "post_silence": 0.0,
+  "pre_silence": 0.0,
+  "primary_channel": 0,
+  "ramp": 10,
+  "random_seed": 0,
+  "repeat_incorrect": 0,
+  "replace_background": false,
+  "response_duration": 3.0,
+  "response_end": 2,
+  "response_start": 0,
+  "response_window": [
+   0,
+   2
+  ],
+  "reward_ambiguous_frac": 1.0,
+  "snr": 10,
+  "swap_carriers": false,
+  "switch_channels": false,
+  "target_am_rate": [
+   20
+  ],
+  "target_bandwidth": 0,
+  "target_delay": 0.5,
+  "target_level": [
+   60
+  ],
+  "target_name": "1000.0:60:20:100:0",
+  "this_depth": 100.0,
+  "this_distractor_channel": 0,
+  "this_distractor_frequency": 1000.0,
+  "this_distractor_level": 0,
+  "this_distractor_offset": 0.0,
+  "this_duration": 1.0,
+  "this_name": "1000.0:60:20:100:0+1000.0:0:0:0",
+  "this_snr": 60,
+  "this_target_am": 20.0,
+  "this_target_channel": 0,
+  "this_target_frequency": 1000.0,
+  "this_target_level": 60,
+  "to_duration": 1.0,
+  "training_mode": true,
+  "trial_is_repeat": 0,
+  "water_dispense_1_duration": 1
+ },
+ "trials": [
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     0.05
+    ],
+    [
+     "np_duration_elapsed",
+     0.3
+    ],
+    [
+     "trial_start",
+     0.3
+    ],
+    [
+     "hold_start",
+     0.3
+    ],
+    [
+     "hold_duration_elapsed",
+     0.3
+    ],
+    [
+     "deliver_reward_True",
+     0.3
+    ],
+    [
+     "response_start",
+     0.3
+    ],
+    [
+     "np_end",
+     0.35
+    ],
+    [
+     "response_duration_elapsed",
+     3.35
+    ],
+    [
+     "trial_end",
+     3.35
+    ],
+    [
+     "to_start",
+     3.35
+    ],
+    [
+     "to_start",
+     3.35
+    ],
+    [
+     "to_duration_elapsed",
+     4.35
+    ],
+    [
+     "to_end",
+     4.35
+    ],
+    [
+     "iti_start",
+     4.35
+    ],
+    [
+     "iti_duration_elapsed",
+     4.449999999999999
+    ],
+    [
+     "iti_end",
+     4.449999999999999
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 1,
+    "np_start": 0.05,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 1,
+    "trial_number": 1,
+    "trial_start": 0.3,
+    "ts_stim": 0.8,
+    "ts_stim_1": 0.8,
+    "ts_stim_2": 0.8,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     0.8,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 0.8
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 0.8
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     4.499999999999999
+    ],
+    [
+     "np_duration_elapsed",
+     4.749999999999999
+    ],
+    [
+     "trial_start",
+     4.749999999999999
+    ],
+    [
+     "hold_start",
+     4.749999999999999
+    ],
+    [
+     "hold_duration_elapsed",
+     4.749999999999999
+    ],
+    [
+     "response_start",
+     4.749999999999999
+    ],
+    [
+     "np_end",
+     4.799999999999999
+    ],
+    [
+     "response_duration_elapsed",
+     7.799999999999999
+    ],
+    [
+     "trial_end",
+     7.799999999999999
+    ],
+    [
+     "iti_start",
+     7.799999999999999
+    ],
+    [
+     "iti_duration_elapsed",
+     7.899999999999999
+    ],
+    [
+     "iti_end",
+     7.899999999999999
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 2,
+    "np_start": 4.499999999999999,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 2,
+    "trial_number": 2,
+    "trial_start": 4.749999999999999,
+    "ts_stim": 5.249999999999999,
+    "ts_stim_1": 5.249999999999999,
+    "ts_stim_2": 5.249999999999999,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     5.249999999999999,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 5.249999999999999
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 5.249999999999999
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     7.949999999999998
+    ],
+    [
+     "np_duration_elapsed",
+     8.2
+    ],
+    [
+     "trial_start",
+     8.2
+    ],
+    [
+     "hold_start",
+     8.2
+    ],
+    [
+     "hold_duration_elapsed",
+     8.2
+    ],
+    [
+     "deliver_reward_True",
+     8.2
+    ],
+    [
+     "response_start",
+     8.2
+    ],
+    [
+     "np_end",
+     8.25
+    ],
+    [
+     "response_1_start",
+     8.3
+    ],
+    [
+     "response_end",
+     8.3
+    ],
+    [
+     "trial_end",
+     8.3
+    ],
+    [
+     "response_1_end",
+     8.350000000000001
+    ],
+    [
+     "iti_start",
+     8.350000000000001
+    ],
+    [
+     "iti_duration_elapsed",
+     8.450000000000001
+    ],
+    [
+     "iti_end",
+     8.450000000000001
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 2,
+    "np_start": 7.949999999999998,
+    "response": "spout_1",
+    "response_condition": true,
+    "response_side": 1,
+    "response_time": 0.10000000000000142,
+    "response_ts": 8.3,
+    "score": 2,
+    "trial_idx": 3,
+    "trial_number": 3,
+    "trial_start": 8.2,
+    "ts_stim": 8.7,
+    "ts_stim_1": 8.7,
+    "ts_stim_2": 8.7,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     8.7,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 8.7
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 8.7
+    }
+   ]
+  },
+  {
+   "action": "no_response",
+   "events": [
+    [
+     "np_start",
+     8.500000000000002
+    ],
+    [
+     "np_duration_elapsed",
+     8.750000000000002
+    ],
+    [
+     "trial_start",
+     8.750000000000002
+    ],
+    [
+     "hold_start",
+     8.750000000000002
+    ],
+    [
+     "hold_duration_elapsed",
+     8.750000000000002
+    ],
+    [
+     "response_start",
+     8.750000000000002
+    ],
+    [
+     "np_end",
+     8.800000000000002
+    ],
+    [
+     "response_duration_elapsed",
+     11.800000000000002
+    ],
+    [
+     "trial_end",
+     11.800000000000002
+    ],
+    [
+     "iti_start",
+     11.800000000000002
+    ],
+    [
+     "iti_duration_elapsed",
+     11.900000000000002
+    ],
+    [
+     "iti_end",
+     11.900000000000002
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 3,
+    "np_start": 8.500000000000002,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 4,
+    "trial_number": 4,
+    "trial_start": 8.750000000000002,
+    "ts_stim": 9.250000000000002,
+    "ts_stim_1": 9.250000000000002,
+    "ts_stim_2": 9.250000000000002,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     9.250000000000002,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 9.250000000000002
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 9.250000000000002
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     11.950000000000003
+    ],
+    [
+     "np_end",
+     12.000000000000004
+    ],
+    [
+     "np_start",
+     12.050000000000004
+    ],
+    [
+     "np_duration_elapsed",
+     12.300000000000004
+    ],
+    [
+     "trial_start",
+     12.300000000000004
+    ],
+    [
+     "hold_start",
+     12.300000000000004
+    ],
+    [
+     "hold_duration_elapsed",
+     12.300000000000004
+    ],
+    [
+     "deliver_reward_True",
+     12.300000000000004
+    ],
+    [
+     "response_start",
+     12.300000000000004
+    ],
+    [
+     "np_end",
+     12.350000000000005
+    ],
+    [
+     "response_duration_elapsed",
+     15.350000000000005
+    ],
+    [
+     "trial_end",
+     15.350000000000005
+    ],
+    [
+     "to_start",
+     15.350000000000005
+    ],
+    [
+     "to_start",
+     15.350000000000005
+    ],
+    [
+     "to_duration_elapsed",
+     16.350000000000005
+    ],
+    [
+     "to_end",
+     16.350000000000005
+    ],
+    [
+     "iti_start",
+     16.350000000000005
+    ],
+    [
+     "iti_duration_elapsed",
+     16.450000000000006
+    ],
+    [
+     "iti_end",
+     16.450000000000006
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 3,
+    "np_start": 12.050000000000004,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 5,
+    "trial_number": 5,
+    "trial_start": 12.300000000000004,
+    "ts_stim": 12.800000000000004,
+    "ts_stim_1": 12.800000000000004,
+    "ts_stim_2": 12.800000000000004,
+    "wav_set_idx": 0
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     12.800000000000004,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 12.800000000000004
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 12.800000000000004
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     16.500000000000007
+    ],
+    [
+     "np_duration_elapsed",
+     16.750000000000007
+    ],
+    [
+     "trial_start",
+     16.750000000000007
+    ],
+    [
+     "hold_start",
+     16.750000000000007
+    ],
+    [
+     "hold_duration_elapsed",
+     16.750000000000007
+    ],
+    [
+     "response_start",
+     16.750000000000007
+    ],
+    [
+     "np_end",
+     16.800000000000008
+    ],
+    [
+     "response_1_start",
+     16.85000000000001
+    ],
+    [
+     "response_end",
+     16.85000000000001
+    ],
+    [
+     "trial_end",
+     16.85000000000001
+    ],
+    [
+     "to_start",
+     16.85000000000001
+    ],
+    [
+     "to_start",
+     16.85000000000001
+    ],
+    [
+     "response_1_end",
+     16.90000000000001
+    ],
+    [
+     "to_start",
+     16.90000000000001
+    ],
+    [
+     "to_duration_elapsed",
+     17.90000000000001
+    ],
+    [
+     "to_end",
+     17.90000000000001
+    ],
+    [
+     "iti_start",
+     17.90000000000001
+    ],
+    [
+     "iti_duration_elapsed",
+     18.00000000000001
+    ],
+    [
+     "iti_end",
+     18.00000000000001
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 4,
+    "np_start": 16.500000000000007,
+    "response": "spout_1",
+    "response_condition": false,
+    "response_side": 1,
+    "response_time": 0.10000000000000142,
+    "response_ts": 16.85000000000001,
+    "score": 1,
+    "trial_idx": 6,
+    "trial_number": 6,
+    "trial_start": 16.750000000000007,
+    "ts_stim": 17.250000000000007,
+    "ts_stim_1": 17.250000000000007,
+    "ts_stim_2": 17.250000000000007,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     17.250000000000007,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 17.250000000000007
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 17.250000000000007
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     18.05000000000001
+    ],
+    [
+     "np_duration_elapsed",
+     18.30000000000001
+    ],
+    [
+     "trial_start",
+     18.30000000000001
+    ],
+    [
+     "hold_start",
+     18.30000000000001
+    ],
+    [
+     "hold_duration_elapsed",
+     18.30000000000001
+    ],
+    [
+     "deliver_reward_True",
+     18.30000000000001
+    ],
+    [
+     "response_start",
+     18.30000000000001
+    ],
+    [
+     "np_end",
+     18.350000000000012
+    ],
+    [
+     "response_1_start",
+     18.400000000000013
+    ],
+    [
+     "response_end",
+     18.400000000000013
+    ],
+    [
+     "trial_end",
+     18.400000000000013
+    ],
+    [
+     "response_1_end",
+     18.450000000000014
+    ],
+    [
+     "iti_start",
+     18.450000000000014
+    ],
+    [
+     "iti_duration_elapsed",
+     18.550000000000015
+    ],
+    [
+     "iti_end",
+     18.550000000000015
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 4,
+    "np_start": 18.05000000000001,
+    "response": "spout_1",
+    "response_condition": true,
+    "response_side": 1,
+    "response_time": 0.10000000000000142,
+    "response_ts": 18.400000000000013,
+    "score": 2,
+    "trial_idx": 7,
+    "trial_number": 7,
+    "trial_start": 18.30000000000001,
+    "ts_stim": 18.80000000000001,
+    "ts_stim_1": 18.80000000000001,
+    "ts_stim_2": 18.80000000000001,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     18.80000000000001,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 18.80000000000001
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 18.80000000000001
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     18.600000000000016
+    ],
+    [
+     "np_duration_elapsed",
+     18.850000000000016
+    ],
+    [
+     "trial_start",
+     18.850000000000016
+    ],
+    [
+     "hold_start",
+     18.850000000000016
+    ],
+    [
+     "hold_duration_elapsed",
+     18.850000000000016
+    ],
+    [
+     "response_start",
+     18.850000000000016
+    ],
+    [
+     "np_end",
+     18.900000000000016
+    ],
+    [
+     "response_duration_elapsed",
+     21.900000000000016
+    ],
+    [
+     "trial_end",
+     21.900000000000016
+    ],
+    [
+     "iti_start",
+     21.900000000000016
+    ],
+    [
+     "iti_duration_elapsed",
+     22.000000000000018
+    ],
+    [
+     "iti_end",
+     22.000000000000018
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 5,
+    "np_start": 18.600000000000016,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 8,
+    "trial_number": 8,
+    "trial_start": 18.850000000000016,
+    "ts_stim": 19.350000000000016,
+    "ts_stim_1": 19.350000000000016,
+    "ts_stim_2": 19.350000000000016,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     19.350000000000016,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 19.350000000000016
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 19.350000000000016
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     22.05000000000002
+    ],
+    [
+     "np_duration_elapsed",
+     22.30000000000002
+    ],
+    [
+     "trial_start",
+     22.30000000000002
+    ],
+    [
+     "hold_start",
+     22.30000000000002
+    ],
+    [
+     "hold_duration_elapsed",
+     22.30000000000002
+    ],
+    [
+     "deliver_reward_True",
+     22.30000000000002
+    ],
+    [
+     "response_start",
+     22.30000000000002
+    ],
+    [
+     "np_end",
+     22.35000000000002
+    ],
+    [
+     "response_1_start",
+     22.40000000000002
+    ],
+    [
+     "response_end",
+     22.40000000000002
+    ],
+    [
+     "trial_end",
+     22.40000000000002
+    ],
+    [
+     "response_1_end",
+     22.45000000000002
+    ],
+    [
+     "iti_start",
+     22.45000000000002
+    ],
+    [
+     "iti_duration_elapsed",
+     22.550000000000022
+    ],
+    [
+     "iti_end",
+     22.550000000000022
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 5,
+    "np_start": 22.05000000000002,
+    "response": "spout_1",
+    "response_condition": true,
+    "response_side": 1,
+    "response_time": 0.10000000000000142,
+    "response_ts": 22.40000000000002,
+    "score": 2,
+    "trial_idx": 9,
+    "trial_number": 9,
+    "trial_start": 22.30000000000002,
+    "ts_stim": 22.80000000000002,
+    "ts_stim_1": 22.80000000000002,
+    "ts_stim_2": 22.80000000000002,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     22.80000000000002,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 22.80000000000002
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 22.80000000000002
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     22.600000000000023
+    ],
+    [
+     "np_duration_elapsed",
+     22.850000000000023
+    ],
+    [
+     "trial_start",
+     22.850000000000023
+    ],
+    [
+     "hold_start",
+     22.850000000000023
+    ],
+    [
+     "hold_duration_elapsed",
+     22.850000000000023
+    ],
+    [
+     "response_start",
+     22.850000000000023
+    ],
+    [
+     "np_end",
+     22.900000000000023
+    ],
+    [
+     "response_duration_elapsed",
+     25.900000000000023
+    ],
+    [
+     "trial_end",
+     25.900000000000023
+    ],
+    [
+     "iti_start",
+     25.900000000000023
+    ],
+    [
+     "iti_duration_elapsed",
+     26.000000000000025
+    ],
+    [
+     "iti_end",
+     26.000000000000025
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 6,
+    "np_start": 22.600000000000023,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 10,
+    "trial_number": 10,
+    "trial_start": 22.850000000000023,
+    "ts_stim": 23.350000000000023,
+    "ts_stim_1": 23.350000000000023,
+    "ts_stim_2": 23.350000000000023,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     23.350000000000023,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 23.350000000000023
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 23.350000000000023
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     26.050000000000026
+    ],
+    [
+     "np_duration_elapsed",
+     26.300000000000026
+    ],
+    [
+     "trial_start",
+     26.300000000000026
+    ],
+    [
+     "hold_start",
+     26.300000000000026
+    ],
+    [
+     "hold_duration_elapsed",
+     26.300000000000026
+    ],
+    [
+     "deliver_reward_True",
+     26.300000000000026
+    ],
+    [
+     "response_start",
+     26.300000000000026
+    ],
+    [
+     "np_end",
+     26.350000000000026
+    ],
+    [
+     "response_duration_elapsed",
+     29.350000000000026
+    ],
+    [
+     "trial_end",
+     29.350000000000026
+    ],
+    [
+     "to_start",
+     29.350000000000026
+    ],
+    [
+     "to_start",
+     29.350000000000026
+    ],
+    [
+     "to_duration_elapsed",
+     30.350000000000026
+    ],
+    [
+     "to_end",
+     30.350000000000026
+    ],
+    [
+     "iti_start",
+     30.350000000000026
+    ],
+    [
+     "iti_duration_elapsed",
+     30.450000000000028
+    ],
+    [
+     "iti_end",
+     30.450000000000028
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 6,
+    "np_start": 26.050000000000026,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 11,
+    "trial_number": 11,
+    "trial_start": 26.300000000000026,
+    "ts_stim": 26.800000000000026,
+    "ts_stim_1": 26.800000000000026,
+    "ts_stim_2": 26.800000000000026,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     26.800000000000026,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 26.800000000000026
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 26.800000000000026
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     30.50000000000003
+    ],
+    [
+     "np_duration_elapsed",
+     30.75000000000003
+    ],
+    [
+     "trial_start",
+     30.75000000000003
+    ],
+    [
+     "hold_start",
+     30.75000000000003
+    ],
+    [
+     "hold_duration_elapsed",
+     30.75000000000003
+    ],
+    [
+     "response_start",
+     30.75000000000003
+    ],
+    [
+     "np_end",
+     30.80000000000003
+    ],
+    [
+     "response_duration_elapsed",
+     33.800000000000026
+    ],
+    [
+     "trial_end",
+     33.800000000000026
+    ],
+    [
+     "iti_start",
+     33.800000000000026
+    ],
+    [
+     "iti_duration_elapsed",
+     33.90000000000003
+    ],
+    [
+     "iti_end",
+     33.90000000000003
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 7,
+    "np_start": 30.50000000000003,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 12,
+    "trial_number": 12,
+    "trial_start": 30.75000000000003,
+    "ts_stim": 31.25000000000003,
+    "ts_stim_1": 31.25000000000003,
+    "ts_stim_2": 31.25000000000003,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     31.25000000000003,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 31.25000000000003
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 31.25000000000003
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     33.950000000000024
+    ],
+    [
+     "np_duration_elapsed",
+     34.200000000000024
+    ],
+    [
+     "trial_start",
+     34.200000000000024
+    ],
+    [
+     "hold_start",
+     34.200000000000024
+    ],
+    [
+     "hold_duration_elapsed",
+     34.200000000000024
+    ],
+    [
+     "response_start",
+     34.200000000000024
+    ],
+    [
+     "np_end",
+     34.25000000000002
+    ],
+    [
+     "np_start",
+     34.30000000000002
+    ],
+    [
+     "trial_end",
+     34.30000000000002
+    ],
+    [
+     "iti_start",
+     34.30000000000002
+    ],
+    [
+     "np_end",
+     34.350000000000016
+    ],
+    [
+     "iti_duration_elapsed",
+     34.45000000000002
+    ],
+    [
+     "iti_end",
+     34.45000000000002
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 7,
+    "np_start": 33.950000000000024,
+    "response": "np",
+    "response_condition": false,
+    "response_side": 0,
+    "response_time": 0.09999999999999432,
+    "response_ts": 34.30000000000002,
+    "score": 2,
+    "trial_idx": 13,
+    "trial_number": 13,
+    "trial_start": 34.200000000000024,
+    "ts_stim": 34.700000000000024,
+    "ts_stim_1": 34.700000000000024,
+    "ts_stim_2": 34.700000000000024,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     34.700000000000024,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 34.700000000000024
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 34.700000000000024
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     34.500000000000014
+    ],
+    [
+     "np_duration_elapsed",
+     34.750000000000014
+    ],
+    [
+     "trial_start",
+     34.750000000000014
+    ],
+    [
+     "hold_start",
+     34.750000000000014
+    ],
+    [
+     "hold_duration_elapsed",
+     34.750000000000014
+    ],
+    [
+     "deliver_reward_True",
+     34.750000000000014
+    ],
+    [
+     "response_start",
+     34.750000000000014
+    ],
+    [
+     "np_end",
+     34.80000000000001
+    ],
+    [
+     "response_duration_elapsed",
+     37.80000000000001
+    ],
+    [
+     "trial_end",
+     37.80000000000001
+    ],
+    [
+     "to_start",
+     37.80000000000001
+    ],
+    [
+     "to_start",
+     37.80000000000001
+    ],
+    [
+     "to_duration_elapsed",
+     38.80000000000001
+    ],
+    [
+     "to_end",
+     38.80000000000001
+    ],
+    [
+     "iti_start",
+     38.80000000000001
+    ],
+    [
+     "iti_duration_elapsed",
+     38.90000000000001
+    ],
+    [
+     "iti_end",
+     38.90000000000001
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 8,
+    "np_start": 34.500000000000014,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 14,
+    "trial_number": 14,
+    "trial_start": 34.750000000000014,
+    "ts_stim": 35.250000000000014,
+    "ts_stim_1": 35.250000000000014,
+    "ts_stim_2": 35.250000000000014,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     35.250000000000014,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 35.250000000000014
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 35.250000000000014
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     38.95000000000001
+    ],
+    [
+     "np_duration_elapsed",
+     39.20000000000001
+    ],
+    [
+     "trial_start",
+     39.20000000000001
+    ],
+    [
+     "hold_start",
+     39.20000000000001
+    ],
+    [
+     "hold_duration_elapsed",
+     39.20000000000001
+    ],
+    [
+     "response_start",
+     39.20000000000001
+    ],
+    [
+     "np_end",
+     39.25000000000001
+    ],
+    [
+     "response_duration_elapsed",
+     42.25000000000001
+    ],
+    [
+     "trial_end",
+     42.25000000000001
+    ],
+    [
+     "iti_start",
+     42.25000000000001
+    ],
+    [
+     "iti_duration_elapsed",
+     42.35000000000001
+    ],
+    [
+     "iti_end",
+     42.35000000000001
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 8,
+    "np_start": 38.95000000000001,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 15,
+    "trial_number": 15,
+    "trial_start": 39.20000000000001,
+    "ts_stim": 39.70000000000001,
+    "ts_stim_1": 39.70000000000001,
+    "ts_stim_2": 39.70000000000001,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     39.70000000000001,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 39.70000000000001
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 39.70000000000001
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     42.400000000000006
+    ],
+    [
+     "np_duration_elapsed",
+     42.650000000000006
+    ],
+    [
+     "trial_start",
+     42.650000000000006
+    ],
+    [
+     "hold_start",
+     42.650000000000006
+    ],
+    [
+     "hold_duration_elapsed",
+     42.650000000000006
+    ],
+    [
+     "deliver_reward_True",
+     42.650000000000006
+    ],
+    [
+     "response_start",
+     42.650000000000006
+    ],
+    [
+     "np_end",
+     42.7
+    ],
+    [
+     "response_duration_elapsed",
+     45.7
+    ],
+    [
+     "trial_end",
+     45.7
+    ],
+    [
+     "to_start",
+     45.7
+    ],
+    [
+     "to_start",
+     45.7
+    ],
+    [
+     "to_duration_elapsed",
+     46.7
+    ],
+    [
+     "to_end",
+     46.7
+    ],
+    [
+     "iti_start",
+     46.7
+    ],
+    [
+     "iti_duration_elapsed",
+     46.800000000000004
+    ],
+    [
+     "iti_end",
+     46.800000000000004
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 9,
+    "np_start": 42.400000000000006,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 16,
+    "trial_number": 16,
+    "trial_start": 42.650000000000006,
+    "ts_stim": 43.150000000000006,
+    "ts_stim_1": 43.150000000000006,
+    "ts_stim_2": 43.150000000000006,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     43.150000000000006,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 43.150000000000006
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 43.150000000000006
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     46.85
+    ],
+    [
+     "np_duration_elapsed",
+     47.1
+    ],
+    [
+     "trial_start",
+     47.1
+    ],
+    [
+     "hold_start",
+     47.1
+    ],
+    [
+     "hold_duration_elapsed",
+     47.1
+    ],
+    [
+     "response_start",
+     47.1
+    ],
+    [
+     "np_end",
+     47.15
+    ],
+    [
+     "response_1_start",
+     47.199999999999996
+    ],
+    [
+     "response_end",
+     47.199999999999996
+    ],
+    [
+     "trial_end",
+     47.199999999999996
+    ],
+    [
+     "to_start",
+     47.199999999999996
+    ],
+    [
+     "to_start",
+     47.199999999999996
+    ],
+    [
+     "response_1_end",
+     47.24999999999999
+    ],
+    [
+     "to_start",
+     47.24999999999999
+    ],
+    [
+     "to_duration_elapsed",
+     48.24999999999999
+    ],
+    [
+     "to_end",
+     48.24999999999999
+    ],
+    [
+     "iti_start",
+     48.24999999999999
+    ],
+    [
+     "iti_duration_elapsed",
+     48.349999999999994
+    ],
+    [
+     "iti_end",
+     48.349999999999994
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 9,
+    "np_start": 46.85,
+    "response": "spout_1",
+    "response_condition": false,
+    "response_side": 1,
+    "response_time": 0.09999999999999432,
+    "response_ts": 47.199999999999996,
+    "score": 1,
+    "trial_idx": 17,
+    "trial_number": 17,
+    "trial_start": 47.1,
+    "ts_stim": 47.6,
+    "ts_stim_1": 47.6,
+    "ts_stim_2": 47.6,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     47.6,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 47.6
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 47.6
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     48.39999999999999
+    ],
+    [
+     "np_duration_elapsed",
+     48.64999999999999
+    ],
+    [
+     "trial_start",
+     48.64999999999999
+    ],
+    [
+     "hold_start",
+     48.64999999999999
+    ],
+    [
+     "hold_duration_elapsed",
+     48.64999999999999
+    ],
+    [
+     "deliver_reward_True",
+     48.64999999999999
+    ],
+    [
+     "response_start",
+     48.64999999999999
+    ],
+    [
+     "np_end",
+     48.69999999999999
+    ],
+    [
+     "response_duration_elapsed",
+     51.69999999999999
+    ],
+    [
+     "trial_end",
+     51.69999999999999
+    ],
+    [
+     "to_start",
+     51.69999999999999
+    ],
+    [
+     "to_start",
+     51.69999999999999
+    ],
+    [
+     "to_duration_elapsed",
+     52.69999999999999
+    ],
+    [
+     "to_end",
+     52.69999999999999
+    ],
+    [
+     "iti_start",
+     52.69999999999999
+    ],
+    [
+     "iti_duration_elapsed",
+     52.79999999999999
+    ],
+    [
+     "iti_end",
+     52.79999999999999
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 10,
+    "np_start": 48.39999999999999,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 18,
+    "trial_number": 18,
+    "trial_start": 48.64999999999999,
+    "ts_stim": 49.14999999999999,
+    "ts_stim_1": 49.14999999999999,
+    "ts_stim_2": 49.14999999999999,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     49.14999999999999,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 49.14999999999999
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 49.14999999999999
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     52.84999999999999
+    ],
+    [
+     "np_duration_elapsed",
+     53.09999999999999
+    ],
+    [
+     "trial_start",
+     53.09999999999999
+    ],
+    [
+     "hold_start",
+     53.09999999999999
+    ],
+    [
+     "hold_duration_elapsed",
+     53.09999999999999
+    ],
+    [
+     "response_start",
+     53.09999999999999
+    ],
+    [
+     "np_end",
+     53.149999999999984
+    ],
+    [
+     "response_duration_elapsed",
+     56.149999999999984
+    ],
+    [
+     "trial_end",
+     56.149999999999984
+    ],
+    [
+     "iti_start",
+     56.149999999999984
+    ],
+    [
+     "iti_duration_elapsed",
+     56.249999999999986
+    ],
+    [
+     "iti_end",
+     56.249999999999986
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 10,
+    "np_start": 52.84999999999999,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 19,
+    "trial_number": 19,
+    "trial_start": 53.09999999999999,
+    "ts_stim": 53.59999999999999,
+    "ts_stim_1": 53.59999999999999,
+    "ts_stim_2": 53.59999999999999,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     53.59999999999999,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 53.59999999999999
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 53.59999999999999
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     56.29999999999998
+    ],
+    [
+     "np_end",
+     56.34999999999998
+    ],
+    [
+     "np_start",
+     56.39999999999998
+    ],
+    [
+     "np_duration_elapsed",
+     56.64999999999998
+    ],
+    [
+     "trial_start",
+     56.64999999999998
+    ],
+    [
+     "hold_start",
+     56.64999999999998
+    ],
+    [
+     "hold_duration_elapsed",
+     56.64999999999998
+    ],
+    [
+     "deliver_reward_True",
+     56.64999999999998
+    ],
+    [
+     "response_start",
+     56.64999999999998
+    ],
+    [
+     "np_end",
+     56.699999999999974
+    ],
+    [
+     "response_1_start",
+     56.74999999999997
+    ],
+    [
+     "response_end",
+     56.74999999999997
+    ],
+    [
+     "trial_end",
+     56.74999999999997
+    ],
+    [
+     "response_1_end",
+     56.79999999999997
+    ],
+    [
+     "iti_start",
+     56.79999999999997
+    ],
+    [
+     "iti_duration_elapsed",
+     56.89999999999997
+    ],
+    [
+     "iti_end",
+     56.89999999999997
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 11,
+    "np_start": 56.39999999999998,
+    "response": "spout_1",
+    "response_condition": true,
+    "response_side": 1,
+    "response_time": 0.09999999999999432,
+    "response_ts": 56.74999999999997,
+    "score": 2,
+    "trial_idx": 20,
+    "trial_number": 20,
+    "trial_start": 56.64999999999998,
+    "ts_stim": 57.14999999999998,
+    "ts_stim_1": 57.14999999999998,
+    "ts_stim_2": 57.14999999999998,
+    "wav_set_idx": 0
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     57.14999999999998,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 57.14999999999998
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 57.14999999999998
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     56.94999999999997
+    ],
+    [
+     "np_duration_elapsed",
+     57.19999999999997
+    ],
+    [
+     "trial_start",
+     57.19999999999997
+    ],
+    [
+     "hold_start",
+     57.19999999999997
+    ],
+    [
+     "hold_duration_elapsed",
+     57.19999999999997
+    ],
+    [
+     "response_start",
+     57.19999999999997
+    ],
+    [
+     "np_end",
+     57.249999999999964
+    ],
+    [
+     "response_1_start",
+     57.29999999999996
+    ],
+    [
+     "response_end",
+     57.29999999999996
+    ],
+    [
+     "trial_end",
+     57.29999999999996
+    ],
+    [
+     "to_start",
+     57.29999999999996
+    ],
+    [
+     "to_start",
+     57.29999999999996
+    ],
+    [
+     "response_1_end",
+     57.34999999999996
+    ],
+    [
+     "to_start",
+     57.34999999999996
+    ],
+    [
+     "to_duration_elapsed",
+     58.34999999999996
+    ],
+    [
+     "to_end",
+     58.34999999999996
+    ],
+    [
+     "iti_start",
+     58.34999999999996
+    ],
+    [
+     "iti_duration_elapsed",
+     58.44999999999996
+    ],
+    [
+     "iti_end",
+     58.44999999999996
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 11,
+    "np_start": 56.94999999999997,
+    "response": "spout_1",
+    "response_condition": false,
+    "response_side": 1,
+    "response_time": 0.09999999999999432,
+    "response_ts": 57.29999999999996,
+    "score": 1,
+    "trial_idx": 21,
+    "trial_number": 21,
+    "trial_start": 57.19999999999997,
+    "ts_stim": 57.69999999999997,
+    "ts_stim_1": 57.69999999999997,
+    "ts_stim_2": 57.69999999999997,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     57.69999999999997,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 57.69999999999997
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 57.69999999999997
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     58.49999999999996
+    ],
+    [
+     "np_duration_elapsed",
+     58.74999999999996
+    ],
+    [
+     "trial_start",
+     58.74999999999996
+    ],
+    [
+     "hold_start",
+     58.74999999999996
+    ],
+    [
+     "hold_duration_elapsed",
+     58.74999999999996
+    ],
+    [
+     "deliver_reward_True",
+     58.74999999999996
+    ],
+    [
+     "response_start",
+     58.74999999999996
+    ],
+    [
+     "np_end",
+     58.799999999999955
+    ],
+    [
+     "response_duration_elapsed",
+     61.799999999999955
+    ],
+    [
+     "trial_end",
+     61.799999999999955
+    ],
+    [
+     "to_start",
+     61.799999999999955
+    ],
+    [
+     "to_start",
+     61.799999999999955
+    ],
+    [
+     "to_duration_elapsed",
+     62.799999999999955
+    ],
+    [
+     "to_end",
+     62.799999999999955
+    ],
+    [
+     "iti_start",
+     62.799999999999955
+    ],
+    [
+     "iti_duration_elapsed",
+     62.899999999999956
+    ],
+    [
+     "iti_end",
+     62.899999999999956
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 12,
+    "np_start": 58.49999999999996,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 22,
+    "trial_number": 22,
+    "trial_start": 58.74999999999996,
+    "ts_stim": 59.24999999999996,
+    "ts_stim_1": 59.24999999999996,
+    "ts_stim_2": 59.24999999999996,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     59.24999999999996,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 59.24999999999996
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 59.24999999999996
+    }
+   ]
+  },
+  {
+   "action": "no_response",
+   "events": [
+    [
+     "np_start",
+     62.94999999999995
+    ],
+    [
+     "np_duration_elapsed",
+     63.19999999999995
+    ],
+    [
+     "trial_start",
+     63.19999999999995
+    ],
+    [
+     "hold_start",
+     63.19999999999995
+    ],
+    [
+     "hold_duration_elapsed",
+     63.19999999999995
+    ],
+    [
+     "deliver_reward_True",
+     63.19999999999995
+    ],
+    [
+     "response_start",
+     63.19999999999995
+    ],
+    [
+     "np_end",
+     63.24999999999995
+    ],
+    [
+     "response_duration_elapsed",
+     66.24999999999994
+    ],
+    [
+     "trial_end",
+     66.24999999999994
+    ],
+    [
+     "to_start",
+     66.24999999999994
+    ],
+    [
+     "to_start",
+     66.24999999999994
+    ],
+    [
+     "to_duration_elapsed",
+     67.24999999999994
+    ],
+    [
+     "to_end",
+     67.24999999999994
+    ],
+    [
+     "iti_start",
+     67.24999999999994
+    ],
+    [
+     "iti_duration_elapsed",
+     67.34999999999994
+    ],
+    [
+     "iti_end",
+     67.34999999999994
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 12,
+    "np_start": 62.94999999999995,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 23,
+    "trial_number": 23,
+    "trial_start": 63.19999999999995,
+    "ts_stim": 63.69999999999995,
+    "ts_stim_1": 63.69999999999995,
+    "ts_stim_2": 63.69999999999995,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     63.69999999999995,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 63.69999999999995
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 63.69999999999995
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     67.39999999999993
+    ],
+    [
+     "np_duration_elapsed",
+     67.64999999999993
+    ],
+    [
+     "trial_start",
+     67.64999999999993
+    ],
+    [
+     "hold_start",
+     67.64999999999993
+    ],
+    [
+     "hold_duration_elapsed",
+     67.64999999999993
+    ],
+    [
+     "response_start",
+     67.64999999999993
+    ],
+    [
+     "np_end",
+     67.69999999999993
+    ],
+    [
+     "response_1_start",
+     67.74999999999993
+    ],
+    [
+     "response_end",
+     67.74999999999993
+    ],
+    [
+     "trial_end",
+     67.74999999999993
+    ],
+    [
+     "to_start",
+     67.74999999999993
+    ],
+    [
+     "to_start",
+     67.74999999999993
+    ],
+    [
+     "response_1_end",
+     67.79999999999993
+    ],
+    [
+     "to_start",
+     67.79999999999993
+    ],
+    [
+     "to_duration_elapsed",
+     68.79999999999993
+    ],
+    [
+     "to_end",
+     68.79999999999993
+    ],
+    [
+     "iti_start",
+     68.79999999999993
+    ],
+    [
+     "iti_duration_elapsed",
+     68.89999999999992
+    ],
+    [
+     "iti_end",
+     68.89999999999992
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 13,
+    "np_start": 67.39999999999993,
+    "response": "spout_1",
+    "response_condition": false,
+    "response_side": 1,
+    "response_time": 0.09999999999999432,
+    "response_ts": 67.74999999999993,
+    "score": 1,
+    "trial_idx": 24,
+    "trial_number": 24,
+    "trial_start": 67.64999999999993,
+    "ts_stim": 68.14999999999993,
+    "ts_stim_1": 68.14999999999993,
+    "ts_stim_2": 68.14999999999993,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     68.14999999999993,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 68.14999999999993
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 68.14999999999993
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     68.94999999999992
+    ],
+    [
+     "np_duration_elapsed",
+     69.19999999999992
+    ],
+    [
+     "trial_start",
+     69.19999999999992
+    ],
+    [
+     "hold_start",
+     69.19999999999992
+    ],
+    [
+     "hold_duration_elapsed",
+     69.19999999999992
+    ],
+    [
+     "response_start",
+     69.19999999999992
+    ],
+    [
+     "np_end",
+     69.24999999999991
+    ],
+    [
+     "response_duration_elapsed",
+     72.24999999999991
+    ],
+    [
+     "trial_end",
+     72.24999999999991
+    ],
+    [
+     "iti_start",
+     72.24999999999991
+    ],
+    [
+     "iti_duration_elapsed",
+     72.34999999999991
+    ],
+    [
+     "iti_end",
+     72.34999999999991
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 13,
+    "np_start": 68.94999999999992,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 25,
+    "trial_number": 25,
+    "trial_start": 69.19999999999992,
+    "ts_stim": 69.69999999999992,
+    "ts_stim_1": 69.69999999999992,
+    "ts_stim_2": 69.69999999999992,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     69.69999999999992,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 69.69999999999992
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 69.69999999999992
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     72.3999999999999
+    ],
+    [
+     "np_duration_elapsed",
+     72.6499999999999
+    ],
+    [
+     "trial_start",
+     72.6499999999999
+    ],
+    [
+     "hold_start",
+     72.6499999999999
+    ],
+    [
+     "hold_duration_elapsed",
+     72.6499999999999
+    ],
+    [
+     "deliver_reward_True",
+     72.6499999999999
+    ],
+    [
+     "response_start",
+     72.6499999999999
+    ],
+    [
+     "np_end",
+     72.6999999999999
+    ],
+    [
+     "response_duration_elapsed",
+     75.6999999999999
+    ],
+    [
+     "trial_end",
+     75.6999999999999
+    ],
+    [
+     "to_start",
+     75.6999999999999
+    ],
+    [
+     "to_start",
+     75.6999999999999
+    ],
+    [
+     "to_duration_elapsed",
+     76.6999999999999
+    ],
+    [
+     "to_end",
+     76.6999999999999
+    ],
+    [
+     "iti_start",
+     76.6999999999999
+    ],
+    [
+     "iti_duration_elapsed",
+     76.7999999999999
+    ],
+    [
+     "iti_end",
+     76.7999999999999
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 14,
+    "np_start": 72.3999999999999,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 26,
+    "trial_number": 26,
+    "trial_start": 72.6499999999999,
+    "ts_stim": 73.1499999999999,
+    "ts_stim_1": 73.1499999999999,
+    "ts_stim_2": 73.1499999999999,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     73.1499999999999,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 73.1499999999999
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 73.1499999999999
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     76.8499999999999
+    ],
+    [
+     "np_duration_elapsed",
+     77.0999999999999
+    ],
+    [
+     "trial_start",
+     77.0999999999999
+    ],
+    [
+     "hold_start",
+     77.0999999999999
+    ],
+    [
+     "hold_duration_elapsed",
+     77.0999999999999
+    ],
+    [
+     "deliver_reward_True",
+     77.0999999999999
+    ],
+    [
+     "response_start",
+     77.0999999999999
+    ],
+    [
+     "np_end",
+     77.14999999999989
+    ],
+    [
+     "response_1_start",
+     77.19999999999989
+    ],
+    [
+     "response_end",
+     77.19999999999989
+    ],
+    [
+     "trial_end",
+     77.19999999999989
+    ],
+    [
+     "response_1_end",
+     77.24999999999989
+    ],
+    [
+     "iti_start",
+     77.24999999999989
+    ],
+    [
+     "iti_duration_elapsed",
+     77.34999999999988
+    ],
+    [
+     "iti_end",
+     77.34999999999988
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 14,
+    "np_start": 76.8499999999999,
+    "response": "spout_1",
+    "response_condition": true,
+    "response_side": 1,
+    "response_time": 0.09999999999999432,
+    "response_ts": 77.19999999999989,
+    "score": 2,
+    "trial_idx": 27,
+    "trial_number": 27,
+    "trial_start": 77.0999999999999,
+    "ts_stim": 77.5999999999999,
+    "ts_stim_1": 77.5999999999999,
+    "ts_stim_2": 77.5999999999999,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     77.5999999999999,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 77.5999999999999
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 77.5999999999999
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     77.39999999999988
+    ],
+    [
+     "np_end",
+     77.44999999999987
+    ],
+    [
+     "np_start",
+     77.49999999999987
+    ],
+    [
+     "np_duration_elapsed",
+     77.74999999999987
+    ],
+    [
+     "trial_start",
+     77.74999999999987
+    ],
+    [
+     "hold_start",
+     77.74999999999987
+    ],
+    [
+     "hold_duration_elapsed",
+     77.74999999999987
+    ],
+    [
+     "response_start",
+     77.74999999999987
+    ],
+    [
+     "np_end",
+     77.79999999999987
+    ],
+    [
+     "response_duration_elapsed",
+     80.79999999999987
+    ],
+    [
+     "trial_end",
+     80.79999999999987
+    ],
+    [
+     "iti_start",
+     80.79999999999987
+    ],
+    [
+     "iti_duration_elapsed",
+     80.89999999999986
+    ],
+    [
+     "iti_end",
+     80.89999999999986
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 15,
+    "np_start": 77.49999999999987,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 28,
+    "trial_number": 28,
+    "trial_start": 77.74999999999987,
+    "ts_stim": 78.24999999999987,
+    "ts_stim_1": 78.24999999999987,
+    "ts_stim_2": 78.24999999999987,
+    "wav_set_idx": 1
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     78.24999999999987,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 78.24999999999987
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 78.24999999999987
+    }
+   ]
+  },
+  {
+   "action": "no_response",
+   "events": [
+    [
+     "np_start",
+     80.94999999999986
+    ],
+    [
+     "np_duration_elapsed",
+     81.19999999999986
+    ],
+    [
+     "trial_start",
+     81.19999999999986
+    ],
+    [
+     "hold_start",
+     81.19999999999986
+    ],
+    [
+     "hold_duration_elapsed",
+     81.19999999999986
+    ],
+    [
+     "deliver_reward_True",
+     81.19999999999986
+    ],
+    [
+     "response_start",
+     81.19999999999986
+    ],
+    [
+     "np_end",
+     81.24999999999986
+    ],
+    [
+     "response_duration_elapsed",
+     84.24999999999986
+    ],
+    [
+     "trial_end",
+     84.24999999999986
+    ],
+    [
+     "to_start",
+     84.24999999999986
+    ],
+    [
+     "to_start",
+     84.24999999999986
+    ],
+    [
+     "to_duration_elapsed",
+     85.24999999999986
+    ],
+    [
+     "to_end",
+     85.24999999999986
+    ],
+    [
+     "iti_start",
+     85.24999999999986
+    ],
+    [
+     "iti_duration_elapsed",
+     85.34999999999985
+    ],
+    [
+     "iti_end",
+     85.34999999999985
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 15,
+    "np_start": 80.94999999999986,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 29,
+    "trial_number": 29,
+    "trial_start": 81.19999999999986,
+    "ts_stim": 81.69999999999986,
+    "ts_stim_1": 81.69999999999986,
+    "ts_stim_2": 81.69999999999986,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     81.69999999999986,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 81.69999999999986
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 81.69999999999986
+    }
+   ]
+  },
+  {
+   "action": "no_response",
+   "events": [
+    [
+     "np_start",
+     85.39999999999985
+    ],
+    [
+     "np_duration_elapsed",
+     85.64999999999985
+    ],
+    [
+     "trial_start",
+     85.64999999999985
+    ],
+    [
+     "hold_start",
+     85.64999999999985
+    ],
+    [
+     "hold_duration_elapsed",
+     85.64999999999985
+    ],
+    [
+     "response_start",
+     85.64999999999985
+    ],
+    [
+     "np_end",
+     85.69999999999985
+    ],
+    [
+     "response_duration_elapsed",
+     88.69999999999985
+    ],
+    [
+     "trial_end",
+     88.69999999999985
+    ],
+    [
+     "iti_start",
+     88.69999999999985
+    ],
+    [
+     "iti_duration_elapsed",
+     88.79999999999984
+    ],
+    [
+     "iti_end",
+     88.79999999999984
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 16,
+    "np_start": 85.39999999999985,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 30,
+    "trial_number": 30,
+    "trial_start": 85.64999999999985,
+    "ts_stim": 86.14999999999985,
+    "ts_stim_1": 86.14999999999985,
+    "ts_stim_2": 86.14999999999985,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     86.14999999999985,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 86.14999999999985
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 86.14999999999985
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     88.84999999999984
+    ],
+    [
+     "np_end",
+     88.89999999999984
+    ],
+    [
+     "np_start",
+     88.94999999999983
+    ],
+    [
+     "np_duration_elapsed",
+     89.19999999999983
+    ],
+    [
+     "trial_start",
+     89.19999999999983
+    ],
+    [
+     "hold_start",
+     89.19999999999983
+    ],
+    [
+     "hold_duration_elapsed",
+     89.19999999999983
+    ],
+    [
+     "deliver_reward_True",
+     89.19999999999983
+    ],
+    [
+     "response_start",
+     89.19999999999983
+    ],
+    [
+     "np_end",
+     89.24999999999983
+    ],
+    [
+     "response_1_start",
+     89.29999999999983
+    ],
+    [
+     "response_end",
+     89.29999999999983
+    ],
+    [
+     "trial_end",
+     89.29999999999983
+    ],
+    [
+     "response_1_end",
+     89.34999999999982
+    ],
+    [
+     "iti_start",
+     89.34999999999982
+    ],
+    [
+     "iti_duration_elapsed",
+     89.44999999999982
+    ],
+    [
+     "iti_end",
+     89.44999999999982
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 16,
+    "np_start": 88.94999999999983,
+    "response": "spout_1",
+    "response_condition": true,
+    "response_side": 1,
+    "response_time": 0.09999999999999432,
+    "response_ts": 89.29999999999983,
+    "score": 2,
+    "trial_idx": 31,
+    "trial_number": 31,
+    "trial_start": 89.19999999999983,
+    "ts_stim": 89.69999999999983,
+    "ts_stim_1": 89.69999999999983,
+    "ts_stim_2": 89.69999999999983,
+    "wav_set_idx": 0
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     89.69999999999983,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 89.69999999999983
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 89.69999999999983
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     89.49999999999982
+    ],
+    [
+     "np_duration_elapsed",
+     89.74999999999982
+    ],
+    [
+     "trial_start",
+     89.74999999999982
+    ],
+    [
+     "hold_start",
+     89.74999999999982
+    ],
+    [
+     "hold_duration_elapsed",
+     89.74999999999982
+    ],
+    [
+     "response_start",
+     89.74999999999982
+    ],
+    [
+     "np_end",
+     89.79999999999981
+    ],
+    [
+     "response_1_start",
+     89.84999999999981
+    ],
+    [
+     "response_end",
+     89.84999999999981
+    ],
+    [
+     "trial_end",
+     89.84999999999981
+    ],
+    [
+     "to_start",
+     89.84999999999981
+    ],
+    [
+     "to_start",
+     89.84999999999981
+    ],
+    [
+     "response_1_end",
+     89.8999999999998
+    ],
+    [
+     "to_start",
+     89.8999999999998
+    ],
+    [
+     "to_duration_elapsed",
+     90.8999999999998
+    ],
+    [
+     "to_end",
+     90.8999999999998
+    ],
+    [
+     "iti_start",
+     90.8999999999998
+    ],
+    [
+     "iti_duration_elapsed",
+     90.9999999999998
+    ],
+    [
+     "iti_end",
+     90.9999999999998
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 17,
+    "np_start": 89.49999999999982,
+    "response": "spout_1",
+    "response_condition": false,
+    "response_side": 1,
+    "response_time": 0.09999999999999432,
+    "response_ts": 89.84999999999981,
+    "score": 1,
+    "trial_idx": 32,
+    "trial_number": 32,
+    "trial_start": 89.74999999999982,
+    "ts_stim": 90.24999999999982,
+    "ts_stim_1": 90.24999999999982,
+    "ts_stim_2": 90.24999999999982,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     90.24999999999982,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 90.24999999999982
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 90.24999999999982
+    }
+   ]
+  },
+  {
+   "action": "no_response",
+   "events": [
+    [
+     "np_start",
+     91.0499999999998
+    ],
+    [
+     "np_duration_elapsed",
+     91.2999999999998
+    ],
+    [
+     "trial_start",
+     91.2999999999998
+    ],
+    [
+     "hold_start",
+     91.2999999999998
+    ],
+    [
+     "hold_duration_elapsed",
+     91.2999999999998
+    ],
+    [
+     "deliver_reward_True",
+     91.2999999999998
+    ],
+    [
+     "response_start",
+     91.2999999999998
+    ],
+    [
+     "np_end",
+     91.3499999999998
+    ],
+    [
+     "response_duration_elapsed",
+     94.3499999999998
+    ],
+    [
+     "trial_end",
+     94.3499999999998
+    ],
+    [
+     "to_start",
+     94.3499999999998
+    ],
+    [
+     "to_start",
+     94.3499999999998
+    ],
+    [
+     "to_duration_elapsed",
+     95.3499999999998
+    ],
+    [
+     "to_end",
+     95.3499999999998
+    ],
+    [
+     "iti_start",
+     95.3499999999998
+    ],
+    [
+     "iti_duration_elapsed",
+     95.44999999999979
+    ],
+    [
+     "iti_end",
+     95.44999999999979
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 17,
+    "np_start": 91.0499999999998,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 33,
+    "trial_number": 33,
+    "trial_start": 91.2999999999998,
+    "ts_stim": 91.7999999999998,
+    "ts_stim_1": 91.7999999999998,
+    "ts_stim_2": 91.7999999999998,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     91.7999999999998,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 91.7999999999998
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 91.7999999999998
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     95.49999999999979
+    ],
+    [
+     "np_duration_elapsed",
+     95.74999999999979
+    ],
+    [
+     "trial_start",
+     95.74999999999979
+    ],
+    [
+     "hold_start",
+     95.74999999999979
+    ],
+    [
+     "hold_duration_elapsed",
+     95.74999999999979
+    ],
+    [
+     "response_start",
+     95.74999999999979
+    ],
+    [
+     "np_end",
+     95.79999999999978
+    ],
+    [
+     "response_duration_elapsed",
+     98.79999999999978
+    ],
+    [
+     "trial_end",
+     98.79999999999978
+    ],
+    [
+     "iti_start",
+     98.79999999999978
+    ],
+    [
+     "iti_duration_elapsed",
+     98.89999999999978
+    ],
+    [
+     "iti_end",
+     98.89999999999978
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 18,
+    "np_start": 95.49999999999979,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 34,
+    "trial_number": 34,
+    "trial_start": 95.74999999999979,
+    "ts_stim": 96.24999999999979,
+    "ts_stim_1": 96.24999999999979,
+    "ts_stim_2": 96.24999999999979,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     96.24999999999979,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 96.24999999999979
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 96.24999999999979
+    }
+   ]
+  },
+  {
+   "action": "no_response",
+   "events": [
+    [
+     "np_start",
+     98.94999999999978
+    ],
+    [
+     "np_duration_elapsed",
+     99.19999999999978
+    ],
+    [
+     "trial_start",
+     99.19999999999978
+    ],
+    [
+     "hold_start",
+     99.19999999999978
+    ],
+    [
+     "hold_duration_elapsed",
+     99.19999999999978
+    ],
+    [
+     "deliver_reward_True",
+     99.19999999999978
+    ],
+    [
+     "response_start",
+     99.19999999999978
+    ],
+    [
+     "np_end",
+     99.24999999999977
+    ],
+    [
+     "response_duration_elapsed",
+     102.24999999999977
+    ],
+    [
+     "trial_end",
+     102.24999999999977
+    ],
+    [
+     "to_start",
+     102.24999999999977
+    ],
+    [
+     "to_start",
+     102.24999999999977
+    ],
+    [
+     "to_duration_elapsed",
+     103.24999999999977
+    ],
+    [
+     "to_end",
+     103.24999999999977
+    ],
+    [
+     "iti_start",
+     103.24999999999977
+    ],
+    [
+     "iti_duration_elapsed",
+     103.34999999999977
+    ],
+    [
+     "iti_end",
+     103.34999999999977
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 18,
+    "np_start": 98.94999999999978,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 35,
+    "trial_number": 35,
+    "trial_start": 99.19999999999978,
+    "ts_stim": 99.69999999999978,
+    "ts_stim_1": 99.69999999999978,
+    "ts_stim_2": 99.69999999999978,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     99.69999999999978,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 99.69999999999978
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 99.69999999999978
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     103.39999999999976
+    ],
+    [
+     "np_duration_elapsed",
+     103.64999999999976
+    ],
+    [
+     "trial_start",
+     103.64999999999976
+    ],
+    [
+     "hold_start",
+     103.64999999999976
+    ],
+    [
+     "hold_duration_elapsed",
+     103.64999999999976
+    ],
+    [
+     "response_start",
+     103.64999999999976
+    ],
+    [
+     "np_end",
+     103.69999999999976
+    ],
+    [
+     "response_duration_elapsed",
+     106.69999999999976
+    ],
+    [
+     "trial_end",
+     106.69999999999976
+    ],
+    [
+     "iti_start",
+     106.69999999999976
+    ],
+    [
+     "iti_duration_elapsed",
+     106.79999999999976
+    ],
+    [
+     "iti_end",
+     106.79999999999976
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 19,
+    "np_start": 103.39999999999976,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 36,
+    "trial_number": 36,
+    "trial_start": 103.64999999999976,
+    "ts_stim": 104.14999999999976,
+    "ts_stim_1": 104.14999999999976,
+    "ts_stim_2": 104.14999999999976,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     104.14999999999976,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 104.14999999999976
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 104.14999999999976
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     106.84999999999975
+    ],
+    [
+     "np_duration_elapsed",
+     107.09999999999975
+    ],
+    [
+     "trial_start",
+     107.09999999999975
+    ],
+    [
+     "hold_start",
+     107.09999999999975
+    ],
+    [
+     "hold_duration_elapsed",
+     107.09999999999975
+    ],
+    [
+     "response_start",
+     107.09999999999975
+    ],
+    [
+     "np_end",
+     107.14999999999975
+    ],
+    [
+     "np_start",
+     107.19999999999975
+    ],
+    [
+     "trial_end",
+     107.19999999999975
+    ],
+    [
+     "iti_start",
+     107.19999999999975
+    ],
+    [
+     "np_end",
+     107.24999999999974
+    ],
+    [
+     "iti_duration_elapsed",
+     107.34999999999974
+    ],
+    [
+     "iti_end",
+     107.34999999999974
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 19,
+    "np_start": 106.84999999999975,
+    "response": "np",
+    "response_condition": false,
+    "response_side": 0,
+    "response_time": 0.09999999999999432,
+    "response_ts": 107.19999999999975,
+    "score": 2,
+    "trial_idx": 37,
+    "trial_number": 37,
+    "trial_start": 107.09999999999975,
+    "ts_stim": 107.59999999999975,
+    "ts_stim_1": 107.59999999999975,
+    "ts_stim_2": 107.59999999999975,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     107.59999999999975,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 107.59999999999975
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 107.59999999999975
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     107.39999999999974
+    ],
+    [
+     "np_end",
+     107.44999999999973
+    ],
+    [
+     "np_start",
+     107.49999999999973
+    ],
+    [
+     "np_duration_elapsed",
+     107.74999999999973
+    ],
+    [
+     "trial_start",
+     107.74999999999973
+    ],
+    [
+     "hold_start",
+     107.74999999999973
+    ],
+    [
+     "hold_duration_elapsed",
+     107.74999999999973
+    ],
+    [
+     "deliver_reward_True",
+     107.74999999999973
+    ],
+    [
+     "response_start",
+     107.74999999999973
+    ],
+    [
+     "np_end",
+     107.79999999999973
+    ],
+    [
+     "response_duration_elapsed",
+     110.79999999999973
+    ],
+    [
+     "trial_end",
+     110.79999999999973
+    ],
+    [
+     "to_start",
+     110.79999999999973
+    ],
+    [
+     "to_start",
+     110.79999999999973
+    ],
+    [
+     "to_duration_elapsed",
+     111.79999999999973
+    ],
+    [
+     "to_end",
+     111.79999999999973
+    ],
+    [
+     "iti_start",
+     111.79999999999973
+    ],
+    [
+     "iti_duration_elapsed",
+     111.89999999999972
+    ],
+    [
+     "iti_end",
+     111.89999999999972
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 20,
+    "np_start": 107.49999999999973,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 38,
+    "trial_number": 38,
+    "trial_start": 107.74999999999973,
+    "ts_stim": 108.24999999999973,
+    "ts_stim_1": 108.24999999999973,
+    "ts_stim_2": 108.24999999999973,
+    "wav_set_idx": 0
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     108.24999999999973,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 108.24999999999973
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 108.24999999999973
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     111.94999999999972
+    ],
+    [
+     "np_duration_elapsed",
+     112.19999999999972
+    ],
+    [
+     "trial_start",
+     112.19999999999972
+    ],
+    [
+     "hold_start",
+     112.19999999999972
+    ],
+    [
+     "hold_duration_elapsed",
+     112.19999999999972
+    ],
+    [
+     "deliver_reward_True",
+     112.19999999999972
+    ],
+    [
+     "response_start",
+     112.19999999999972
+    ],
+    [
+     "np_end",
+     112.24999999999972
+    ],
+    [
+     "response_duration_elapsed",
+     115.24999999999972
+    ],
+    [
+     "trial_end",
+     115.24999999999972
+    ],
+    [
+     "to_start",
+     115.24999999999972
+    ],
+    [
+     "to_start",
+     115.24999999999972
+    ],
+    [
+     "to_duration_elapsed",
+     116.24999999999972
+    ],
+    [
+     "to_end",
+     116.24999999999972
+    ],
+    [
+     "iti_start",
+     116.24999999999972
+    ],
+    [
+     "iti_duration_elapsed",
+     116.34999999999971
+    ],
+    [
+     "iti_end",
+     116.34999999999971
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 20,
+    "np_start": 111.94999999999972,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 39,
+    "trial_number": 39,
+    "trial_start": 112.19999999999972,
+    "ts_stim": 112.69999999999972,
+    "ts_stim_1": 112.69999999999972,
+    "ts_stim_2": 112.69999999999972,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     112.69999999999972,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 112.69999999999972
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 112.69999999999972
+    }
+   ]
+  },
+  {
+   "action": "no_response",
+   "events": [
+    [
+     "np_start",
+     116.39999999999971
+    ],
+    [
+     "np_duration_elapsed",
+     116.64999999999971
+    ],
+    [
+     "trial_start",
+     116.64999999999971
+    ],
+    [
+     "hold_start",
+     116.64999999999971
+    ],
+    [
+     "hold_duration_elapsed",
+     116.64999999999971
+    ],
+    [
+     "response_start",
+     116.64999999999971
+    ],
+    [
+     "np_end",
+     116.6999999999997
+    ],
+    [
+     "response_duration_elapsed",
+     119.6999999999997
+    ],
+    [
+     "trial_end",
+     119.6999999999997
+    ],
+    [
+     "iti_start",
+     119.6999999999997
+    ],
+    [
+     "iti_duration_elapsed",
+     119.7999999999997
+    ],
+    [
+     "iti_end",
+     119.7999999999997
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 21,
+    "np_start": 116.39999999999971,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 40,
+    "trial_number": 40,
+    "trial_start": 116.64999999999971,
+    "ts_stim": 117.14999999999971,
+    "ts_stim_1": 117.14999999999971,
+    "ts_stim_2": 117.14999999999971,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     117.14999999999971,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 117.14999999999971
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 117.14999999999971
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     119.8499999999997
+    ],
+    [
+     "np_duration_elapsed",
+     120.0999999999997
+    ],
+    [
+     "trial_start",
+     120.0999999999997
+    ],
+    [
+     "hold_start",
+     120.0999999999997
+    ],
+    [
+     "hold_duration_elapsed",
+     120.0999999999997
+    ],
+    [
+     "response_start",
+     120.0999999999997
+    ],
+    [
+     "np_end",
+     120.1499999999997
+    ],
+    [
+     "response_1_start",
+     120.19999999999969
+    ],
+    [
+     "response_end",
+     120.19999999999969
+    ],
+    [
+     "trial_end",
+     120.19999999999969
+    ],
+    [
+     "to_start",
+     120.19999999999969
+    ],
+    [
+     "to_start",
+     120.19999999999969
+    ],
+    [
+     "response_1_end",
+     120.24999999999969
+    ],
+    [
+     "to_start",
+     120.24999999999969
+    ],
+    [
+     "to_duration_elapsed",
+     121.24999999999969
+    ],
+    [
+     "to_end",
+     121.24999999999969
+    ],
+    [
+     "iti_start",
+     121.24999999999969
+    ],
+    [
+     "iti_duration_elapsed",
+     121.34999999999968
+    ],
+    [
+     "iti_end",
+     121.34999999999968
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 21,
+    "np_start": 119.8499999999997,
+    "response": "spout_1",
+    "response_condition": false,
+    "response_side": 1,
+    "response_time": 0.09999999999999432,
+    "response_ts": 120.19999999999969,
+    "score": 1,
+    "trial_idx": 41,
+    "trial_number": 41,
+    "trial_start": 120.0999999999997,
+    "ts_stim": 120.5999999999997,
+    "ts_stim_1": 120.5999999999997,
+    "ts_stim_2": 120.5999999999997,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     120.5999999999997,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 120.5999999999997
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 120.5999999999997
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     121.39999999999968
+    ],
+    [
+     "np_duration_elapsed",
+     121.64999999999968
+    ],
+    [
+     "trial_start",
+     121.64999999999968
+    ],
+    [
+     "hold_start",
+     121.64999999999968
+    ],
+    [
+     "hold_duration_elapsed",
+     121.64999999999968
+    ],
+    [
+     "deliver_reward_True",
+     121.64999999999968
+    ],
+    [
+     "response_start",
+     121.64999999999968
+    ],
+    [
+     "np_end",
+     121.69999999999968
+    ],
+    [
+     "response_duration_elapsed",
+     124.69999999999968
+    ],
+    [
+     "trial_end",
+     124.69999999999968
+    ],
+    [
+     "to_start",
+     124.69999999999968
+    ],
+    [
+     "to_start",
+     124.69999999999968
+    ],
+    [
+     "to_duration_elapsed",
+     125.69999999999968
+    ],
+    [
+     "to_end",
+     125.69999999999968
+    ],
+    [
+     "iti_start",
+     125.69999999999968
+    ],
+    [
+     "iti_duration_elapsed",
+     125.79999999999967
+    ],
+    [
+     "iti_end",
+     125.79999999999967
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 22,
+    "np_start": 121.39999999999968,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 42,
+    "trial_number": 42,
+    "trial_start": 121.64999999999968,
+    "ts_stim": 122.14999999999968,
+    "ts_stim_1": 122.14999999999968,
+    "ts_stim_2": 122.14999999999968,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     122.14999999999968,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 122.14999999999968
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 122.14999999999968
+    }
+   ]
+  },
+  {
+   "action": "no_response",
+   "events": [
+    [
+     "np_start",
+     125.84999999999967
+    ],
+    [
+     "np_end",
+     125.89999999999966
+    ],
+    [
+     "np_start",
+     125.94999999999966
+    ],
+    [
+     "np_duration_elapsed",
+     126.19999999999966
+    ],
+    [
+     "trial_start",
+     126.19999999999966
+    ],
+    [
+     "hold_start",
+     126.19999999999966
+    ],
+    [
+     "hold_duration_elapsed",
+     126.19999999999966
+    ],
+    [
+     "response_start",
+     126.19999999999966
+    ],
+    [
+     "np_end",
+     126.24999999999966
+    ],
+    [
+     "response_duration_elapsed",
+     129.24999999999966
+    ],
+    [
+     "trial_end",
+     129.24999999999966
+    ],
+    [
+     "iti_start",
+     129.24999999999966
+    ],
+    [
+     "iti_duration_elapsed",
+     129.34999999999965
+    ],
+    [
+     "iti_end",
+     129.34999999999965
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 22,
+    "np_start": 125.94999999999966,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 43,
+    "trial_number": 43,
+    "trial_start": 126.19999999999966,
+    "ts_stim": 126.69999999999966,
+    "ts_stim_1": 126.69999999999966,
+    "ts_stim_2": 126.69999999999966,
+    "wav_set_idx": 1
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     126.69999999999966,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 126.69999999999966
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 126.69999999999966
+    }
+   ]
+  },
+  {
+   "action": "no_response",
+   "events": [
+    [
+     "np_start",
+     129.39999999999966
+    ],
+    [
+     "np_duration_elapsed",
+     129.64999999999966
+    ],
+    [
+     "trial_start",
+     129.64999999999966
+    ],
+    [
+     "hold_start",
+     129.64999999999966
+    ],
+    [
+     "hold_duration_elapsed",
+     129.64999999999966
+    ],
+    [
+     "deliver_reward_True",
+     129.64999999999966
+    ],
+    [
+     "response_start",
+     129.64999999999966
+    ],
+    [
+     "np_end",
+     129.69999999999968
+    ],
+    [
+     "response_duration_elapsed",
+     132.69999999999968
+    ],
+    [
+     "trial_end",
+     132.69999999999968
+    ],
+    [
+     "to_start",
+     132.69999999999968
+    ],
+    [
+     "to_start",
+     132.69999999999968
+    ],
+    [
+     "to_duration_elapsed",
+     133.69999999999968
+    ],
+    [
+     "to_end",
+     133.69999999999968
+    ],
+    [
+     "iti_start",
+     133.69999999999968
+    ],
+    [
+     "iti_duration_elapsed",
+     133.79999999999967
+    ],
+    [
+     "iti_end",
+     133.79999999999967
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 23,
+    "np_start": 129.39999999999966,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 44,
+    "trial_number": 44,
+    "trial_start": 129.64999999999966,
+    "ts_stim": 130.14999999999966,
+    "ts_stim_1": 130.14999999999966,
+    "ts_stim_2": 130.14999999999966,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     130.14999999999966,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 130.14999999999966
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 130.14999999999966
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     133.84999999999968
+    ],
+    [
+     "np_duration_elapsed",
+     134.09999999999968
+    ],
+    [
+     "trial_start",
+     134.09999999999968
+    ],
+    [
+     "hold_start",
+     134.09999999999968
+    ],
+    [
+     "hold_duration_elapsed",
+     134.09999999999968
+    ],
+    [
+     "deliver_reward_True",
+     134.09999999999968
+    ],
+    [
+     "response_start",
+     134.09999999999968
+    ],
+    [
+     "np_end",
+     134.1499999999997
+    ],
+    [
+     "response_1_start",
+     134.1999999999997
+    ],
+    [
+     "response_end",
+     134.1999999999997
+    ],
+    [
+     "trial_end",
+     134.1999999999997
+    ],
+    [
+     "response_1_end",
+     134.24999999999972
+    ],
+    [
+     "iti_start",
+     134.24999999999972
+    ],
+    [
+     "iti_duration_elapsed",
+     134.3499999999997
+    ],
+    [
+     "iti_end",
+     134.3499999999997
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 23,
+    "np_start": 133.84999999999968,
+    "response": "spout_1",
+    "response_condition": true,
+    "response_side": 1,
+    "response_time": 0.10000000000002274,
+    "response_ts": 134.1999999999997,
+    "score": 2,
+    "trial_idx": 45,
+    "trial_number": 45,
+    "trial_start": 134.09999999999968,
+    "ts_stim": 134.59999999999968,
+    "ts_stim_1": 134.59999999999968,
+    "ts_stim_2": 134.59999999999968,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     134.59999999999968,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 134.59999999999968
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 134.59999999999968
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     134.39999999999972
+    ],
+    [
+     "np_duration_elapsed",
+     134.64999999999972
+    ],
+    [
+     "trial_start",
+     134.64999999999972
+    ],
+    [
+     "hold_start",
+     134.64999999999972
+    ],
+    [
+     "hold_duration_elapsed",
+     134.64999999999972
+    ],
+    [
+     "response_start",
+     134.64999999999972
+    ],
+    [
+     "np_end",
+     134.69999999999973
+    ],
+    [
+     "response_1_start",
+     134.74999999999974
+    ],
+    [
+     "response_end",
+     134.74999999999974
+    ],
+    [
+     "trial_end",
+     134.74999999999974
+    ],
+    [
+     "to_start",
+     134.74999999999974
+    ],
+    [
+     "to_start",
+     134.74999999999974
+    ],
+    [
+     "response_1_end",
+     134.79999999999976
+    ],
+    [
+     "to_start",
+     134.79999999999976
+    ],
+    [
+     "to_duration_elapsed",
+     135.79999999999976
+    ],
+    [
+     "to_end",
+     135.79999999999976
+    ],
+    [
+     "iti_start",
+     135.79999999999976
+    ],
+    [
+     "iti_duration_elapsed",
+     135.89999999999975
+    ],
+    [
+     "iti_end",
+     135.89999999999975
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 24,
+    "np_start": 134.39999999999972,
+    "response": "spout_1",
+    "response_condition": false,
+    "response_side": 1,
+    "response_time": 0.10000000000002274,
+    "response_ts": 134.74999999999974,
+    "score": 1,
+    "trial_idx": 46,
+    "trial_number": 46,
+    "trial_start": 134.64999999999972,
+    "ts_stim": 135.14999999999972,
+    "ts_stim_1": 135.14999999999972,
+    "ts_stim_2": 135.14999999999972,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     135.14999999999972,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 135.14999999999972
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 135.14999999999972
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     135.94999999999976
+    ],
+    [
+     "np_end",
+     135.99999999999977
+    ],
+    [
+     "np_start",
+     136.04999999999978
+    ],
+    [
+     "np_duration_elapsed",
+     136.29999999999978
+    ],
+    [
+     "trial_start",
+     136.29999999999978
+    ],
+    [
+     "hold_start",
+     136.29999999999978
+    ],
+    [
+     "hold_duration_elapsed",
+     136.29999999999978
+    ],
+    [
+     "deliver_reward_True",
+     136.29999999999978
+    ],
+    [
+     "response_start",
+     136.29999999999978
+    ],
+    [
+     "np_end",
+     136.3499999999998
+    ],
+    [
+     "response_1_start",
+     136.3999999999998
+    ],
+    [
+     "response_end",
+     136.3999999999998
+    ],
+    [
+     "trial_end",
+     136.3999999999998
+    ],
+    [
+     "response_1_end",
+     136.44999999999982
+    ],
+    [
+     "iti_start",
+     136.44999999999982
+    ],
+    [
+     "iti_duration_elapsed",
+     136.5499999999998
+    ],
+    [
+     "iti_end",
+     136.5499999999998
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 24,
+    "np_start": 136.04999999999978,
+    "response": "spout_1",
+    "response_condition": true,
+    "response_side": 1,
+    "response_time": 0.10000000000002274,
+    "response_ts": 136.3999999999998,
+    "score": 2,
+    "trial_idx": 47,
+    "trial_number": 47,
+    "trial_start": 136.29999999999978,
+    "ts_stim": 136.79999999999978,
+    "ts_stim_1": 136.79999999999978,
+    "ts_stim_2": 136.79999999999978,
+    "wav_set_idx": 0
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     136.79999999999978,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 136.79999999999978
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 136.79999999999978
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     136.59999999999982
+    ],
+    [
+     "np_duration_elapsed",
+     136.84999999999982
+    ],
+    [
+     "trial_start",
+     136.84999999999982
+    ],
+    [
+     "hold_start",
+     136.84999999999982
+    ],
+    [
+     "hold_duration_elapsed",
+     136.84999999999982
+    ],
+    [
+     "response_start",
+     136.84999999999982
+    ],
+    [
+     "np_end",
+     136.89999999999984
+    ],
+    [
+     "response_duration_elapsed",
+     139.89999999999984
+    ],
+    [
+     "trial_end",
+     139.89999999999984
+    ],
+    [
+     "iti_start",
+     139.89999999999984
+    ],
+    [
+     "iti_duration_elapsed",
+     139.99999999999983
+    ],
+    [
+     "iti_end",
+     139.99999999999983
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 25,
+    "np_start": 136.59999999999982,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 48,
+    "trial_number": 48,
+    "trial_start": 136.84999999999982,
+    "ts_stim": 137.34999999999982,
+    "ts_stim_1": 137.34999999999982,
+    "ts_stim_2": 137.34999999999982,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     137.34999999999982,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 137.34999999999982
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 137.34999999999982
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     140.04999999999984
+    ],
+    [
+     "np_duration_elapsed",
+     140.29999999999984
+    ],
+    [
+     "trial_start",
+     140.29999999999984
+    ],
+    [
+     "hold_start",
+     140.29999999999984
+    ],
+    [
+     "hold_duration_elapsed",
+     140.29999999999984
+    ],
+    [
+     "response_start",
+     140.29999999999984
+    ],
+    [
+     "np_end",
+     140.34999999999985
+    ],
+    [
+     "response_duration_elapsed",
+     143.34999999999985
+    ],
+    [
+     "trial_end",
+     143.34999999999985
+    ],
+    [
+     "iti_start",
+     143.34999999999985
+    ],
+    [
+     "iti_duration_elapsed",
+     143.44999999999985
+    ],
+    [
+     "iti_end",
+     143.44999999999985
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 25,
+    "np_start": 140.04999999999984,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 49,
+    "trial_number": 49,
+    "trial_start": 140.29999999999984,
+    "ts_stim": 140.79999999999984,
+    "ts_stim_1": 140.79999999999984,
+    "ts_stim_2": 140.79999999999984,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     140.79999999999984,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 140.79999999999984
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 140.79999999999984
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     143.49999999999986
+    ],
+    [
+     "np_duration_elapsed",
+     143.74999999999986
+    ],
+    [
+     "trial_start",
+     143.74999999999986
+    ],
+    [
+     "hold_start",
+     143.74999999999986
+    ],
+    [
+     "hold_duration_elapsed",
+     143.74999999999986
+    ],
+    [
+     "deliver_reward_True",
+     143.74999999999986
+    ],
+    [
+     "response_start",
+     143.74999999999986
+    ],
+    [
+     "np_end",
+     143.79999999999987
+    ],
+    [
+     "response_1_start",
+     143.84999999999988
+    ],
+    [
+     "response_end",
+     143.84999999999988
+    ],
+    [
+     "trial_end",
+     143.84999999999988
+    ],
+    [
+     "response_1_end",
+     143.8999999999999
+    ],
+    [
+     "iti_start",
+     143.8999999999999
+    ],
+    [
+     "iti_duration_elapsed",
+     143.9999999999999
+    ],
+    [
+     "iti_end",
+     143.9999999999999
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 26,
+    "np_start": 143.49999999999986,
+    "response": "spout_1",
+    "response_condition": true,
+    "response_side": 1,
+    "response_time": 0.10000000000002274,
+    "response_ts": 143.84999999999988,
+    "score": 2,
+    "trial_idx": 50,
+    "trial_number": 50,
+    "trial_start": 143.74999999999986,
+    "ts_stim": 144.24999999999986,
+    "ts_stim_1": 144.24999999999986,
+    "ts_stim_2": 144.24999999999986,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     144.24999999999986,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 144.24999999999986
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 144.24999999999986
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     144.0499999999999
+    ],
+    [
+     "np_duration_elapsed",
+     144.2999999999999
+    ],
+    [
+     "trial_start",
+     144.2999999999999
+    ],
+    [
+     "hold_start",
+     144.2999999999999
+    ],
+    [
+     "hold_duration_elapsed",
+     144.2999999999999
+    ],
+    [
+     "response_start",
+     144.2999999999999
+    ],
+    [
+     "np_end",
+     144.3499999999999
+    ],
+    [
+     "response_1_start",
+     144.39999999999992
+    ],
+    [
+     "response_end",
+     144.39999999999992
+    ],
+    [
+     "trial_end",
+     144.39999999999992
+    ],
+    [
+     "to_start",
+     144.39999999999992
+    ],
+    [
+     "to_start",
+     144.39999999999992
+    ],
+    [
+     "response_1_end",
+     144.44999999999993
+    ],
+    [
+     "to_start",
+     144.44999999999993
+    ],
+    [
+     "to_duration_elapsed",
+     145.44999999999993
+    ],
+    [
+     "to_end",
+     145.44999999999993
+    ],
+    [
+     "iti_start",
+     145.44999999999993
+    ],
+    [
+     "iti_duration_elapsed",
+     145.54999999999993
+    ],
+    [
+     "iti_end",
+     145.54999999999993
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 26,
+    "np_start": 144.0499999999999,
+    "response": "spout_1",
+    "response_condition": false,
+    "response_side": 1,
+    "response_time": 0.10000000000002274,
+    "response_ts": 144.39999999999992,
+    "score": 1,
+    "trial_idx": 51,
+    "trial_number": 51,
+    "trial_start": 144.2999999999999,
+    "ts_stim": 144.7999999999999,
+    "ts_stim_1": 144.7999999999999,
+    "ts_stim_2": 144.7999999999999,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     144.7999999999999,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 144.7999999999999
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 144.7999999999999
+    }
+   ]
+  },
+  {
+   "action": "no_response",
+   "events": [
+    [
+     "np_start",
+     145.59999999999994
+    ],
+    [
+     "np_duration_elapsed",
+     145.84999999999994
+    ],
+    [
+     "trial_start",
+     145.84999999999994
+    ],
+    [
+     "hold_start",
+     145.84999999999994
+    ],
+    [
+     "hold_duration_elapsed",
+     145.84999999999994
+    ],
+    [
+     "deliver_reward_True",
+     145.84999999999994
+    ],
+    [
+     "response_start",
+     145.84999999999994
+    ],
+    [
+     "np_end",
+     145.89999999999995
+    ],
+    [
+     "response_duration_elapsed",
+     148.89999999999995
+    ],
+    [
+     "trial_end",
+     148.89999999999995
+    ],
+    [
+     "to_start",
+     148.89999999999995
+    ],
+    [
+     "to_start",
+     148.89999999999995
+    ],
+    [
+     "to_duration_elapsed",
+     149.89999999999995
+    ],
+    [
+     "to_end",
+     149.89999999999995
+    ],
+    [
+     "iti_start",
+     149.89999999999995
+    ],
+    [
+     "iti_duration_elapsed",
+     149.99999999999994
+    ],
+    [
+     "iti_end",
+     149.99999999999994
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 27,
+    "np_start": 145.59999999999994,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 52,
+    "trial_number": 52,
+    "trial_start": 145.84999999999994,
+    "ts_stim": 146.34999999999994,
+    "ts_stim_1": 146.34999999999994,
+    "ts_stim_2": 146.34999999999994,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     146.34999999999994,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 146.34999999999994
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 146.34999999999994
+    }
+   ]
+  },
+  {
+   "action": "no_response",
+   "events": [
+    [
+     "np_start",
+     150.04999999999995
+    ],
+    [
+     "np_duration_elapsed",
+     150.29999999999995
+    ],
+    [
+     "trial_start",
+     150.29999999999995
+    ],
+    [
+     "hold_start",
+     150.29999999999995
+    ],
+    [
+     "hold_duration_elapsed",
+     150.29999999999995
+    ],
+    [
+     "deliver_reward_True",
+     150.29999999999995
+    ],
+    [
+     "response_start",
+     150.29999999999995
+    ],
+    [
+     "np_end",
+     150.34999999999997
+    ],
+    [
+     "response_duration_elapsed",
+     153.34999999999997
+    ],
+    [
+     "trial_end",
+     153.34999999999997
+    ],
+    [
+     "to_start",
+     153.34999999999997
+    ],
+    [
+     "to_start",
+     153.34999999999997
+    ],
+    [
+     "to_duration_elapsed",
+     154.34999999999997
+    ],
+    [
+     "to_end",
+     154.34999999999997
+    ],
+    [
+     "iti_start",
+     154.34999999999997
+    ],
+    [
+     "iti_duration_elapsed",
+     154.44999999999996
+    ],
+    [
+     "iti_end",
+     154.44999999999996
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 27,
+    "np_start": 150.04999999999995,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 53,
+    "trial_number": 53,
+    "trial_start": 150.29999999999995,
+    "ts_stim": 150.79999999999995,
+    "ts_stim_1": 150.79999999999995,
+    "ts_stim_2": 150.79999999999995,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     150.79999999999995,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 150.79999999999995
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 150.79999999999995
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     154.49999999999997
+    ],
+    [
+     "np_duration_elapsed",
+     154.74999999999997
+    ],
+    [
+     "trial_start",
+     154.74999999999997
+    ],
+    [
+     "hold_start",
+     154.74999999999997
+    ],
+    [
+     "hold_duration_elapsed",
+     154.74999999999997
+    ],
+    [
+     "response_start",
+     154.74999999999997
+    ],
+    [
+     "np_end",
+     154.79999999999998
+    ],
+    [
+     "response_1_start",
+     154.85
+    ],
+    [
+     "response_end",
+     154.85
+    ],
+    [
+     "trial_end",
+     154.85
+    ],
+    [
+     "to_start",
+     154.85
+    ],
+    [
+     "to_start",
+     154.85
+    ],
+    [
+     "response_1_end",
+     154.9
+    ],
+    [
+     "to_start",
+     154.9
+    ],
+    [
+     "to_duration_elapsed",
+     155.9
+    ],
+    [
+     "to_end",
+     155.9
+    ],
+    [
+     "iti_start",
+     155.9
+    ],
+    [
+     "iti_duration_elapsed",
+     156.0
+    ],
+    [
+     "iti_end",
+     156.0
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 28,
+    "np_start": 154.49999999999997,
+    "response": "spout_1",
+    "response_condition": false,
+    "response_side": 1,
+    "response_time": 0.10000000000002274,
+    "response_ts": 154.85,
+    "score": 1,
+    "trial_idx": 54,
+    "trial_number": 54,
+    "trial_start": 154.74999999999997,
+    "ts_stim": 155.24999999999997,
+    "ts_stim_1": 155.24999999999997,
+    "ts_stim_2": 155.24999999999997,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     155.24999999999997,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 155.24999999999997
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 155.24999999999997
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     156.05
+    ],
+    [
+     "np_duration_elapsed",
+     156.3
+    ],
+    [
+     "trial_start",
+     156.3
+    ],
+    [
+     "hold_start",
+     156.3
+    ],
+    [
+     "hold_duration_elapsed",
+     156.3
+    ],
+    [
+     "deliver_reward_True",
+     156.3
+    ],
+    [
+     "response_start",
+     156.3
+    ],
+    [
+     "np_end",
+     156.35000000000002
+    ],
+    [
+     "np_start",
+     156.40000000000003
+    ],
+    [
+     "trial_end",
+     156.40000000000003
+    ],
+    [
+     "to_start",
+     156.40000000000003
+    ],
+    [
+     "to_start",
+     156.40000000000003
+    ],
+    [
+     "np_end",
+     156.45000000000005
+    ],
+    [
+     "to_duration_elapsed",
+     157.45000000000005
+    ],
+    [
+     "to_end",
+     157.45000000000005
+    ],
+    [
+     "iti_start",
+     157.45000000000005
+    ],
+    [
+     "iti_duration_elapsed",
+     157.55000000000004
+    ],
+    [
+     "iti_end",
+     157.55000000000004
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 28,
+    "np_start": 156.05,
+    "response": "np",
+    "response_condition": true,
+    "response_side": 0,
+    "response_time": 0.10000000000002274,
+    "response_ts": 156.40000000000003,
+    "score": 1,
+    "trial_idx": 55,
+    "trial_number": 55,
+    "trial_start": 156.3,
+    "ts_stim": 156.8,
+    "ts_stim_1": 156.8,
+    "ts_stim_2": 156.8,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     156.8,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 156.8
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 156.8
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     157.60000000000005
+    ],
+    [
+     "np_end",
+     157.65000000000006
+    ],
+    [
+     "np_start",
+     157.70000000000007
+    ],
+    [
+     "np_duration_elapsed",
+     157.95000000000007
+    ],
+    [
+     "trial_start",
+     157.95000000000007
+    ],
+    [
+     "hold_start",
+     157.95000000000007
+    ],
+    [
+     "hold_duration_elapsed",
+     157.95000000000007
+    ],
+    [
+     "response_start",
+     157.95000000000007
+    ],
+    [
+     "np_end",
+     158.00000000000009
+    ],
+    [
+     "response_duration_elapsed",
+     161.00000000000009
+    ],
+    [
+     "trial_end",
+     161.00000000000009
+    ],
+    [
+     "iti_start",
+     161.00000000000009
+    ],
+    [
+     "iti_duration_elapsed",
+     161.10000000000008
+    ],
+    [
+     "iti_end",
+     161.10000000000008
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 29,
+    "np_start": 157.70000000000007,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 56,
+    "trial_number": 56,
+    "trial_start": 157.95000000000007,
+    "ts_stim": 158.45000000000007,
+    "ts_stim_1": 158.45000000000007,
+    "ts_stim_2": 158.45000000000007,
+    "wav_set_idx": 1
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     158.45000000000007,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 158.45000000000007
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 158.45000000000007
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     161.1500000000001
+    ],
+    [
+     "np_duration_elapsed",
+     161.4000000000001
+    ],
+    [
+     "trial_start",
+     161.4000000000001
+    ],
+    [
+     "hold_start",
+     161.4000000000001
+    ],
+    [
+     "hold_duration_elapsed",
+     161.4000000000001
+    ],
+    [
+     "deliver_reward_True",
+     161.4000000000001
+    ],
+    [
+     "response_start",
+     161.4000000000001
+    ],
+    [
+     "np_end",
+     161.4500000000001
+    ],
+    [
+     "response_1_start",
+     161.5000000000001
+    ],
+    [
+     "response_end",
+     161.5000000000001
+    ],
+    [
+     "trial_end",
+     161.5000000000001
+    ],
+    [
+     "response_1_end",
+     161.55000000000013
+    ],
+    [
+     "iti_start",
+     161.55000000000013
+    ],
+    [
+     "iti_duration_elapsed",
+     161.65000000000012
+    ],
+    [
+     "iti_end",
+     161.65000000000012
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 29,
+    "np_start": 161.1500000000001,
+    "response": "spout_1",
+    "response_condition": true,
+    "response_side": 1,
+    "response_time": 0.10000000000002274,
+    "response_ts": 161.5000000000001,
+    "score": 2,
+    "trial_idx": 57,
+    "trial_number": 57,
+    "trial_start": 161.4000000000001,
+    "ts_stim": 161.9000000000001,
+    "ts_stim_1": 161.9000000000001,
+    "ts_stim_2": 161.9000000000001,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     161.9000000000001,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 161.9000000000001
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 161.9000000000001
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     161.70000000000013
+    ],
+    [
+     "np_duration_elapsed",
+     161.95000000000013
+    ],
+    [
+     "trial_start",
+     161.95000000000013
+    ],
+    [
+     "hold_start",
+     161.95000000000013
+    ],
+    [
+     "hold_duration_elapsed",
+     161.95000000000013
+    ],
+    [
+     "response_start",
+     161.95000000000013
+    ],
+    [
+     "np_end",
+     162.00000000000014
+    ],
+    [
+     "response_1_start",
+     162.05000000000015
+    ],
+    [
+     "response_end",
+     162.05000000000015
+    ],
+    [
+     "trial_end",
+     162.05000000000015
+    ],
+    [
+     "to_start",
+     162.05000000000015
+    ],
+    [
+     "to_start",
+     162.05000000000015
+    ],
+    [
+     "response_1_end",
+     162.10000000000016
+    ],
+    [
+     "to_start",
+     162.10000000000016
+    ],
+    [
+     "to_duration_elapsed",
+     163.10000000000016
+    ],
+    [
+     "to_end",
+     163.10000000000016
+    ],
+    [
+     "iti_start",
+     163.10000000000016
+    ],
+    [
+     "iti_duration_elapsed",
+     163.20000000000016
+    ],
+    [
+     "iti_end",
+     163.20000000000016
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 30,
+    "np_start": 161.70000000000013,
+    "response": "spout_1",
+    "response_condition": false,
+    "response_side": 1,
+    "response_time": 0.10000000000002274,
+    "response_ts": 162.05000000000015,
+    "score": 1,
+    "trial_idx": 58,
+    "trial_number": 58,
+    "trial_start": 161.95000000000013,
+    "ts_stim": 162.45000000000013,
+    "ts_stim_1": 162.45000000000013,
+    "ts_stim_2": 162.45000000000013,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     162.45000000000013,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 162.45000000000013
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 162.45000000000013
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     163.25000000000017
+    ],
+    [
+     "np_duration_elapsed",
+     163.50000000000017
+    ],
+    [
+     "trial_start",
+     163.50000000000017
+    ],
+    [
+     "hold_start",
+     163.50000000000017
+    ],
+    [
+     "hold_duration_elapsed",
+     163.50000000000017
+    ],
+    [
+     "response_start",
+     163.50000000000017
+    ],
+    [
+     "np_end",
+     163.55000000000018
+    ],
+    [
+     "response_duration_elapsed",
+     166.55000000000018
+    ],
+    [
+     "trial_end",
+     166.55000000000018
+    ],
+    [
+     "iti_start",
+     166.55000000000018
+    ],
+    [
+     "iti_duration_elapsed",
+     166.65000000000018
+    ],
+    [
+     "iti_end",
+     166.65000000000018
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": true,
+    "current_full_rep": 30,
+    "np_start": 163.25000000000017,
+    "response": "no_response",
+    "response_condition": false,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 2,
+    "trial_idx": 59,
+    "trial_number": 59,
+    "trial_start": 163.50000000000017,
+    "ts_stim": 164.00000000000017,
+    "ts_stim_1": 164.00000000000017,
+    "ts_stim_2": 164.00000000000017,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     164.00000000000017,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 164.00000000000017
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 164.00000000000017
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     166.7000000000002
+    ],
+    [
+     "np_duration_elapsed",
+     166.9500000000002
+    ],
+    [
+     "trial_start",
+     166.9500000000002
+    ],
+    [
+     "hold_start",
+     166.9500000000002
+    ],
+    [
+     "hold_duration_elapsed",
+     166.9500000000002
+    ],
+    [
+     "deliver_reward_True",
+     166.9500000000002
+    ],
+    [
+     "response_start",
+     166.9500000000002
+    ],
+    [
+     "np_end",
+     167.0000000000002
+    ],
+    [
+     "response_duration_elapsed",
+     170.0000000000002
+    ],
+    [
+     "trial_end",
+     170.0000000000002
+    ],
+    [
+     "to_start",
+     170.0000000000002
+    ],
+    [
+     "to_start",
+     170.0000000000002
+    ],
+    [
+     "to_duration_elapsed",
+     171.0000000000002
+    ],
+    [
+     "to_end",
+     171.0000000000002
+    ],
+    [
+     "iti_start",
+     171.0000000000002
+    ],
+    [
+     "iti_duration_elapsed",
+     171.1000000000002
+    ],
+    [
+     "iti_end",
+     171.1000000000002
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "correct": false,
+    "current_full_rep": 31,
+    "np_start": 166.7000000000002,
+    "response": "no_response",
+    "response_condition": true,
+    "response_side": "nan",
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 1,
+    "trial_idx": 60,
+    "trial_number": 60,
+    "trial_start": 166.9500000000002,
+    "ts_stim": 167.4500000000002,
+    "ts_stim_1": 167.4500000000002,
+    "ts_stim_2": 167.4500000000002,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     167.4500000000002,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 167.4500000000002
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 167.4500000000002
+    }
+   ]
+  }
+ ]
+}

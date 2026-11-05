@@ -1,0 +1,8141 @@
+{
+ "columns": [
+  "SA",
+  "bg_channel",
+  "bg_duration",
+  "bg_i",
+  "bg_level",
+  "bg_name",
+  "bg_path",
+  "bg_range",
+  "combinations",
+  "contra_n",
+  "correct",
+  "current_full_rep",
+  "diotic_n",
+  "dispense_1_duration",
+  "dispense_2_duration",
+  "dispense_duration",
+  "duration",
+  "early_np_to_duration",
+  "event_name",
+  "fg_channel",
+  "fg_choice_trials",
+  "fg_delay",
+  "fg_duration",
+  "fg_i",
+  "fg_level",
+  "fg_name",
+  "fg_path",
+  "fg_range",
+  "fg_switch_channels",
+  "hold_duration",
+  "ipsi_n",
+  "iti_duration",
+  "keep_lights_on",
+  "manual_control",
+  "migrate_fraction",
+  "migrate_start",
+  "migrate_stop",
+  "migrate_trial",
+  "norm_fixed_scale",
+  "normalization",
+  "np_duration",
+  "np_start",
+  "prb_bg_path",
+  "prb_bg_range",
+  "prb_f",
+  "primary_channel",
+  "ramp",
+  "random_seed",
+  "repeat_incorrect",
+  "replace_background",
+  "response",
+  "response_condition",
+  "response_duration",
+  "response_side",
+  "response_start",
+  "response_time",
+  "response_ts",
+  "response_window",
+  "reward_ambiguous_frac",
+  "reward_durations",
+  "score",
+  "snr",
+  "spatial_attention_block",
+  "spatial_attention_catch_ratio",
+  "spatial_attention_locus",
+  "spatial_attention_start_chan",
+  "target_delay",
+  "this_bg_level",
+  "this_fg_level",
+  "this_snr",
+  "to_duration",
+  "training_mode",
+  "trial_cat",
+  "trial_idx",
+  "trial_is_repeat",
+  "trial_number",
+  "trial_start",
+  "ts_stim",
+  "ts_stim_1",
+  "ts_stim_2",
+  "water_dispense_1_duration",
+  "water_dispense_2_duration",
+  "wav_set_idx"
+ ],
+ "constant": {
+  "SA": 0,
+  "bg_duration": 2.0,
+  "bg_level": [
+   0,
+   60
+  ],
+  "bg_path": "<sounds>/bg",
+  "bg_range": [
+   4
+  ],
+  "combinations": "all",
+  "contra_n": 0,
+  "diotic_n": 1,
+  "duration": 2.0,
+  "early_np_to_duration": 1.0,
+  "fg_choice_trials": 2,
+  "fg_delay": 0,
+  "fg_duration": 2.0,
+  "fg_level": [
+   55,
+   60
+  ],
+  "fg_path": "<sounds>/fg",
+  "fg_range": [
+   28,
+   21
+  ],
+  "fg_switch_channels": true,
+  "hold_duration": 0.3,
+  "ipsi_n": 0,
+  "iti_duration": 0.5,
+  "keep_lights_on": true,
+  "manual_control": false,
+  "migrate_fraction": 0.0,
+  "migrate_start": 0.1,
+  "migrate_stop": 0.6,
+  "migrate_trial": false,
+  "norm_fixed_scale": 1,
+  "normalization": "rms",
+  "np_duration": 0.1,
+  "prb_bg_path": "<sounds>/prb",
+  "prb_bg_range": [],
+  "prb_f": -1,
+  "primary_channel": 0,
+  "ramp": 10,
+  "random_seed": 693,
+  "repeat_incorrect": 0,
+  "replace_background": false,
+  "response_duration": 5.0,
+  "response_window": [
+   0.0,
+   1.0
+  ],
+  "reward_ambiguous_frac": 0.5,
+  "reward_durations": [
+   0.1,
+   1
+  ],
+  "spatial_attention_block": 0,
+  "spatial_attention_catch_ratio": 0.1,
+  "spatial_attention_locus": 0,
+  "spatial_attention_start_chan": 0,
+  "target_delay": 0,
+  "to_duration": 3,
+  "training_mode": false,
+  "trial_is_repeat": 0
+ },
+ "trials": [
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     0.05
+    ],
+    [
+     "np_duration_elapsed",
+     0.15000000000000002
+    ],
+    [
+     "trial_start",
+     0.15000000000000002
+    ],
+    [
+     "hold_start",
+     0.15000000000000002
+    ],
+    [
+     "hold_duration_elapsed",
+     0.45
+    ],
+    [
+     "response_start",
+     0.45
+    ],
+    [
+     "np_end",
+     0.5
+    ],
+    [
+     "response_2_start",
+     0.55
+    ],
+    [
+     "response_end",
+     0.55
+    ],
+    [
+     "trial_end",
+     0.55
+    ],
+    [
+     "to_start",
+     0.55
+    ],
+    [
+     "to_start",
+     0.55
+    ],
+    [
+     "response_2_end",
+     0.6000000000000001
+    ],
+    [
+     "to_start",
+     0.6000000000000001
+    ],
+    [
+     "to_duration_elapsed",
+     3.6
+    ],
+    [
+     "to_end",
+     3.6
+    ],
+    [
+     "iti_start",
+     3.6
+    ],
+    [
+     "iti_duration_elapsed",
+     4.1
+    ],
+    [
+     "iti_end",
+     4.1
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "null_28_fg28-0-2-1-n5dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 0.05,
+    "response": "spout_2",
+    "response_condition": 1,
+    "response_side": 2,
+    "response_start": 0.45,
+    "response_time": 0.4,
+    "response_ts": 0.55,
+    "score": 1,
+    "snr": 55,
+    "this_bg_level": 0,
+    "this_fg_level": 55,
+    "this_snr": 55,
+    "trial_cat": "normal",
+    "trial_idx": 1,
+    "trial_number": 1,
+    "trial_start": 0.15000000000000002,
+    "ts_stim": 0.15000000000000002,
+    "ts_stim_1": 0.15000000000000002,
+    "ts_stim_2": 0.15000000000000002,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 16
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     0.15000000000000002,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 0.15000000000000002
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 0.15000000000000002
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     4.1499999999999995
+    ],
+    [
+     "np_duration_elapsed",
+     4.249999999999999
+    ],
+    [
+     "trial_start",
+     4.249999999999999
+    ],
+    [
+     "hold_start",
+     4.249999999999999
+    ],
+    [
+     "hold_duration_elapsed",
+     4.549999999999999
+    ],
+    [
+     "response_start",
+     4.549999999999999
+    ],
+    [
+     "np_end",
+     4.599999999999999
+    ],
+    [
+     "response_2_start",
+     4.649999999999999
+    ],
+    [
+     "response_end",
+     4.649999999999999
+    ],
+    [
+     "deliver_reward_2",
+     4.649999999999999
+    ],
+    [
+     "trial_end",
+     4.649999999999999
+    ],
+    [
+     "response_2_end",
+     4.699999999999998
+    ],
+    [
+     "iti_start",
+     4.699999999999998
+    ],
+    [
+     "iti_duration_elapsed",
+     5.199999999999998
+    ],
+    [
+     "iti_end",
+     5.199999999999998
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "bg04-0-2-0_21_fg21-0-2-2-n5dB",
+    "fg_channel": 1,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 4.1499999999999995,
+    "response": "spout_2",
+    "response_condition": 2,
+    "response_side": 2,
+    "response_start": 4.549999999999999,
+    "response_time": 0.39999999999999947,
+    "response_ts": 4.649999999999999,
+    "score": 2,
+    "snr": -5,
+    "this_bg_level": 60,
+    "this_fg_level": 55,
+    "this_snr": -5,
+    "trial_cat": "normal",
+    "trial_idx": 2,
+    "trial_number": 2,
+    "trial_start": 4.249999999999999,
+    "ts_stim": 4.249999999999999,
+    "ts_stim_1": 4.249999999999999,
+    "ts_stim_2": 4.249999999999999,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 3
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     4.249999999999999,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 4.249999999999999
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 4.249999999999999
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     5.249999999999998
+    ],
+    [
+     "np_duration_elapsed",
+     5.349999999999998
+    ],
+    [
+     "trial_start",
+     5.349999999999998
+    ],
+    [
+     "hold_start",
+     5.349999999999998
+    ],
+    [
+     "hold_duration_elapsed",
+     5.649999999999998
+    ],
+    [
+     "response_start",
+     5.649999999999998
+    ],
+    [
+     "np_end",
+     5.6999999999999975
+    ],
+    [
+     "response_1_start",
+     5.749999999999997
+    ],
+    [
+     "response_end",
+     5.749999999999997
+    ],
+    [
+     "deliver_reward_1",
+     5.749999999999997
+    ],
+    [
+     "trial_end",
+     5.749999999999997
+    ],
+    [
+     "response_1_end",
+     5.799999999999997
+    ],
+    [
+     "iti_start",
+     5.799999999999997
+    ],
+    [
+     "iti_duration_elapsed",
+     6.299999999999997
+    ],
+    [
+     "iti_end",
+     6.299999999999997
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "bg04-0-2-0_21_fg21-0-2-1-n5dB",
+    "fg_channel": 0,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 5.249999999999998,
+    "response": "spout_1",
+    "response_condition": 1,
+    "response_side": 1,
+    "response_start": 5.649999999999998,
+    "response_time": 0.39999999999999947,
+    "response_ts": 5.749999999999997,
+    "score": 2,
+    "snr": -5,
+    "this_bg_level": 60,
+    "this_fg_level": 55,
+    "this_snr": -5,
+    "trial_cat": "normal",
+    "trial_idx": 3,
+    "trial_number": 3,
+    "trial_start": 5.349999999999998,
+    "ts_stim": 5.349999999999998,
+    "ts_stim_1": 5.349999999999998,
+    "ts_stim_2": 5.349999999999998,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 1
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     5.349999999999998,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 5.349999999999998
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 5.349999999999998
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     6.349999999999997
+    ],
+    [
+     "np_duration_elapsed",
+     6.449999999999997
+    ],
+    [
+     "trial_start",
+     6.449999999999997
+    ],
+    [
+     "hold_start",
+     6.449999999999997
+    ],
+    [
+     "hold_duration_elapsed",
+     6.7499999999999964
+    ],
+    [
+     "response_start",
+     6.7499999999999964
+    ],
+    [
+     "np_end",
+     6.799999999999996
+    ],
+    [
+     "np_start",
+     6.849999999999996
+    ],
+    [
+     "np_end",
+     6.899999999999996
+    ],
+    [
+     "response_duration_elapsed",
+     11.899999999999995
+    ],
+    [
+     "response_end",
+     11.899999999999995
+    ],
+    [
+     "trial_end",
+     11.899999999999995
+    ],
+    [
+     "to_start",
+     11.899999999999995
+    ],
+    [
+     "to_start",
+     11.899999999999995
+    ],
+    [
+     "to_duration_elapsed",
+     12.899999999999995
+    ],
+    [
+     "to_end",
+     12.899999999999995
+    ],
+    [
+     "iti_start",
+     12.899999999999995
+    ],
+    [
+     "iti_duration_elapsed",
+     13.399999999999995
+    ],
+    [
+     "iti_end",
+     13.399999999999995
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 1,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": 0.1,
+    "dispense_2_duration": 1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-2_28_fg28-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 6.349999999999997,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 6.7499999999999964,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 4,
+    "trial_number": 4,
+    "trial_start": 6.449999999999997,
+    "ts_stim": 6.449999999999997,
+    "ts_stim_1": 6.449999999999997,
+    "ts_stim_2": 6.449999999999997,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 13
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     6.449999999999997,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 6.449999999999997
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 6.449999999999997
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     13.449999999999996
+    ],
+    [
+     "np_end",
+     13.499999999999996
+    ],
+    [
+     "np_start",
+     13.549999999999997
+    ],
+    [
+     "np_duration_elapsed",
+     13.649999999999997
+    ],
+    [
+     "trial_start",
+     13.649999999999997
+    ],
+    [
+     "hold_start",
+     13.649999999999997
+    ],
+    [
+     "hold_duration_elapsed",
+     13.949999999999998
+    ],
+    [
+     "response_start",
+     13.949999999999998
+    ],
+    [
+     "np_end",
+     13.999999999999998
+    ],
+    [
+     "response_duration_elapsed",
+     19.0
+    ],
+    [
+     "response_end",
+     19.0
+    ],
+    [
+     "trial_end",
+     19.0
+    ],
+    [
+     "to_start",
+     19.0
+    ],
+    [
+     "to_start",
+     19.0
+    ],
+    [
+     "to_duration_elapsed",
+     20.0
+    ],
+    [
+     "to_end",
+     20.0
+    ],
+    [
+     "iti_start",
+     20.0
+    ],
+    [
+     "iti_duration_elapsed",
+     20.5
+    ],
+    [
+     "iti_end",
+     20.5
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 1,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": 0.1,
+    "dispense_2_duration": 1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-2_28_fg28-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 13.549999999999997,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 13.949999999999998,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 5,
+    "trial_number": 5,
+    "trial_start": 13.649999999999997,
+    "ts_stim": 13.649999999999997,
+    "ts_stim_1": 13.649999999999997,
+    "ts_stim_2": 13.649999999999997,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 5
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     13.649999999999997,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 13.649999999999997
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 13.649999999999997
+    }
+   ]
+  },
+  {
+   "action": "no_response",
+   "events": [
+    [
+     "np_start",
+     20.55
+    ],
+    [
+     "np_duration_elapsed",
+     20.650000000000002
+    ],
+    [
+     "trial_start",
+     20.650000000000002
+    ],
+    [
+     "hold_start",
+     20.650000000000002
+    ],
+    [
+     "hold_duration_elapsed",
+     20.950000000000003
+    ],
+    [
+     "response_start",
+     20.950000000000003
+    ],
+    [
+     "np_end",
+     21.000000000000004
+    ],
+    [
+     "response_duration_elapsed",
+     26.000000000000004
+    ],
+    [
+     "response_end",
+     26.000000000000004
+    ],
+    [
+     "trial_end",
+     26.000000000000004
+    ],
+    [
+     "to_start",
+     26.000000000000004
+    ],
+    [
+     "to_start",
+     26.000000000000004
+    ],
+    [
+     "to_duration_elapsed",
+     27.000000000000004
+    ],
+    [
+     "to_end",
+     27.000000000000004
+    ],
+    [
+     "iti_start",
+     27.000000000000004
+    ],
+    [
+     "iti_duration_elapsed",
+     27.500000000000004
+    ],
+    [
+     "iti_end",
+     27.500000000000004
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "null_28_fg28-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 20.55,
+    "response": "no_response",
+    "response_condition": 1,
+    "response_side": "nan",
+    "response_start": 20.950000000000003,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 60,
+    "this_bg_level": 0,
+    "this_fg_level": 60,
+    "this_snr": 60,
+    "trial_cat": "normal",
+    "trial_idx": 6,
+    "trial_number": 6,
+    "trial_start": 20.650000000000002,
+    "ts_stim": 20.650000000000002,
+    "ts_stim_1": 20.650000000000002,
+    "ts_stim_2": 20.650000000000002,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 20
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     20.650000000000002,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 20.650000000000002
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 20.650000000000002
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     27.550000000000004
+    ],
+    [
+     "np_duration_elapsed",
+     27.650000000000006
+    ],
+    [
+     "trial_start",
+     27.650000000000006
+    ],
+    [
+     "hold_start",
+     27.650000000000006
+    ],
+    [
+     "hold_duration_elapsed",
+     27.950000000000006
+    ],
+    [
+     "response_start",
+     27.950000000000006
+    ],
+    [
+     "np_end",
+     28.000000000000007
+    ],
+    [
+     "response_1_start",
+     28.050000000000008
+    ],
+    [
+     "response_end",
+     28.050000000000008
+    ],
+    [
+     "deliver_reward_1",
+     28.050000000000008
+    ],
+    [
+     "trial_end",
+     28.050000000000008
+    ],
+    [
+     "response_1_end",
+     28.10000000000001
+    ],
+    [
+     "iti_start",
+     28.10000000000001
+    ],
+    [
+     "iti_duration_elapsed",
+     28.60000000000001
+    ],
+    [
+     "iti_end",
+     28.60000000000001
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 1,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": true,
+    "current_full_rep": 1,
+    "dispense_1_duration": 0.1,
+    "dispense_2_duration": 1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-2_28_fg28-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 27.550000000000004,
+    "response": "spout_1",
+    "response_condition": -1,
+    "response_side": 1,
+    "response_start": 27.950000000000006,
+    "response_time": 0.40000000000000213,
+    "response_ts": 28.050000000000008,
+    "score": 2,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 7,
+    "trial_number": 7,
+    "trial_start": 27.650000000000006,
+    "ts_stim": 27.650000000000006,
+    "ts_stim_1": 27.650000000000006,
+    "ts_stim_2": 27.650000000000006,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 12
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     27.650000000000006,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 27.650000000000006
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 27.650000000000006
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     28.65000000000001
+    ],
+    [
+     "np_duration_elapsed",
+     28.75000000000001
+    ],
+    [
+     "trial_start",
+     28.75000000000001
+    ],
+    [
+     "hold_start",
+     28.75000000000001
+    ],
+    [
+     "hold_duration_elapsed",
+     29.05000000000001
+    ],
+    [
+     "response_start",
+     29.05000000000001
+    ],
+    [
+     "np_end",
+     29.100000000000012
+    ],
+    [
+     "response_2_start",
+     29.150000000000013
+    ],
+    [
+     "response_end",
+     29.150000000000013
+    ],
+    [
+     "deliver_reward_2",
+     29.150000000000013
+    ],
+    [
+     "trial_end",
+     29.150000000000013
+    ],
+    [
+     "response_2_end",
+     29.200000000000014
+    ],
+    [
+     "iti_start",
+     29.200000000000014
+    ],
+    [
+     "iti_duration_elapsed",
+     29.700000000000014
+    ],
+    [
+     "iti_end",
+     29.700000000000014
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "bg04-0-2-0_28_fg28-0-2-2-n5dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 28.65000000000001,
+    "response": "spout_2",
+    "response_condition": 2,
+    "response_side": 2,
+    "response_start": 29.05000000000001,
+    "response_time": 0.40000000000000213,
+    "response_ts": 29.150000000000013,
+    "score": 2,
+    "snr": -5,
+    "this_bg_level": 60,
+    "this_fg_level": 55,
+    "this_snr": -5,
+    "trial_cat": "normal",
+    "trial_idx": 8,
+    "trial_number": 8,
+    "trial_start": 28.75000000000001,
+    "ts_stim": 28.75000000000001,
+    "ts_stim_1": 28.75000000000001,
+    "ts_stim_2": 28.75000000000001,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 2
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     28.75000000000001,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 28.75000000000001
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 28.75000000000001
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     29.750000000000014
+    ],
+    [
+     "np_duration_elapsed",
+     29.850000000000016
+    ],
+    [
+     "trial_start",
+     29.850000000000016
+    ],
+    [
+     "hold_start",
+     29.850000000000016
+    ],
+    [
+     "hold_duration_elapsed",
+     30.150000000000016
+    ],
+    [
+     "response_start",
+     30.150000000000016
+    ],
+    [
+     "np_end",
+     30.200000000000017
+    ],
+    [
+     "response_1_start",
+     30.250000000000018
+    ],
+    [
+     "response_end",
+     30.250000000000018
+    ],
+    [
+     "deliver_reward_1",
+     30.250000000000018
+    ],
+    [
+     "trial_end",
+     30.250000000000018
+    ],
+    [
+     "response_1_end",
+     30.30000000000002
+    ],
+    [
+     "iti_start",
+     30.30000000000002
+    ],
+    [
+     "iti_duration_elapsed",
+     30.80000000000002
+    ],
+    [
+     "iti_end",
+     30.80000000000002
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "bg04-0-2-0_28_fg28-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 29.750000000000014,
+    "response": "spout_1",
+    "response_condition": 1,
+    "response_side": 1,
+    "response_start": 30.150000000000016,
+    "response_time": 0.40000000000000213,
+    "response_ts": 30.250000000000018,
+    "score": 2,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "normal",
+    "trial_idx": 9,
+    "trial_number": 9,
+    "trial_start": 29.850000000000016,
+    "ts_stim": 29.850000000000016,
+    "ts_stim_1": 29.850000000000016,
+    "ts_stim_2": 29.850000000000016,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 8
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     29.850000000000016,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 29.850000000000016
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 29.850000000000016
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     30.85000000000002
+    ],
+    [
+     "np_duration_elapsed",
+     30.95000000000002
+    ],
+    [
+     "trial_start",
+     30.95000000000002
+    ],
+    [
+     "hold_start",
+     30.95000000000002
+    ],
+    [
+     "hold_duration_elapsed",
+     31.25000000000002
+    ],
+    [
+     "response_start",
+     31.25000000000002
+    ],
+    [
+     "np_end",
+     31.300000000000022
+    ],
+    [
+     "response_2_start",
+     31.350000000000023
+    ],
+    [
+     "response_end",
+     31.350000000000023
+    ],
+    [
+     "deliver_reward_2",
+     31.350000000000023
+    ],
+    [
+     "trial_end",
+     31.350000000000023
+    ],
+    [
+     "response_2_end",
+     31.400000000000023
+    ],
+    [
+     "iti_start",
+     31.400000000000023
+    ],
+    [
+     "iti_duration_elapsed",
+     31.900000000000023
+    ],
+    [
+     "iti_end",
+     31.900000000000023
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "bg04-0-2-0_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 30.85000000000002,
+    "response": "spout_2",
+    "response_condition": 2,
+    "response_side": 2,
+    "response_start": 31.25000000000002,
+    "response_time": 0.40000000000000213,
+    "response_ts": 31.350000000000023,
+    "score": 2,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "normal",
+    "trial_idx": 10,
+    "trial_number": 10,
+    "trial_start": 30.95000000000002,
+    "ts_stim": 30.95000000000002,
+    "ts_stim_1": 30.95000000000002,
+    "ts_stim_2": 30.95000000000002,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 10
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     30.95000000000002,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 30.95000000000002
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 30.95000000000002
+    }
+   ]
+  },
+  {
+   "action": "no_response",
+   "events": [
+    [
+     "np_start",
+     31.950000000000024
+    ],
+    [
+     "np_duration_elapsed",
+     32.050000000000026
+    ],
+    [
+     "trial_start",
+     32.050000000000026
+    ],
+    [
+     "hold_start",
+     32.050000000000026
+    ],
+    [
+     "hold_duration_elapsed",
+     32.35000000000002
+    ],
+    [
+     "response_start",
+     32.35000000000002
+    ],
+    [
+     "np_end",
+     32.40000000000002
+    ],
+    [
+     "response_duration_elapsed",
+     37.40000000000002
+    ],
+    [
+     "response_end",
+     37.40000000000002
+    ],
+    [
+     "trial_end",
+     37.40000000000002
+    ],
+    [
+     "to_start",
+     37.40000000000002
+    ],
+    [
+     "to_start",
+     37.40000000000002
+    ],
+    [
+     "to_duration_elapsed",
+     38.40000000000002
+    ],
+    [
+     "to_end",
+     38.40000000000002
+    ],
+    [
+     "iti_start",
+     38.40000000000002
+    ],
+    [
+     "iti_duration_elapsed",
+     38.90000000000002
+    ],
+    [
+     "iti_end",
+     38.90000000000002
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 0,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": 1,
+    "dispense_2_duration": 0.1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-1_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 31.950000000000024,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 32.35000000000002,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 11,
+    "trial_number": 11,
+    "trial_start": 32.050000000000026,
+    "ts_stim": 32.050000000000026,
+    "ts_stim_1": 32.050000000000026,
+    "ts_stim_2": 32.050000000000026,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 6
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     32.050000000000026,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 32.050000000000026
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 32.050000000000026
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     38.95000000000002
+    ],
+    [
+     "np_duration_elapsed",
+     39.05000000000002
+    ],
+    [
+     "trial_start",
+     39.05000000000002
+    ],
+    [
+     "hold_start",
+     39.05000000000002
+    ],
+    [
+     "hold_duration_elapsed",
+     39.350000000000016
+    ],
+    [
+     "response_start",
+     39.350000000000016
+    ],
+    [
+     "np_end",
+     39.40000000000001
+    ],
+    [
+     "response_1_start",
+     39.45000000000001
+    ],
+    [
+     "response_end",
+     39.45000000000001
+    ],
+    [
+     "trial_end",
+     39.45000000000001
+    ],
+    [
+     "to_start",
+     39.45000000000001
+    ],
+    [
+     "to_start",
+     39.45000000000001
+    ],
+    [
+     "response_1_end",
+     39.50000000000001
+    ],
+    [
+     "to_start",
+     39.50000000000001
+    ],
+    [
+     "to_duration_elapsed",
+     42.50000000000001
+    ],
+    [
+     "to_end",
+     42.50000000000001
+    ],
+    [
+     "iti_start",
+     42.50000000000001
+    ],
+    [
+     "iti_duration_elapsed",
+     43.00000000000001
+    ],
+    [
+     "iti_end",
+     43.00000000000001
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "bg04-0-2-0_21_fg21-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 38.95000000000002,
+    "response": "spout_1",
+    "response_condition": 2,
+    "response_side": 1,
+    "response_start": 39.350000000000016,
+    "response_time": 0.3999999999999915,
+    "response_ts": 39.45000000000001,
+    "score": 1,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "normal",
+    "trial_idx": 12,
+    "trial_number": 12,
+    "trial_start": 39.05000000000002,
+    "ts_stim": 39.05000000000002,
+    "ts_stim_1": 39.05000000000002,
+    "ts_stim_2": 39.05000000000002,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 11
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     39.05000000000002,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 39.05000000000002
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 39.05000000000002
+    }
+   ]
+  },
+  {
+   "action": "early_np",
+   "events": [
+    [
+     "np_start",
+     43.050000000000004
+    ],
+    [
+     "np_duration_elapsed",
+     43.150000000000006
+    ],
+    [
+     "trial_start",
+     43.150000000000006
+    ],
+    [
+     "hold_start",
+     43.150000000000006
+    ],
+    [
+     "np_end",
+     43.2
+    ],
+    [
+     "response_end",
+     43.2
+    ],
+    [
+     "trial_end",
+     43.2
+    ],
+    [
+     "to_start",
+     43.2
+    ],
+    [
+     "to_start",
+     43.2
+    ],
+    [
+     "to_duration_elapsed",
+     44.2
+    ],
+    [
+     "to_end",
+     44.2
+    ],
+    [
+     "iti_start",
+     44.2
+    ],
+    [
+     "iti_duration_elapsed",
+     44.7
+    ],
+    [
+     "iti_end",
+     44.7
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "null_28_fg28-0-2-2-n5dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 43.050000000000004,
+    "response": "early_np",
+    "response_condition": 2,
+    "response_side": "nan",
+    "response_start": "nan",
+    "response_time": 0.04999999999999716,
+    "response_ts": 43.2,
+    "score": 0,
+    "snr": 55,
+    "this_bg_level": 0,
+    "this_fg_level": 55,
+    "this_snr": 55,
+    "trial_cat": "normal",
+    "trial_idx": 13,
+    "trial_number": 13,
+    "trial_start": 43.150000000000006,
+    "ts_stim": 43.150000000000006,
+    "ts_stim_1": 43.150000000000006,
+    "ts_stim_2": 43.150000000000006,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 18
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     43.150000000000006,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 43.150000000000006
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 43.150000000000006
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     44.75
+    ],
+    [
+     "np_duration_elapsed",
+     44.85
+    ],
+    [
+     "trial_start",
+     44.85
+    ],
+    [
+     "hold_start",
+     44.85
+    ],
+    [
+     "hold_duration_elapsed",
+     45.15
+    ],
+    [
+     "response_start",
+     45.15
+    ],
+    [
+     "np_end",
+     45.199999999999996
+    ],
+    [
+     "response_2_start",
+     45.24999999999999
+    ],
+    [
+     "response_end",
+     45.24999999999999
+    ],
+    [
+     "trial_end",
+     45.24999999999999
+    ],
+    [
+     "to_start",
+     45.24999999999999
+    ],
+    [
+     "to_start",
+     45.24999999999999
+    ],
+    [
+     "response_2_end",
+     45.29999999999999
+    ],
+    [
+     "to_start",
+     45.29999999999999
+    ],
+    [
+     "to_duration_elapsed",
+     48.29999999999999
+    ],
+    [
+     "to_end",
+     48.29999999999999
+    ],
+    [
+     "iti_start",
+     48.29999999999999
+    ],
+    [
+     "iti_duration_elapsed",
+     48.79999999999999
+    ],
+    [
+     "iti_end",
+     48.79999999999999
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "null_21_fg21-0-2-1-n5dB",
+    "fg_channel": 0,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 44.75,
+    "response": "spout_2",
+    "response_condition": 1,
+    "response_side": 2,
+    "response_start": 45.15,
+    "response_time": 0.3999999999999915,
+    "response_ts": 45.24999999999999,
+    "score": 1,
+    "snr": 55,
+    "this_bg_level": 0,
+    "this_fg_level": 55,
+    "this_snr": 55,
+    "trial_cat": "normal",
+    "trial_idx": 14,
+    "trial_number": 14,
+    "trial_start": 44.85,
+    "ts_stim": 44.85,
+    "ts_stim_1": 44.85,
+    "ts_stim_2": 44.85,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 17
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     44.85,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 44.85
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 44.85
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     48.84999999999999
+    ],
+    [
+     "np_duration_elapsed",
+     48.94999999999999
+    ],
+    [
+     "trial_start",
+     48.94999999999999
+    ],
+    [
+     "hold_start",
+     48.94999999999999
+    ],
+    [
+     "hold_duration_elapsed",
+     49.249999999999986
+    ],
+    [
+     "response_start",
+     49.249999999999986
+    ],
+    [
+     "np_end",
+     49.29999999999998
+    ],
+    [
+     "response_1_start",
+     49.34999999999998
+    ],
+    [
+     "response_end",
+     49.34999999999998
+    ],
+    [
+     "deliver_reward_1",
+     49.34999999999998
+    ],
+    [
+     "trial_end",
+     49.34999999999998
+    ],
+    [
+     "response_1_end",
+     49.39999999999998
+    ],
+    [
+     "iti_start",
+     49.39999999999998
+    ],
+    [
+     "iti_duration_elapsed",
+     49.89999999999998
+    ],
+    [
+     "iti_end",
+     49.89999999999998
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "bg04-0-2-0_28_fg28-0-2-1-n5dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 48.84999999999999,
+    "response": "spout_1",
+    "response_condition": 1,
+    "response_side": 1,
+    "response_start": 49.249999999999986,
+    "response_time": 0.3999999999999915,
+    "response_ts": 49.34999999999998,
+    "score": 2,
+    "snr": -5,
+    "this_bg_level": 60,
+    "this_fg_level": 55,
+    "this_snr": -5,
+    "trial_cat": "normal",
+    "trial_idx": 15,
+    "trial_number": 15,
+    "trial_start": 48.94999999999999,
+    "ts_stim": 48.94999999999999,
+    "ts_stim_1": 48.94999999999999,
+    "ts_stim_2": 48.94999999999999,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     48.94999999999999,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 48.94999999999999
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 48.94999999999999
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     49.949999999999974
+    ],
+    [
+     "np_duration_elapsed",
+     50.049999999999976
+    ],
+    [
+     "trial_start",
+     50.049999999999976
+    ],
+    [
+     "hold_start",
+     50.049999999999976
+    ],
+    [
+     "hold_duration_elapsed",
+     50.34999999999997
+    ],
+    [
+     "response_start",
+     50.34999999999997
+    ],
+    [
+     "np_end",
+     50.39999999999997
+    ],
+    [
+     "response_duration_elapsed",
+     55.39999999999997
+    ],
+    [
+     "response_end",
+     55.39999999999997
+    ],
+    [
+     "trial_end",
+     55.39999999999997
+    ],
+    [
+     "to_start",
+     55.39999999999997
+    ],
+    [
+     "to_start",
+     55.39999999999997
+    ],
+    [
+     "to_duration_elapsed",
+     56.39999999999997
+    ],
+    [
+     "to_end",
+     56.39999999999997
+    ],
+    [
+     "iti_start",
+     56.39999999999997
+    ],
+    [
+     "iti_duration_elapsed",
+     56.89999999999997
+    ],
+    [
+     "iti_end",
+     56.89999999999997
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 0,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": 1,
+    "dispense_2_duration": 0.1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-1_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 49.949999999999974,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 50.34999999999997,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 16,
+    "trial_number": 16,
+    "trial_start": 50.049999999999976,
+    "ts_stim": 50.049999999999976,
+    "ts_stim_1": 50.049999999999976,
+    "ts_stim_2": 50.049999999999976,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 7
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     50.049999999999976,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 50.049999999999976
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 50.049999999999976
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     56.94999999999997
+    ],
+    [
+     "np_duration_elapsed",
+     57.04999999999997
+    ],
+    [
+     "trial_start",
+     57.04999999999997
+    ],
+    [
+     "hold_start",
+     57.04999999999997
+    ],
+    [
+     "hold_duration_elapsed",
+     57.349999999999966
+    ],
+    [
+     "response_start",
+     57.349999999999966
+    ],
+    [
+     "np_end",
+     57.39999999999996
+    ],
+    [
+     "response_duration_elapsed",
+     62.39999999999996
+    ],
+    [
+     "response_end",
+     62.39999999999996
+    ],
+    [
+     "trial_end",
+     62.39999999999996
+    ],
+    [
+     "to_start",
+     62.39999999999996
+    ],
+    [
+     "to_start",
+     62.39999999999996
+    ],
+    [
+     "to_duration_elapsed",
+     63.39999999999996
+    ],
+    [
+     "to_end",
+     63.39999999999996
+    ],
+    [
+     "iti_start",
+     63.39999999999996
+    ],
+    [
+     "iti_duration_elapsed",
+     63.89999999999996
+    ],
+    [
+     "iti_end",
+     63.89999999999996
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 1,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": 0.1,
+    "dispense_2_duration": 1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-2_28_fg28-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 56.94999999999997,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 57.349999999999966,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 17,
+    "trial_number": 17,
+    "trial_start": 57.04999999999997,
+    "ts_stim": 57.04999999999997,
+    "ts_stim_1": 57.04999999999997,
+    "ts_stim_2": 57.04999999999997,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 4
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     57.04999999999997,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 57.04999999999997
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 57.04999999999997
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     63.94999999999996
+    ],
+    [
+     "np_duration_elapsed",
+     64.04999999999995
+    ],
+    [
+     "trial_start",
+     64.04999999999995
+    ],
+    [
+     "hold_start",
+     64.04999999999995
+    ],
+    [
+     "hold_duration_elapsed",
+     64.34999999999995
+    ],
+    [
+     "response_start",
+     64.34999999999995
+    ],
+    [
+     "np_end",
+     64.39999999999995
+    ],
+    [
+     "response_2_start",
+     64.44999999999995
+    ],
+    [
+     "response_end",
+     64.44999999999995
+    ],
+    [
+     "trial_end",
+     64.44999999999995
+    ],
+    [
+     "to_start",
+     64.44999999999995
+    ],
+    [
+     "to_start",
+     64.44999999999995
+    ],
+    [
+     "response_2_end",
+     64.49999999999994
+    ],
+    [
+     "to_start",
+     64.49999999999994
+    ],
+    [
+     "to_duration_elapsed",
+     67.49999999999994
+    ],
+    [
+     "to_end",
+     67.49999999999994
+    ],
+    [
+     "iti_start",
+     67.49999999999994
+    ],
+    [
+     "iti_duration_elapsed",
+     67.99999999999994
+    ],
+    [
+     "iti_end",
+     67.99999999999994
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "null_21_fg21-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 63.94999999999996,
+    "response": "spout_2",
+    "response_condition": 1,
+    "response_side": 2,
+    "response_start": 64.34999999999995,
+    "response_time": 0.3999999999999915,
+    "response_ts": 64.44999999999995,
+    "score": 1,
+    "snr": 60,
+    "this_bg_level": 0,
+    "this_fg_level": 60,
+    "this_snr": 60,
+    "trial_cat": "normal",
+    "trial_idx": 18,
+    "trial_number": 18,
+    "trial_start": 64.04999999999995,
+    "ts_stim": 64.04999999999995,
+    "ts_stim_1": 64.04999999999995,
+    "ts_stim_2": 64.04999999999995,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 21
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     64.04999999999995,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 64.04999999999995
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 64.04999999999995
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     68.04999999999994
+    ],
+    [
+     "np_duration_elapsed",
+     68.14999999999993
+    ],
+    [
+     "trial_start",
+     68.14999999999993
+    ],
+    [
+     "hold_start",
+     68.14999999999993
+    ],
+    [
+     "hold_duration_elapsed",
+     68.44999999999993
+    ],
+    [
+     "response_start",
+     68.44999999999993
+    ],
+    [
+     "np_end",
+     68.49999999999993
+    ],
+    [
+     "response_2_start",
+     68.54999999999993
+    ],
+    [
+     "response_end",
+     68.54999999999993
+    ],
+    [
+     "deliver_reward_2",
+     68.54999999999993
+    ],
+    [
+     "trial_end",
+     68.54999999999993
+    ],
+    [
+     "response_2_end",
+     68.59999999999992
+    ],
+    [
+     "iti_start",
+     68.59999999999992
+    ],
+    [
+     "iti_duration_elapsed",
+     69.09999999999992
+    ],
+    [
+     "iti_end",
+     69.09999999999992
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "null_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 68.04999999999994,
+    "response": "spout_2",
+    "response_condition": 2,
+    "response_side": 2,
+    "response_start": 68.44999999999993,
+    "response_time": 0.3999999999999915,
+    "response_ts": 68.54999999999993,
+    "score": 2,
+    "snr": 60,
+    "this_bg_level": 0,
+    "this_fg_level": 60,
+    "this_snr": 60,
+    "trial_cat": "normal",
+    "trial_idx": 19,
+    "trial_number": 19,
+    "trial_start": 68.14999999999993,
+    "ts_stim": 68.14999999999993,
+    "ts_stim_1": 68.14999999999993,
+    "ts_stim_2": 68.14999999999993,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 22
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     68.14999999999993,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 68.14999999999993
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 68.14999999999993
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     69.14999999999992
+    ],
+    [
+     "np_end",
+     69.19999999999992
+    ],
+    [
+     "np_start",
+     69.24999999999991
+    ],
+    [
+     "np_duration_elapsed",
+     69.34999999999991
+    ],
+    [
+     "trial_start",
+     69.34999999999991
+    ],
+    [
+     "hold_start",
+     69.34999999999991
+    ],
+    [
+     "hold_duration_elapsed",
+     69.6499999999999
+    ],
+    [
+     "response_start",
+     69.6499999999999
+    ],
+    [
+     "np_end",
+     69.6999999999999
+    ],
+    [
+     "response_duration_elapsed",
+     74.6999999999999
+    ],
+    [
+     "response_end",
+     74.6999999999999
+    ],
+    [
+     "trial_end",
+     74.6999999999999
+    ],
+    [
+     "to_start",
+     74.6999999999999
+    ],
+    [
+     "to_start",
+     74.6999999999999
+    ],
+    [
+     "to_duration_elapsed",
+     75.6999999999999
+    ],
+    [
+     "to_end",
+     75.6999999999999
+    ],
+    [
+     "iti_start",
+     75.6999999999999
+    ],
+    [
+     "iti_duration_elapsed",
+     76.1999999999999
+    ],
+    [
+     "iti_end",
+     76.1999999999999
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 0,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": 1,
+    "dispense_2_duration": 0.1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-1_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 69.24999999999991,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 69.6499999999999,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 20,
+    "trial_number": 20,
+    "trial_start": 69.34999999999991,
+    "ts_stim": 69.34999999999991,
+    "ts_stim_1": 69.34999999999991,
+    "ts_stim_2": 69.34999999999991,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 15
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     69.34999999999991,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 69.34999999999991
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 69.34999999999991
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     76.2499999999999
+    ],
+    [
+     "np_duration_elapsed",
+     76.3499999999999
+    ],
+    [
+     "trial_start",
+     76.3499999999999
+    ],
+    [
+     "hold_start",
+     76.3499999999999
+    ],
+    [
+     "hold_duration_elapsed",
+     76.64999999999989
+    ],
+    [
+     "response_start",
+     76.64999999999989
+    ],
+    [
+     "np_end",
+     76.69999999999989
+    ],
+    [
+     "response_1_start",
+     76.74999999999989
+    ],
+    [
+     "response_end",
+     76.74999999999989
+    ],
+    [
+     "trial_end",
+     76.74999999999989
+    ],
+    [
+     "to_start",
+     76.74999999999989
+    ],
+    [
+     "to_start",
+     76.74999999999989
+    ],
+    [
+     "response_1_end",
+     76.79999999999988
+    ],
+    [
+     "to_start",
+     76.79999999999988
+    ],
+    [
+     "to_duration_elapsed",
+     79.79999999999988
+    ],
+    [
+     "to_end",
+     79.79999999999988
+    ],
+    [
+     "iti_start",
+     79.79999999999988
+    ],
+    [
+     "iti_duration_elapsed",
+     80.29999999999988
+    ],
+    [
+     "iti_end",
+     80.29999999999988
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "null_21_fg21-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 76.2499999999999,
+    "response": "spout_1",
+    "response_condition": 2,
+    "response_side": 1,
+    "response_start": 76.64999999999989,
+    "response_time": 0.3999999999999915,
+    "response_ts": 76.74999999999989,
+    "score": 1,
+    "snr": 60,
+    "this_bg_level": 0,
+    "this_fg_level": 60,
+    "this_snr": 60,
+    "trial_cat": "normal",
+    "trial_idx": 21,
+    "trial_number": 21,
+    "trial_start": 76.3499999999999,
+    "ts_stim": 76.3499999999999,
+    "ts_stim_1": 76.3499999999999,
+    "ts_stim_2": 76.3499999999999,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 23
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     76.3499999999999,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 76.3499999999999
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 76.3499999999999
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     80.34999999999988
+    ],
+    [
+     "np_duration_elapsed",
+     80.44999999999987
+    ],
+    [
+     "trial_start",
+     80.44999999999987
+    ],
+    [
+     "hold_start",
+     80.44999999999987
+    ],
+    [
+     "hold_duration_elapsed",
+     80.74999999999987
+    ],
+    [
+     "response_start",
+     80.74999999999987
+    ],
+    [
+     "np_end",
+     80.79999999999987
+    ],
+    [
+     "response_2_start",
+     80.84999999999987
+    ],
+    [
+     "response_end",
+     80.84999999999987
+    ],
+    [
+     "trial_end",
+     80.84999999999987
+    ],
+    [
+     "to_start",
+     80.84999999999987
+    ],
+    [
+     "to_start",
+     80.84999999999987
+    ],
+    [
+     "response_2_end",
+     80.89999999999986
+    ],
+    [
+     "to_start",
+     80.89999999999986
+    ],
+    [
+     "to_duration_elapsed",
+     83.89999999999986
+    ],
+    [
+     "to_end",
+     83.89999999999986
+    ],
+    [
+     "iti_start",
+     83.89999999999986
+    ],
+    [
+     "iti_duration_elapsed",
+     84.39999999999986
+    ],
+    [
+     "iti_end",
+     84.39999999999986
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "bg04-0-2-0_21_fg21-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 80.34999999999988,
+    "response": "spout_2",
+    "response_condition": 1,
+    "response_side": 2,
+    "response_start": 80.74999999999987,
+    "response_time": 0.3999999999999915,
+    "response_ts": 80.84999999999987,
+    "score": 1,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "normal",
+    "trial_idx": 22,
+    "trial_number": 22,
+    "trial_start": 80.44999999999987,
+    "ts_stim": 80.44999999999987,
+    "ts_stim_1": 80.44999999999987,
+    "ts_stim_2": 80.44999999999987,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 9
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     80.44999999999987,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 80.44999999999987
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 80.44999999999987
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     84.44999999999986
+    ],
+    [
+     "np_duration_elapsed",
+     84.54999999999986
+    ],
+    [
+     "trial_start",
+     84.54999999999986
+    ],
+    [
+     "hold_start",
+     84.54999999999986
+    ],
+    [
+     "hold_duration_elapsed",
+     84.84999999999985
+    ],
+    [
+     "response_start",
+     84.84999999999985
+    ],
+    [
+     "np_end",
+     84.89999999999985
+    ],
+    [
+     "np_start",
+     84.94999999999985
+    ],
+    [
+     "np_end",
+     84.99999999999984
+    ],
+    [
+     "response_duration_elapsed",
+     89.99999999999984
+    ],
+    [
+     "response_end",
+     89.99999999999984
+    ],
+    [
+     "trial_end",
+     89.99999999999984
+    ],
+    [
+     "to_start",
+     89.99999999999984
+    ],
+    [
+     "to_start",
+     89.99999999999984
+    ],
+    [
+     "to_duration_elapsed",
+     90.99999999999984
+    ],
+    [
+     "to_end",
+     90.99999999999984
+    ],
+    [
+     "iti_start",
+     90.99999999999984
+    ],
+    [
+     "iti_duration_elapsed",
+     91.49999999999984
+    ],
+    [
+     "iti_end",
+     91.49999999999984
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 0,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": 1,
+    "dispense_2_duration": 0.1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-1_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 84.44999999999986,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 84.84999999999985,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 23,
+    "trial_number": 23,
+    "trial_start": 84.54999999999986,
+    "ts_stim": 84.54999999999986,
+    "ts_stim_1": 84.54999999999986,
+    "ts_stim_2": 84.54999999999986,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 14
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     84.54999999999986,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 84.54999999999986
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 84.54999999999986
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     91.54999999999984
+    ],
+    [
+     "np_duration_elapsed",
+     91.64999999999984
+    ],
+    [
+     "trial_start",
+     91.64999999999984
+    ],
+    [
+     "hold_start",
+     91.64999999999984
+    ],
+    [
+     "hold_duration_elapsed",
+     91.94999999999983
+    ],
+    [
+     "response_start",
+     91.94999999999983
+    ],
+    [
+     "np_end",
+     91.99999999999983
+    ],
+    [
+     "response_1_start",
+     92.04999999999983
+    ],
+    [
+     "response_end",
+     92.04999999999983
+    ],
+    [
+     "trial_end",
+     92.04999999999983
+    ],
+    [
+     "to_start",
+     92.04999999999983
+    ],
+    [
+     "to_start",
+     92.04999999999983
+    ],
+    [
+     "response_1_end",
+     92.09999999999982
+    ],
+    [
+     "to_start",
+     92.09999999999982
+    ],
+    [
+     "to_duration_elapsed",
+     95.09999999999982
+    ],
+    [
+     "to_end",
+     95.09999999999982
+    ],
+    [
+     "iti_start",
+     95.09999999999982
+    ],
+    [
+     "iti_duration_elapsed",
+     95.59999999999982
+    ],
+    [
+     "iti_end",
+     95.59999999999982
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 1,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "null_21_fg21-0-2-2-n5dB",
+    "fg_channel": 1,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 91.54999999999984,
+    "response": "spout_1",
+    "response_condition": 2,
+    "response_side": 1,
+    "response_start": 91.94999999999983,
+    "response_time": 0.3999999999999915,
+    "response_ts": 92.04999999999983,
+    "score": 1,
+    "snr": 55,
+    "this_bg_level": 0,
+    "this_fg_level": 55,
+    "this_snr": 55,
+    "trial_cat": "normal",
+    "trial_idx": 24,
+    "trial_number": 24,
+    "trial_start": 91.64999999999984,
+    "ts_stim": 91.64999999999984,
+    "ts_stim_1": 91.64999999999984,
+    "ts_stim_2": 91.64999999999984,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 19
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     91.64999999999984,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 91.64999999999984
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 91.64999999999984
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     95.64999999999982
+    ],
+    [
+     "np_duration_elapsed",
+     95.74999999999982
+    ],
+    [
+     "trial_start",
+     95.74999999999982
+    ],
+    [
+     "hold_start",
+     95.74999999999982
+    ],
+    [
+     "hold_duration_elapsed",
+     96.04999999999981
+    ],
+    [
+     "response_start",
+     96.04999999999981
+    ],
+    [
+     "np_end",
+     96.09999999999981
+    ],
+    [
+     "response_1_start",
+     96.1499999999998
+    ],
+    [
+     "response_end",
+     96.1499999999998
+    ],
+    [
+     "deliver_reward_1",
+     96.1499999999998
+    ],
+    [
+     "trial_end",
+     96.1499999999998
+    ],
+    [
+     "response_1_end",
+     96.1999999999998
+    ],
+    [
+     "iti_start",
+     96.1999999999998
+    ],
+    [
+     "iti_duration_elapsed",
+     96.6999999999998
+    ],
+    [
+     "iti_end",
+     96.6999999999998
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "null_21_fg21-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 95.64999999999982,
+    "response": "spout_1",
+    "response_condition": 1,
+    "response_side": 1,
+    "response_start": 96.04999999999981,
+    "response_time": 0.3999999999999915,
+    "response_ts": 96.1499999999998,
+    "score": 2,
+    "snr": 60,
+    "this_bg_level": 0,
+    "this_fg_level": 60,
+    "this_snr": 60,
+    "trial_cat": "normal",
+    "trial_idx": 25,
+    "trial_number": 25,
+    "trial_start": 95.74999999999982,
+    "ts_stim": 95.74999999999982,
+    "ts_stim_1": 95.74999999999982,
+    "ts_stim_2": 95.74999999999982,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 21
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     95.74999999999982,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 95.74999999999982
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 95.74999999999982
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     96.7499999999998
+    ],
+    [
+     "np_duration_elapsed",
+     96.8499999999998
+    ],
+    [
+     "trial_start",
+     96.8499999999998
+    ],
+    [
+     "hold_start",
+     96.8499999999998
+    ],
+    [
+     "hold_duration_elapsed",
+     97.14999999999979
+    ],
+    [
+     "response_start",
+     97.14999999999979
+    ],
+    [
+     "np_end",
+     97.19999999999979
+    ],
+    [
+     "response_duration_elapsed",
+     102.19999999999979
+    ],
+    [
+     "response_end",
+     102.19999999999979
+    ],
+    [
+     "trial_end",
+     102.19999999999979
+    ],
+    [
+     "to_start",
+     102.19999999999979
+    ],
+    [
+     "to_start",
+     102.19999999999979
+    ],
+    [
+     "to_duration_elapsed",
+     103.19999999999979
+    ],
+    [
+     "to_end",
+     103.19999999999979
+    ],
+    [
+     "iti_start",
+     103.19999999999979
+    ],
+    [
+     "iti_duration_elapsed",
+     103.69999999999979
+    ],
+    [
+     "iti_end",
+     103.69999999999979
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 1,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": 0.1,
+    "dispense_2_duration": 1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-2_28_fg28-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 96.7499999999998,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 97.14999999999979,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 26,
+    "trial_number": 26,
+    "trial_start": 96.8499999999998,
+    "ts_stim": 96.8499999999998,
+    "ts_stim_1": 96.8499999999998,
+    "ts_stim_2": 96.8499999999998,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 4
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     96.8499999999998,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 96.8499999999998
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 96.8499999999998
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     103.74999999999979
+    ],
+    [
+     "np_duration_elapsed",
+     103.84999999999978
+    ],
+    [
+     "trial_start",
+     103.84999999999978
+    ],
+    [
+     "hold_start",
+     103.84999999999978
+    ],
+    [
+     "hold_duration_elapsed",
+     104.14999999999978
+    ],
+    [
+     "response_start",
+     104.14999999999978
+    ],
+    [
+     "np_end",
+     104.19999999999978
+    ],
+    [
+     "response_1_start",
+     104.24999999999977
+    ],
+    [
+     "response_end",
+     104.24999999999977
+    ],
+    [
+     "deliver_reward_1",
+     104.24999999999977
+    ],
+    [
+     "trial_end",
+     104.24999999999977
+    ],
+    [
+     "response_1_end",
+     104.29999999999977
+    ],
+    [
+     "iti_start",
+     104.29999999999977
+    ],
+    [
+     "iti_duration_elapsed",
+     104.79999999999977
+    ],
+    [
+     "iti_end",
+     104.79999999999977
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 1,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": true,
+    "current_full_rep": 2,
+    "dispense_1_duration": 0.1,
+    "dispense_2_duration": 1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-2_28_fg28-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 103.74999999999979,
+    "response": "spout_1",
+    "response_condition": -1,
+    "response_side": 1,
+    "response_start": 104.14999999999978,
+    "response_time": 0.3999999999999915,
+    "response_ts": 104.24999999999977,
+    "score": 2,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 27,
+    "trial_number": 27,
+    "trial_start": 103.84999999999978,
+    "ts_stim": 103.84999999999978,
+    "ts_stim_1": 103.84999999999978,
+    "ts_stim_2": 103.84999999999978,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 13
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     103.84999999999978,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 103.84999999999978
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 103.84999999999978
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     104.84999999999977
+    ],
+    [
+     "np_end",
+     104.89999999999976
+    ],
+    [
+     "np_start",
+     104.94999999999976
+    ],
+    [
+     "np_duration_elapsed",
+     105.04999999999976
+    ],
+    [
+     "trial_start",
+     105.04999999999976
+    ],
+    [
+     "hold_start",
+     105.04999999999976
+    ],
+    [
+     "hold_duration_elapsed",
+     105.34999999999975
+    ],
+    [
+     "response_start",
+     105.34999999999975
+    ],
+    [
+     "np_end",
+     105.39999999999975
+    ],
+    [
+     "response_2_start",
+     105.44999999999975
+    ],
+    [
+     "response_end",
+     105.44999999999975
+    ],
+    [
+     "deliver_reward_2",
+     105.44999999999975
+    ],
+    [
+     "trial_end",
+     105.44999999999975
+    ],
+    [
+     "response_2_end",
+     105.49999999999974
+    ],
+    [
+     "iti_start",
+     105.49999999999974
+    ],
+    [
+     "iti_duration_elapsed",
+     105.99999999999974
+    ],
+    [
+     "iti_end",
+     105.99999999999974
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "null_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 104.94999999999976,
+    "response": "spout_2",
+    "response_condition": 2,
+    "response_side": 2,
+    "response_start": 105.34999999999975,
+    "response_time": 0.3999999999999915,
+    "response_ts": 105.44999999999975,
+    "score": 2,
+    "snr": 60,
+    "this_bg_level": 0,
+    "this_fg_level": 60,
+    "this_snr": 60,
+    "trial_cat": "normal",
+    "trial_idx": 28,
+    "trial_number": 28,
+    "trial_start": 105.04999999999976,
+    "ts_stim": 105.04999999999976,
+    "ts_stim_1": 105.04999999999976,
+    "ts_stim_2": 105.04999999999976,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 22
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     105.04999999999976,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 105.04999999999976
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 105.04999999999976
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     106.04999999999974
+    ],
+    [
+     "np_duration_elapsed",
+     106.14999999999974
+    ],
+    [
+     "trial_start",
+     106.14999999999974
+    ],
+    [
+     "hold_start",
+     106.14999999999974
+    ],
+    [
+     "hold_duration_elapsed",
+     106.44999999999973
+    ],
+    [
+     "response_start",
+     106.44999999999973
+    ],
+    [
+     "np_end",
+     106.49999999999973
+    ],
+    [
+     "np_start",
+     106.54999999999973
+    ],
+    [
+     "np_end",
+     106.59999999999972
+    ],
+    [
+     "response_duration_elapsed",
+     111.59999999999972
+    ],
+    [
+     "response_end",
+     111.59999999999972
+    ],
+    [
+     "trial_end",
+     111.59999999999972
+    ],
+    [
+     "to_start",
+     111.59999999999972
+    ],
+    [
+     "to_start",
+     111.59999999999972
+    ],
+    [
+     "to_duration_elapsed",
+     112.59999999999972
+    ],
+    [
+     "to_end",
+     112.59999999999972
+    ],
+    [
+     "iti_start",
+     112.59999999999972
+    ],
+    [
+     "iti_duration_elapsed",
+     113.09999999999972
+    ],
+    [
+     "iti_end",
+     113.09999999999972
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "bg04-0-2-0_21_fg21-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 106.04999999999974,
+    "response": "no_response",
+    "response_condition": 1,
+    "response_side": "nan",
+    "response_start": 106.44999999999973,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "normal",
+    "trial_idx": 29,
+    "trial_number": 29,
+    "trial_start": 106.14999999999974,
+    "ts_stim": 106.14999999999974,
+    "ts_stim_1": 106.14999999999974,
+    "ts_stim_2": 106.14999999999974,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 9
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     106.14999999999974,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 106.14999999999974
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 106.14999999999974
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     113.14999999999972
+    ],
+    [
+     "np_duration_elapsed",
+     113.24999999999972
+    ],
+    [
+     "trial_start",
+     113.24999999999972
+    ],
+    [
+     "hold_start",
+     113.24999999999972
+    ],
+    [
+     "hold_duration_elapsed",
+     113.54999999999971
+    ],
+    [
+     "response_start",
+     113.54999999999971
+    ],
+    [
+     "np_end",
+     113.59999999999971
+    ],
+    [
+     "np_start",
+     113.64999999999971
+    ],
+    [
+     "np_end",
+     113.6999999999997
+    ],
+    [
+     "response_duration_elapsed",
+     118.6999999999997
+    ],
+    [
+     "response_end",
+     118.6999999999997
+    ],
+    [
+     "trial_end",
+     118.6999999999997
+    ],
+    [
+     "to_start",
+     118.6999999999997
+    ],
+    [
+     "to_start",
+     118.6999999999997
+    ],
+    [
+     "to_duration_elapsed",
+     119.6999999999997
+    ],
+    [
+     "to_end",
+     119.6999999999997
+    ],
+    [
+     "iti_start",
+     119.6999999999997
+    ],
+    [
+     "iti_duration_elapsed",
+     120.1999999999997
+    ],
+    [
+     "iti_end",
+     120.1999999999997
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 1,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": 0.1,
+    "dispense_2_duration": 1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-2_28_fg28-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 113.14999999999972,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 113.54999999999971,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 30,
+    "trial_number": 30,
+    "trial_start": 113.24999999999972,
+    "ts_stim": 113.24999999999972,
+    "ts_stim_1": 113.24999999999972,
+    "ts_stim_2": 113.24999999999972,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 5
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     113.24999999999972,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 113.24999999999972
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 113.24999999999972
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     120.2499999999997
+    ],
+    [
+     "np_end",
+     120.2999999999997
+    ],
+    [
+     "np_start",
+     120.3499999999997
+    ],
+    [
+     "np_duration_elapsed",
+     120.44999999999969
+    ],
+    [
+     "trial_start",
+     120.44999999999969
+    ],
+    [
+     "hold_start",
+     120.44999999999969
+    ],
+    [
+     "hold_duration_elapsed",
+     120.74999999999969
+    ],
+    [
+     "response_start",
+     120.74999999999969
+    ],
+    [
+     "np_end",
+     120.79999999999968
+    ],
+    [
+     "response_1_start",
+     120.84999999999968
+    ],
+    [
+     "response_end",
+     120.84999999999968
+    ],
+    [
+     "deliver_reward_1",
+     120.84999999999968
+    ],
+    [
+     "trial_end",
+     120.84999999999968
+    ],
+    [
+     "response_1_end",
+     120.89999999999968
+    ],
+    [
+     "iti_start",
+     120.89999999999968
+    ],
+    [
+     "iti_duration_elapsed",
+     121.39999999999968
+    ],
+    [
+     "iti_end",
+     121.39999999999968
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "null_28_fg28-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 120.3499999999997,
+    "response": "spout_1",
+    "response_condition": 1,
+    "response_side": 1,
+    "response_start": 120.74999999999969,
+    "response_time": 0.3999999999999915,
+    "response_ts": 120.84999999999968,
+    "score": 2,
+    "snr": 60,
+    "this_bg_level": 0,
+    "this_fg_level": 60,
+    "this_snr": 60,
+    "trial_cat": "normal",
+    "trial_idx": 31,
+    "trial_number": 31,
+    "trial_start": 120.44999999999969,
+    "ts_stim": 120.44999999999969,
+    "ts_stim_1": 120.44999999999969,
+    "ts_stim_2": 120.44999999999969,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 20
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     120.44999999999969,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 120.44999999999969
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 120.44999999999969
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     121.44999999999968
+    ],
+    [
+     "np_duration_elapsed",
+     121.54999999999967
+    ],
+    [
+     "trial_start",
+     121.54999999999967
+    ],
+    [
+     "hold_start",
+     121.54999999999967
+    ],
+    [
+     "hold_duration_elapsed",
+     121.84999999999967
+    ],
+    [
+     "response_start",
+     121.84999999999967
+    ],
+    [
+     "np_end",
+     121.89999999999966
+    ],
+    [
+     "response_duration_elapsed",
+     126.89999999999966
+    ],
+    [
+     "response_end",
+     126.89999999999966
+    ],
+    [
+     "trial_end",
+     126.89999999999966
+    ],
+    [
+     "to_start",
+     126.89999999999966
+    ],
+    [
+     "to_start",
+     126.89999999999966
+    ],
+    [
+     "to_duration_elapsed",
+     127.89999999999966
+    ],
+    [
+     "to_end",
+     127.89999999999966
+    ],
+    [
+     "iti_start",
+     127.89999999999966
+    ],
+    [
+     "iti_duration_elapsed",
+     128.39999999999966
+    ],
+    [
+     "iti_end",
+     128.39999999999966
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 0,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": 1,
+    "dispense_2_duration": 0.1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-1_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 121.44999999999968,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 121.84999999999967,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 32,
+    "trial_number": 32,
+    "trial_start": 121.54999999999967,
+    "ts_stim": 121.54999999999967,
+    "ts_stim_1": 121.54999999999967,
+    "ts_stim_2": 121.54999999999967,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 15
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     121.54999999999967,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 121.54999999999967
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 121.54999999999967
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     128.44999999999968
+    ],
+    [
+     "np_duration_elapsed",
+     128.54999999999967
+    ],
+    [
+     "trial_start",
+     128.54999999999967
+    ],
+    [
+     "hold_start",
+     128.54999999999967
+    ],
+    [
+     "hold_duration_elapsed",
+     128.84999999999968
+    ],
+    [
+     "response_start",
+     128.84999999999968
+    ],
+    [
+     "np_end",
+     128.8999999999997
+    ],
+    [
+     "np_start",
+     128.9499999999997
+    ],
+    [
+     "np_end",
+     128.99999999999972
+    ],
+    [
+     "response_duration_elapsed",
+     133.99999999999972
+    ],
+    [
+     "response_end",
+     133.99999999999972
+    ],
+    [
+     "trial_end",
+     133.99999999999972
+    ],
+    [
+     "to_start",
+     133.99999999999972
+    ],
+    [
+     "to_start",
+     133.99999999999972
+    ],
+    [
+     "to_duration_elapsed",
+     134.99999999999972
+    ],
+    [
+     "to_end",
+     134.99999999999972
+    ],
+    [
+     "iti_start",
+     134.99999999999972
+    ],
+    [
+     "iti_duration_elapsed",
+     135.49999999999972
+    ],
+    [
+     "iti_end",
+     135.49999999999972
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "null_28_fg28-0-2-2-n5dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 128.44999999999968,
+    "response": "no_response",
+    "response_condition": 2,
+    "response_side": "nan",
+    "response_start": 128.84999999999968,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 55,
+    "this_bg_level": 0,
+    "this_fg_level": 55,
+    "this_snr": 55,
+    "trial_cat": "normal",
+    "trial_idx": 33,
+    "trial_number": 33,
+    "trial_start": 128.54999999999967,
+    "ts_stim": 128.54999999999967,
+    "ts_stim_1": 128.54999999999967,
+    "ts_stim_2": 128.54999999999967,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 18
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     128.54999999999967,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 128.54999999999967
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 128.54999999999967
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     135.54999999999973
+    ],
+    [
+     "np_duration_elapsed",
+     135.64999999999972
+    ],
+    [
+     "trial_start",
+     135.64999999999972
+    ],
+    [
+     "hold_start",
+     135.64999999999972
+    ],
+    [
+     "hold_duration_elapsed",
+     135.94999999999973
+    ],
+    [
+     "response_start",
+     135.94999999999973
+    ],
+    [
+     "np_end",
+     135.99999999999974
+    ],
+    [
+     "response_2_start",
+     136.04999999999976
+    ],
+    [
+     "response_end",
+     136.04999999999976
+    ],
+    [
+     "deliver_reward_2",
+     136.04999999999976
+    ],
+    [
+     "trial_end",
+     136.04999999999976
+    ],
+    [
+     "response_2_end",
+     136.09999999999977
+    ],
+    [
+     "iti_start",
+     136.09999999999977
+    ],
+    [
+     "iti_duration_elapsed",
+     136.59999999999977
+    ],
+    [
+     "iti_end",
+     136.59999999999977
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "null_21_fg21-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 135.54999999999973,
+    "response": "spout_2",
+    "response_condition": 2,
+    "response_side": 2,
+    "response_start": 135.94999999999973,
+    "response_time": 0.4000000000000341,
+    "response_ts": 136.04999999999976,
+    "score": 2,
+    "snr": 60,
+    "this_bg_level": 0,
+    "this_fg_level": 60,
+    "this_snr": 60,
+    "trial_cat": "normal",
+    "trial_idx": 34,
+    "trial_number": 34,
+    "trial_start": 135.64999999999972,
+    "ts_stim": 135.64999999999972,
+    "ts_stim_1": 135.64999999999972,
+    "ts_stim_2": 135.64999999999972,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 23
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     135.64999999999972,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 135.64999999999972
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 135.64999999999972
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     136.64999999999978
+    ],
+    [
+     "np_duration_elapsed",
+     136.74999999999977
+    ],
+    [
+     "trial_start",
+     136.74999999999977
+    ],
+    [
+     "hold_start",
+     136.74999999999977
+    ],
+    [
+     "hold_duration_elapsed",
+     137.04999999999978
+    ],
+    [
+     "response_start",
+     137.04999999999978
+    ],
+    [
+     "np_end",
+     137.0999999999998
+    ],
+    [
+     "np_start",
+     137.1499999999998
+    ],
+    [
+     "np_end",
+     137.19999999999982
+    ],
+    [
+     "response_duration_elapsed",
+     142.19999999999982
+    ],
+    [
+     "response_end",
+     142.19999999999982
+    ],
+    [
+     "trial_end",
+     142.19999999999982
+    ],
+    [
+     "to_start",
+     142.19999999999982
+    ],
+    [
+     "to_start",
+     142.19999999999982
+    ],
+    [
+     "to_duration_elapsed",
+     143.19999999999982
+    ],
+    [
+     "to_end",
+     143.19999999999982
+    ],
+    [
+     "iti_start",
+     143.19999999999982
+    ],
+    [
+     "iti_duration_elapsed",
+     143.69999999999982
+    ],
+    [
+     "iti_end",
+     143.69999999999982
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 0,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": 1,
+    "dispense_2_duration": 0.1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-1_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 136.64999999999978,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 137.04999999999978,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 35,
+    "trial_number": 35,
+    "trial_start": 136.74999999999977,
+    "ts_stim": 136.74999999999977,
+    "ts_stim_1": 136.74999999999977,
+    "ts_stim_2": 136.74999999999977,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 14
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     136.74999999999977,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 136.74999999999977
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 136.74999999999977
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     143.74999999999983
+    ],
+    [
+     "np_duration_elapsed",
+     143.84999999999982
+    ],
+    [
+     "trial_start",
+     143.84999999999982
+    ],
+    [
+     "hold_start",
+     143.84999999999982
+    ],
+    [
+     "hold_duration_elapsed",
+     144.14999999999984
+    ],
+    [
+     "response_start",
+     144.14999999999984
+    ],
+    [
+     "np_end",
+     144.19999999999985
+    ],
+    [
+     "response_2_start",
+     144.24999999999986
+    ],
+    [
+     "response_end",
+     144.24999999999986
+    ],
+    [
+     "deliver_reward_2",
+     144.24999999999986
+    ],
+    [
+     "trial_end",
+     144.24999999999986
+    ],
+    [
+     "response_2_end",
+     144.29999999999987
+    ],
+    [
+     "iti_start",
+     144.29999999999987
+    ],
+    [
+     "iti_duration_elapsed",
+     144.79999999999987
+    ],
+    [
+     "iti_end",
+     144.79999999999987
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "bg04-0-2-0_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 143.74999999999983,
+    "response": "spout_2",
+    "response_condition": 2,
+    "response_side": 2,
+    "response_start": 144.14999999999984,
+    "response_time": 0.4000000000000341,
+    "response_ts": 144.24999999999986,
+    "score": 2,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "normal",
+    "trial_idx": 36,
+    "trial_number": 36,
+    "trial_start": 143.84999999999982,
+    "ts_stim": 143.84999999999982,
+    "ts_stim_1": 143.84999999999982,
+    "ts_stim_2": 143.84999999999982,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 10
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     143.84999999999982,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 143.84999999999982
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 143.84999999999982
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     144.84999999999988
+    ],
+    [
+     "np_duration_elapsed",
+     144.94999999999987
+    ],
+    [
+     "trial_start",
+     144.94999999999987
+    ],
+    [
+     "hold_start",
+     144.94999999999987
+    ],
+    [
+     "hold_duration_elapsed",
+     145.2499999999999
+    ],
+    [
+     "response_start",
+     145.2499999999999
+    ],
+    [
+     "np_end",
+     145.2999999999999
+    ],
+    [
+     "np_start",
+     145.3499999999999
+    ],
+    [
+     "np_end",
+     145.39999999999992
+    ],
+    [
+     "response_duration_elapsed",
+     150.39999999999992
+    ],
+    [
+     "response_end",
+     150.39999999999992
+    ],
+    [
+     "trial_end",
+     150.39999999999992
+    ],
+    [
+     "to_start",
+     150.39999999999992
+    ],
+    [
+     "to_start",
+     150.39999999999992
+    ],
+    [
+     "to_duration_elapsed",
+     151.39999999999992
+    ],
+    [
+     "to_end",
+     151.39999999999992
+    ],
+    [
+     "iti_start",
+     151.39999999999992
+    ],
+    [
+     "iti_duration_elapsed",
+     151.89999999999992
+    ],
+    [
+     "iti_end",
+     151.89999999999992
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 1,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": 0.1,
+    "dispense_2_duration": 1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-2_28_fg28-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 144.84999999999988,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 145.2499999999999,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 37,
+    "trial_number": 37,
+    "trial_start": 144.94999999999987,
+    "ts_stim": 144.94999999999987,
+    "ts_stim_1": 144.94999999999987,
+    "ts_stim_2": 144.94999999999987,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 12
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     144.94999999999987,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 144.94999999999987
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 144.94999999999987
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     151.94999999999993
+    ],
+    [
+     "np_end",
+     151.99999999999994
+    ],
+    [
+     "np_start",
+     152.04999999999995
+    ],
+    [
+     "np_duration_elapsed",
+     152.14999999999995
+    ],
+    [
+     "trial_start",
+     152.14999999999995
+    ],
+    [
+     "hold_start",
+     152.14999999999995
+    ],
+    [
+     "hold_duration_elapsed",
+     152.44999999999996
+    ],
+    [
+     "response_start",
+     152.44999999999996
+    ],
+    [
+     "np_end",
+     152.49999999999997
+    ],
+    [
+     "response_1_start",
+     152.54999999999998
+    ],
+    [
+     "response_end",
+     152.54999999999998
+    ],
+    [
+     "trial_end",
+     152.54999999999998
+    ],
+    [
+     "to_start",
+     152.54999999999998
+    ],
+    [
+     "to_start",
+     152.54999999999998
+    ],
+    [
+     "response_1_end",
+     152.6
+    ],
+    [
+     "to_start",
+     152.6
+    ],
+    [
+     "to_duration_elapsed",
+     155.6
+    ],
+    [
+     "to_end",
+     155.6
+    ],
+    [
+     "iti_start",
+     155.6
+    ],
+    [
+     "iti_duration_elapsed",
+     156.1
+    ],
+    [
+     "iti_end",
+     156.1
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "bg04-0-2-0_21_fg21-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 152.04999999999995,
+    "response": "spout_1",
+    "response_condition": 2,
+    "response_side": 1,
+    "response_start": 152.44999999999996,
+    "response_time": 0.4000000000000341,
+    "response_ts": 152.54999999999998,
+    "score": 1,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "normal",
+    "trial_idx": 38,
+    "trial_number": 38,
+    "trial_start": 152.14999999999995,
+    "ts_stim": 152.14999999999995,
+    "ts_stim_1": 152.14999999999995,
+    "ts_stim_2": 152.14999999999995,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 11
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     152.14999999999995,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 152.14999999999995
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 152.14999999999995
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     156.15
+    ],
+    [
+     "np_duration_elapsed",
+     156.25
+    ],
+    [
+     "trial_start",
+     156.25
+    ],
+    [
+     "hold_start",
+     156.25
+    ],
+    [
+     "hold_duration_elapsed",
+     156.55
+    ],
+    [
+     "response_start",
+     156.55
+    ],
+    [
+     "np_end",
+     156.60000000000002
+    ],
+    [
+     "response_2_start",
+     156.65000000000003
+    ],
+    [
+     "response_end",
+     156.65000000000003
+    ],
+    [
+     "trial_end",
+     156.65000000000003
+    ],
+    [
+     "to_start",
+     156.65000000000003
+    ],
+    [
+     "to_start",
+     156.65000000000003
+    ],
+    [
+     "response_2_end",
+     156.70000000000005
+    ],
+    [
+     "to_start",
+     156.70000000000005
+    ],
+    [
+     "to_duration_elapsed",
+     159.70000000000005
+    ],
+    [
+     "to_end",
+     159.70000000000005
+    ],
+    [
+     "iti_start",
+     159.70000000000005
+    ],
+    [
+     "iti_duration_elapsed",
+     160.20000000000005
+    ],
+    [
+     "iti_end",
+     160.20000000000005
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "bg04-0-2-0_28_fg28-0-2-1-n5dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 156.15,
+    "response": "spout_2",
+    "response_condition": 1,
+    "response_side": 2,
+    "response_start": 156.55,
+    "response_time": 0.4000000000000341,
+    "response_ts": 156.65000000000003,
+    "score": 1,
+    "snr": -5,
+    "this_bg_level": 60,
+    "this_fg_level": 55,
+    "this_snr": -5,
+    "trial_cat": "normal",
+    "trial_idx": 39,
+    "trial_number": 39,
+    "trial_start": 156.25,
+    "ts_stim": 156.25,
+    "ts_stim_1": 156.25,
+    "ts_stim_2": 156.25,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 0
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     156.25,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 156.25
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 156.25
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     160.25000000000006
+    ],
+    [
+     "np_duration_elapsed",
+     160.35000000000005
+    ],
+    [
+     "trial_start",
+     160.35000000000005
+    ],
+    [
+     "hold_start",
+     160.35000000000005
+    ],
+    [
+     "hold_duration_elapsed",
+     160.65000000000006
+    ],
+    [
+     "response_start",
+     160.65000000000006
+    ],
+    [
+     "np_end",
+     160.70000000000007
+    ],
+    [
+     "np_start",
+     160.75000000000009
+    ],
+    [
+     "np_end",
+     160.8000000000001
+    ],
+    [
+     "response_duration_elapsed",
+     165.8000000000001
+    ],
+    [
+     "response_end",
+     165.8000000000001
+    ],
+    [
+     "trial_end",
+     165.8000000000001
+    ],
+    [
+     "to_start",
+     165.8000000000001
+    ],
+    [
+     "to_start",
+     165.8000000000001
+    ],
+    [
+     "to_duration_elapsed",
+     166.8000000000001
+    ],
+    [
+     "to_end",
+     166.8000000000001
+    ],
+    [
+     "iti_start",
+     166.8000000000001
+    ],
+    [
+     "iti_duration_elapsed",
+     167.3000000000001
+    ],
+    [
+     "iti_end",
+     167.3000000000001
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "null_21_fg21-0-2-1-n5dB",
+    "fg_channel": 0,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 160.25000000000006,
+    "response": "no_response",
+    "response_condition": 1,
+    "response_side": "nan",
+    "response_start": 160.65000000000006,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 55,
+    "this_bg_level": 0,
+    "this_fg_level": 55,
+    "this_snr": 55,
+    "trial_cat": "normal",
+    "trial_idx": 40,
+    "trial_number": 40,
+    "trial_start": 160.35000000000005,
+    "ts_stim": 160.35000000000005,
+    "ts_stim_1": 160.35000000000005,
+    "ts_stim_2": 160.35000000000005,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 17
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     160.35000000000005,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 160.35000000000005
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 160.35000000000005
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     167.3500000000001
+    ],
+    [
+     "np_duration_elapsed",
+     167.4500000000001
+    ],
+    [
+     "trial_start",
+     167.4500000000001
+    ],
+    [
+     "hold_start",
+     167.4500000000001
+    ],
+    [
+     "hold_duration_elapsed",
+     167.7500000000001
+    ],
+    [
+     "response_start",
+     167.7500000000001
+    ],
+    [
+     "np_end",
+     167.80000000000013
+    ],
+    [
+     "response_2_start",
+     167.85000000000014
+    ],
+    [
+     "response_end",
+     167.85000000000014
+    ],
+    [
+     "trial_end",
+     167.85000000000014
+    ],
+    [
+     "to_start",
+     167.85000000000014
+    ],
+    [
+     "to_start",
+     167.85000000000014
+    ],
+    [
+     "response_2_end",
+     167.90000000000015
+    ],
+    [
+     "to_start",
+     167.90000000000015
+    ],
+    [
+     "to_duration_elapsed",
+     170.90000000000015
+    ],
+    [
+     "to_end",
+     170.90000000000015
+    ],
+    [
+     "iti_start",
+     170.90000000000015
+    ],
+    [
+     "iti_duration_elapsed",
+     171.40000000000015
+    ],
+    [
+     "iti_end",
+     171.40000000000015
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "bg04-0-2-0_28_fg28-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 167.3500000000001,
+    "response": "spout_2",
+    "response_condition": 1,
+    "response_side": 2,
+    "response_start": 167.7500000000001,
+    "response_time": 0.4000000000000341,
+    "response_ts": 167.85000000000014,
+    "score": 1,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "normal",
+    "trial_idx": 41,
+    "trial_number": 41,
+    "trial_start": 167.4500000000001,
+    "ts_stim": 167.4500000000001,
+    "ts_stim_1": 167.4500000000001,
+    "ts_stim_2": 167.4500000000001,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 8
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     167.4500000000001,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 167.4500000000001
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 167.4500000000001
+    }
+   ]
+  },
+  {
+   "action": "no_response",
+   "events": [
+    [
+     "np_start",
+     171.45000000000016
+    ],
+    [
+     "np_duration_elapsed",
+     171.55000000000015
+    ],
+    [
+     "trial_start",
+     171.55000000000015
+    ],
+    [
+     "hold_start",
+     171.55000000000015
+    ],
+    [
+     "hold_duration_elapsed",
+     171.85000000000016
+    ],
+    [
+     "response_start",
+     171.85000000000016
+    ],
+    [
+     "np_end",
+     171.90000000000018
+    ],
+    [
+     "response_duration_elapsed",
+     176.90000000000018
+    ],
+    [
+     "response_end",
+     176.90000000000018
+    ],
+    [
+     "trial_end",
+     176.90000000000018
+    ],
+    [
+     "to_start",
+     176.90000000000018
+    ],
+    [
+     "to_start",
+     176.90000000000018
+    ],
+    [
+     "to_duration_elapsed",
+     177.90000000000018
+    ],
+    [
+     "to_end",
+     177.90000000000018
+    ],
+    [
+     "iti_start",
+     177.90000000000018
+    ],
+    [
+     "iti_duration_elapsed",
+     178.40000000000018
+    ],
+    [
+     "iti_end",
+     178.40000000000018
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "bg04-0-2-0_28_fg28-0-2-2-n5dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 171.45000000000016,
+    "response": "no_response",
+    "response_condition": 2,
+    "response_side": "nan",
+    "response_start": 171.85000000000016,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": -5,
+    "this_bg_level": 60,
+    "this_fg_level": 55,
+    "this_snr": -5,
+    "trial_cat": "normal",
+    "trial_idx": 42,
+    "trial_number": 42,
+    "trial_start": 171.55000000000015,
+    "ts_stim": 171.55000000000015,
+    "ts_stim_1": 171.55000000000015,
+    "ts_stim_2": 171.55000000000015,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 2
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     171.55000000000015,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 171.55000000000015
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 171.55000000000015
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     178.4500000000002
+    ],
+    [
+     "np_end",
+     178.5000000000002
+    ],
+    [
+     "np_start",
+     178.5500000000002
+    ],
+    [
+     "np_duration_elapsed",
+     178.6500000000002
+    ],
+    [
+     "trial_start",
+     178.6500000000002
+    ],
+    [
+     "hold_start",
+     178.6500000000002
+    ],
+    [
+     "hold_duration_elapsed",
+     178.95000000000022
+    ],
+    [
+     "response_start",
+     178.95000000000022
+    ],
+    [
+     "np_end",
+     179.00000000000023
+    ],
+    [
+     "np_start",
+     179.05000000000024
+    ],
+    [
+     "np_end",
+     179.10000000000025
+    ],
+    [
+     "response_duration_elapsed",
+     184.10000000000025
+    ],
+    [
+     "response_end",
+     184.10000000000025
+    ],
+    [
+     "trial_end",
+     184.10000000000025
+    ],
+    [
+     "to_start",
+     184.10000000000025
+    ],
+    [
+     "to_start",
+     184.10000000000025
+    ],
+    [
+     "to_duration_elapsed",
+     185.10000000000025
+    ],
+    [
+     "to_end",
+     185.10000000000025
+    ],
+    [
+     "iti_start",
+     185.10000000000025
+    ],
+    [
+     "iti_duration_elapsed",
+     185.60000000000025
+    ],
+    [
+     "iti_end",
+     185.60000000000025
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "bg04-0-2-0_21_fg21-0-2-1-n5dB",
+    "fg_channel": 0,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 178.5500000000002,
+    "response": "no_response",
+    "response_condition": 1,
+    "response_side": "nan",
+    "response_start": 178.95000000000022,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": -5,
+    "this_bg_level": 60,
+    "this_fg_level": 55,
+    "this_snr": -5,
+    "trial_cat": "normal",
+    "trial_idx": 43,
+    "trial_number": 43,
+    "trial_start": 178.6500000000002,
+    "ts_stim": 178.6500000000002,
+    "ts_stim_1": 178.6500000000002,
+    "ts_stim_2": 178.6500000000002,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 1
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     178.6500000000002,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 178.6500000000002
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 178.6500000000002
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     185.65000000000026
+    ],
+    [
+     "np_duration_elapsed",
+     185.75000000000026
+    ],
+    [
+     "trial_start",
+     185.75000000000026
+    ],
+    [
+     "hold_start",
+     185.75000000000026
+    ],
+    [
+     "hold_duration_elapsed",
+     186.05000000000027
+    ],
+    [
+     "response_start",
+     186.05000000000027
+    ],
+    [
+     "np_end",
+     186.10000000000028
+    ],
+    [
+     "np_start",
+     186.1500000000003
+    ],
+    [
+     "np_end",
+     186.2000000000003
+    ],
+    [
+     "response_duration_elapsed",
+     191.2000000000003
+    ],
+    [
+     "response_end",
+     191.2000000000003
+    ],
+    [
+     "trial_end",
+     191.2000000000003
+    ],
+    [
+     "to_start",
+     191.2000000000003
+    ],
+    [
+     "to_start",
+     191.2000000000003
+    ],
+    [
+     "to_duration_elapsed",
+     192.2000000000003
+    ],
+    [
+     "to_end",
+     192.2000000000003
+    ],
+    [
+     "iti_start",
+     192.2000000000003
+    ],
+    [
+     "iti_duration_elapsed",
+     192.7000000000003
+    ],
+    [
+     "iti_end",
+     192.7000000000003
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 0,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": 1,
+    "dispense_2_duration": 0.1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-1_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 185.65000000000026,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 186.05000000000027,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 44,
+    "trial_number": 44,
+    "trial_start": 185.75000000000026,
+    "ts_stim": 185.75000000000026,
+    "ts_stim_1": 185.75000000000026,
+    "ts_stim_2": 185.75000000000026,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 6
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     185.75000000000026,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 185.75000000000026
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 185.75000000000026
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     192.7500000000003
+    ],
+    [
+     "np_duration_elapsed",
+     192.8500000000003
+    ],
+    [
+     "trial_start",
+     192.8500000000003
+    ],
+    [
+     "hold_start",
+     192.8500000000003
+    ],
+    [
+     "hold_duration_elapsed",
+     193.15000000000032
+    ],
+    [
+     "response_start",
+     193.15000000000032
+    ],
+    [
+     "np_end",
+     193.20000000000033
+    ],
+    [
+     "response_2_start",
+     193.25000000000034
+    ],
+    [
+     "response_end",
+     193.25000000000034
+    ],
+    [
+     "deliver_reward_2",
+     193.25000000000034
+    ],
+    [
+     "trial_end",
+     193.25000000000034
+    ],
+    [
+     "response_2_end",
+     193.30000000000035
+    ],
+    [
+     "iti_start",
+     193.30000000000035
+    ],
+    [
+     "iti_duration_elapsed",
+     193.80000000000035
+    ],
+    [
+     "iti_end",
+     193.80000000000035
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "null_21_fg21-0-2-2-n5dB",
+    "fg_channel": 1,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 192.7500000000003,
+    "response": "spout_2",
+    "response_condition": 2,
+    "response_side": 2,
+    "response_start": 193.15000000000032,
+    "response_time": 0.4000000000000341,
+    "response_ts": 193.25000000000034,
+    "score": 2,
+    "snr": 55,
+    "this_bg_level": 0,
+    "this_fg_level": 55,
+    "this_snr": 55,
+    "trial_cat": "normal",
+    "trial_idx": 45,
+    "trial_number": 45,
+    "trial_start": 192.8500000000003,
+    "ts_stim": 192.8500000000003,
+    "ts_stim_1": 192.8500000000003,
+    "ts_stim_2": 192.8500000000003,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 19
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     192.8500000000003,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 192.8500000000003
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 192.8500000000003
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     193.85000000000036
+    ],
+    [
+     "np_duration_elapsed",
+     193.95000000000036
+    ],
+    [
+     "trial_start",
+     193.95000000000036
+    ],
+    [
+     "hold_start",
+     193.95000000000036
+    ],
+    [
+     "hold_duration_elapsed",
+     194.25000000000037
+    ],
+    [
+     "response_start",
+     194.25000000000037
+    ],
+    [
+     "np_end",
+     194.30000000000038
+    ],
+    [
+     "response_duration_elapsed",
+     199.30000000000038
+    ],
+    [
+     "response_end",
+     199.30000000000038
+    ],
+    [
+     "trial_end",
+     199.30000000000038
+    ],
+    [
+     "to_start",
+     199.30000000000038
+    ],
+    [
+     "to_start",
+     199.30000000000038
+    ],
+    [
+     "to_duration_elapsed",
+     200.30000000000038
+    ],
+    [
+     "to_end",
+     200.30000000000038
+    ],
+    [
+     "iti_start",
+     200.30000000000038
+    ],
+    [
+     "iti_duration_elapsed",
+     200.80000000000038
+    ],
+    [
+     "iti_end",
+     200.80000000000038
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 0,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 2,
+    "dispense_1_duration": 1,
+    "dispense_2_duration": 0.1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-1_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 193.85000000000036,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 194.25000000000037,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 46,
+    "trial_number": 46,
+    "trial_start": 193.95000000000036,
+    "ts_stim": 193.95000000000036,
+    "ts_stim_1": 193.95000000000036,
+    "ts_stim_2": 193.95000000000036,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 7
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     193.95000000000036,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 193.95000000000036
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 193.95000000000036
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     200.8500000000004
+    ],
+    [
+     "np_end",
+     200.9000000000004
+    ],
+    [
+     "np_start",
+     200.95000000000041
+    ],
+    [
+     "np_duration_elapsed",
+     201.0500000000004
+    ],
+    [
+     "trial_start",
+     201.0500000000004
+    ],
+    [
+     "hold_start",
+     201.0500000000004
+    ],
+    [
+     "hold_duration_elapsed",
+     201.35000000000042
+    ],
+    [
+     "response_start",
+     201.35000000000042
+    ],
+    [
+     "np_end",
+     201.40000000000043
+    ],
+    [
+     "response_1_start",
+     201.45000000000044
+    ],
+    [
+     "response_end",
+     201.45000000000044
+    ],
+    [
+     "deliver_reward_1",
+     201.45000000000044
+    ],
+    [
+     "trial_end",
+     201.45000000000044
+    ],
+    [
+     "response_1_end",
+     201.50000000000045
+    ],
+    [
+     "iti_start",
+     201.50000000000045
+    ],
+    [
+     "iti_duration_elapsed",
+     202.00000000000045
+    ],
+    [
+     "iti_end",
+     202.00000000000045
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "null_28_fg28-0-2-1-n5dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 200.95000000000041,
+    "response": "spout_1",
+    "response_condition": 1,
+    "response_side": 1,
+    "response_start": 201.35000000000042,
+    "response_time": 0.4000000000000341,
+    "response_ts": 201.45000000000044,
+    "score": 2,
+    "snr": 55,
+    "this_bg_level": 0,
+    "this_fg_level": 55,
+    "this_snr": 55,
+    "trial_cat": "normal",
+    "trial_idx": 47,
+    "trial_number": 47,
+    "trial_start": 201.0500000000004,
+    "ts_stim": 201.0500000000004,
+    "ts_stim_1": 201.0500000000004,
+    "ts_stim_2": 201.0500000000004,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 16
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     201.0500000000004,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 201.0500000000004
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 201.0500000000004
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     202.05000000000047
+    ],
+    [
+     "np_duration_elapsed",
+     202.15000000000046
+    ],
+    [
+     "trial_start",
+     202.15000000000046
+    ],
+    [
+     "hold_start",
+     202.15000000000046
+    ],
+    [
+     "hold_duration_elapsed",
+     202.45000000000047
+    ],
+    [
+     "response_start",
+     202.45000000000047
+    ],
+    [
+     "np_end",
+     202.50000000000048
+    ],
+    [
+     "response_2_start",
+     202.5500000000005
+    ],
+    [
+     "response_end",
+     202.5500000000005
+    ],
+    [
+     "deliver_reward_2",
+     202.5500000000005
+    ],
+    [
+     "trial_end",
+     202.5500000000005
+    ],
+    [
+     "response_2_end",
+     202.6000000000005
+    ],
+    [
+     "iti_start",
+     202.6000000000005
+    ],
+    [
+     "iti_duration_elapsed",
+     203.1000000000005
+    ],
+    [
+     "iti_end",
+     203.1000000000005
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 2,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "bg04-0-2-0_21_fg21-0-2-2-n5dB",
+    "fg_channel": 1,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 202.05000000000047,
+    "response": "spout_2",
+    "response_condition": 2,
+    "response_side": 2,
+    "response_start": 202.45000000000047,
+    "response_time": 0.4000000000000341,
+    "response_ts": 202.5500000000005,
+    "score": 2,
+    "snr": -5,
+    "this_bg_level": 60,
+    "this_fg_level": 55,
+    "this_snr": -5,
+    "trial_cat": "normal",
+    "trial_idx": 48,
+    "trial_number": 48,
+    "trial_start": 202.15000000000046,
+    "ts_stim": 202.15000000000046,
+    "ts_stim_1": 202.15000000000046,
+    "ts_stim_2": 202.15000000000046,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 3
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     202.15000000000046,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 202.15000000000046
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 202.15000000000046
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     203.15000000000052
+    ],
+    [
+     "np_duration_elapsed",
+     203.2500000000005
+    ],
+    [
+     "trial_start",
+     203.2500000000005
+    ],
+    [
+     "hold_start",
+     203.2500000000005
+    ],
+    [
+     "hold_duration_elapsed",
+     203.55000000000052
+    ],
+    [
+     "response_start",
+     203.55000000000052
+    ],
+    [
+     "np_end",
+     203.60000000000053
+    ],
+    [
+     "response_2_start",
+     203.65000000000055
+    ],
+    [
+     "response_end",
+     203.65000000000055
+    ],
+    [
+     "deliver_reward_2",
+     203.65000000000055
+    ],
+    [
+     "trial_end",
+     203.65000000000055
+    ],
+    [
+     "response_2_end",
+     203.70000000000056
+    ],
+    [
+     "iti_start",
+     203.70000000000056
+    ],
+    [
+     "iti_duration_elapsed",
+     204.20000000000056
+    ],
+    [
+     "iti_end",
+     204.20000000000056
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 3,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "bg04-0-2-0_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 203.15000000000052,
+    "response": "spout_2",
+    "response_condition": 2,
+    "response_side": 2,
+    "response_start": 203.55000000000052,
+    "response_time": 0.4000000000000341,
+    "response_ts": 203.65000000000055,
+    "score": 2,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "normal",
+    "trial_idx": 49,
+    "trial_number": 49,
+    "trial_start": 203.2500000000005,
+    "ts_stim": 203.2500000000005,
+    "ts_stim_1": 203.2500000000005,
+    "ts_stim_2": 203.2500000000005,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 10
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     203.2500000000005,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 203.2500000000005
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 203.2500000000005
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     204.25000000000057
+    ],
+    [
+     "np_duration_elapsed",
+     204.35000000000056
+    ],
+    [
+     "trial_start",
+     204.35000000000056
+    ],
+    [
+     "hold_start",
+     204.35000000000056
+    ],
+    [
+     "hold_duration_elapsed",
+     204.65000000000057
+    ],
+    [
+     "response_start",
+     204.65000000000057
+    ],
+    [
+     "np_end",
+     204.70000000000059
+    ],
+    [
+     "response_1_start",
+     204.7500000000006
+    ],
+    [
+     "response_end",
+     204.7500000000006
+    ],
+    [
+     "deliver_reward_1",
+     204.7500000000006
+    ],
+    [
+     "trial_end",
+     204.7500000000006
+    ],
+    [
+     "response_1_end",
+     204.8000000000006
+    ],
+    [
+     "iti_start",
+     204.8000000000006
+    ],
+    [
+     "iti_duration_elapsed",
+     205.3000000000006
+    ],
+    [
+     "iti_end",
+     205.3000000000006
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 0,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": true,
+    "current_full_rep": 3,
+    "dispense_1_duration": 1,
+    "dispense_2_duration": 0.1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-1_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 204.25000000000057,
+    "response": "spout_1",
+    "response_condition": -1,
+    "response_side": 1,
+    "response_start": 204.65000000000057,
+    "response_time": 0.4000000000000341,
+    "response_ts": 204.7500000000006,
+    "score": 2,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 50,
+    "trial_number": 50,
+    "trial_start": 204.35000000000056,
+    "ts_stim": 204.35000000000056,
+    "ts_stim_1": 204.35000000000056,
+    "ts_stim_2": 204.35000000000056,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 6
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     204.35000000000056,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 204.35000000000056
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 204.35000000000056
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     205.35000000000062
+    ],
+    [
+     "np_duration_elapsed",
+     205.4500000000006
+    ],
+    [
+     "trial_start",
+     205.4500000000006
+    ],
+    [
+     "hold_start",
+     205.4500000000006
+    ],
+    [
+     "hold_duration_elapsed",
+     205.75000000000063
+    ],
+    [
+     "response_start",
+     205.75000000000063
+    ],
+    [
+     "np_end",
+     205.80000000000064
+    ],
+    [
+     "response_2_start",
+     205.85000000000065
+    ],
+    [
+     "response_end",
+     205.85000000000065
+    ],
+    [
+     "trial_end",
+     205.85000000000065
+    ],
+    [
+     "to_start",
+     205.85000000000065
+    ],
+    [
+     "to_start",
+     205.85000000000065
+    ],
+    [
+     "response_2_end",
+     205.90000000000066
+    ],
+    [
+     "to_start",
+     205.90000000000066
+    ],
+    [
+     "to_duration_elapsed",
+     208.90000000000066
+    ],
+    [
+     "to_end",
+     208.90000000000066
+    ],
+    [
+     "iti_start",
+     208.90000000000066
+    ],
+    [
+     "iti_duration_elapsed",
+     209.40000000000066
+    ],
+    [
+     "iti_end",
+     209.40000000000066
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 3,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "null_21_fg21-0-2-1-n5dB",
+    "fg_channel": 0,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 205.35000000000062,
+    "response": "spout_2",
+    "response_condition": 1,
+    "response_side": 2,
+    "response_start": 205.75000000000063,
+    "response_time": 0.4000000000000341,
+    "response_ts": 205.85000000000065,
+    "score": 1,
+    "snr": 55,
+    "this_bg_level": 0,
+    "this_fg_level": 55,
+    "this_snr": 55,
+    "trial_cat": "normal",
+    "trial_idx": 51,
+    "trial_number": 51,
+    "trial_start": 205.4500000000006,
+    "ts_stim": 205.4500000000006,
+    "ts_stim_1": 205.4500000000006,
+    "ts_stim_2": 205.4500000000006,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 17
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     205.4500000000006,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 205.4500000000006
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 205.4500000000006
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     209.45000000000067
+    ],
+    [
+     "np_duration_elapsed",
+     209.55000000000067
+    ],
+    [
+     "trial_start",
+     209.55000000000067
+    ],
+    [
+     "hold_start",
+     209.55000000000067
+    ],
+    [
+     "hold_duration_elapsed",
+     209.85000000000068
+    ],
+    [
+     "response_start",
+     209.85000000000068
+    ],
+    [
+     "np_end",
+     209.9000000000007
+    ],
+    [
+     "np_start",
+     209.9500000000007
+    ],
+    [
+     "np_end",
+     210.0000000000007
+    ],
+    [
+     "response_duration_elapsed",
+     215.0000000000007
+    ],
+    [
+     "response_end",
+     215.0000000000007
+    ],
+    [
+     "trial_end",
+     215.0000000000007
+    ],
+    [
+     "to_start",
+     215.0000000000007
+    ],
+    [
+     "to_start",
+     215.0000000000007
+    ],
+    [
+     "to_duration_elapsed",
+     216.0000000000007
+    ],
+    [
+     "to_end",
+     216.0000000000007
+    ],
+    [
+     "iti_start",
+     216.0000000000007
+    ],
+    [
+     "iti_duration_elapsed",
+     216.5000000000007
+    ],
+    [
+     "iti_end",
+     216.5000000000007
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 0,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 3,
+    "dispense_1_duration": 1,
+    "dispense_2_duration": 0.1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-1_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 209.45000000000067,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 209.85000000000068,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 52,
+    "trial_number": 52,
+    "trial_start": 209.55000000000067,
+    "ts_stim": 209.55000000000067,
+    "ts_stim_1": 209.55000000000067,
+    "ts_stim_2": 209.55000000000067,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 14
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     209.55000000000067,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 209.55000000000067
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 209.55000000000067
+    }
+   ]
+  },
+  {
+   "action": "repoke",
+   "events": [
+    [
+     "np_start",
+     216.55000000000072
+    ],
+    [
+     "np_duration_elapsed",
+     216.65000000000072
+    ],
+    [
+     "trial_start",
+     216.65000000000072
+    ],
+    [
+     "hold_start",
+     216.65000000000072
+    ],
+    [
+     "hold_duration_elapsed",
+     216.95000000000073
+    ],
+    [
+     "response_start",
+     216.95000000000073
+    ],
+    [
+     "np_end",
+     217.00000000000074
+    ],
+    [
+     "np_start",
+     217.05000000000075
+    ],
+    [
+     "np_end",
+     217.10000000000076
+    ],
+    [
+     "response_duration_elapsed",
+     222.10000000000076
+    ],
+    [
+     "response_end",
+     222.10000000000076
+    ],
+    [
+     "trial_end",
+     222.10000000000076
+    ],
+    [
+     "to_start",
+     222.10000000000076
+    ],
+    [
+     "to_start",
+     222.10000000000076
+    ],
+    [
+     "to_duration_elapsed",
+     223.10000000000076
+    ],
+    [
+     "to_end",
+     223.10000000000076
+    ],
+    [
+     "iti_start",
+     223.10000000000076
+    ],
+    [
+     "iti_duration_elapsed",
+     223.60000000000076
+    ],
+    [
+     "iti_end",
+     223.60000000000076
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 3,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "null_28_fg28-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 216.55000000000072,
+    "response": "no_response",
+    "response_condition": 2,
+    "response_side": "nan",
+    "response_start": 216.95000000000073,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 60,
+    "this_bg_level": 0,
+    "this_fg_level": 60,
+    "this_snr": 60,
+    "trial_cat": "normal",
+    "trial_idx": 53,
+    "trial_number": 53,
+    "trial_start": 216.65000000000072,
+    "ts_stim": 216.65000000000072,
+    "ts_stim_1": 216.65000000000072,
+    "ts_stim_2": 216.65000000000072,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 22
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     216.65000000000072,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 216.65000000000072
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 216.65000000000072
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     223.65000000000077
+    ],
+    [
+     "np_duration_elapsed",
+     223.75000000000077
+    ],
+    [
+     "trial_start",
+     223.75000000000077
+    ],
+    [
+     "hold_start",
+     223.75000000000077
+    ],
+    [
+     "hold_duration_elapsed",
+     224.05000000000078
+    ],
+    [
+     "response_start",
+     224.05000000000078
+    ],
+    [
+     "np_end",
+     224.1000000000008
+    ],
+    [
+     "response_1_start",
+     224.1500000000008
+    ],
+    [
+     "response_end",
+     224.1500000000008
+    ],
+    [
+     "trial_end",
+     224.1500000000008
+    ],
+    [
+     "to_start",
+     224.1500000000008
+    ],
+    [
+     "to_start",
+     224.1500000000008
+    ],
+    [
+     "response_1_end",
+     224.2000000000008
+    ],
+    [
+     "to_start",
+     224.2000000000008
+    ],
+    [
+     "to_duration_elapsed",
+     227.2000000000008
+    ],
+    [
+     "to_end",
+     227.2000000000008
+    ],
+    [
+     "iti_start",
+     227.2000000000008
+    ],
+    [
+     "iti_duration_elapsed",
+     227.7000000000008
+    ],
+    [
+     "iti_end",
+     227.7000000000008
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 3,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "bg04-0-2-0_28_fg28-0-2-2-n5dB",
+    "fg_channel": 1,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 223.65000000000077,
+    "response": "spout_1",
+    "response_condition": 2,
+    "response_side": 1,
+    "response_start": 224.05000000000078,
+    "response_time": 0.4000000000000341,
+    "response_ts": 224.1500000000008,
+    "score": 1,
+    "snr": -5,
+    "this_bg_level": 60,
+    "this_fg_level": 55,
+    "this_snr": -5,
+    "trial_cat": "normal",
+    "trial_idx": 54,
+    "trial_number": 54,
+    "trial_start": 223.75000000000077,
+    "ts_stim": 223.75000000000077,
+    "ts_stim_1": 223.75000000000077,
+    "ts_stim_2": 223.75000000000077,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 2
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     223.75000000000077,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 223.75000000000077
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 223.75000000000077
+    }
+   ]
+  },
+  {
+   "action": "early_np",
+   "events": [
+    [
+     "np_start",
+     227.75000000000082
+    ],
+    [
+     "np_duration_elapsed",
+     227.85000000000082
+    ],
+    [
+     "trial_start",
+     227.85000000000082
+    ],
+    [
+     "hold_start",
+     227.85000000000082
+    ],
+    [
+     "np_end",
+     227.90000000000083
+    ],
+    [
+     "response_end",
+     227.90000000000083
+    ],
+    [
+     "trial_end",
+     227.90000000000083
+    ],
+    [
+     "to_start",
+     227.90000000000083
+    ],
+    [
+     "to_start",
+     227.90000000000083
+    ],
+    [
+     "to_duration_elapsed",
+     228.90000000000083
+    ],
+    [
+     "to_end",
+     228.90000000000083
+    ],
+    [
+     "iti_start",
+     228.90000000000083
+    ],
+    [
+     "iti_duration_elapsed",
+     229.40000000000083
+    ],
+    [
+     "iti_end",
+     229.40000000000083
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 3,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "null_21_fg21-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 227.75000000000082,
+    "response": "early_np",
+    "response_condition": 2,
+    "response_side": "nan",
+    "response_start": "nan",
+    "response_time": 0.05000000000001137,
+    "response_ts": 227.90000000000083,
+    "score": 0,
+    "snr": 60,
+    "this_bg_level": 0,
+    "this_fg_level": 60,
+    "this_snr": 60,
+    "trial_cat": "normal",
+    "trial_idx": 55,
+    "trial_number": 55,
+    "trial_start": 227.85000000000082,
+    "ts_stim": 227.85000000000082,
+    "ts_stim_1": 227.85000000000082,
+    "ts_stim_2": 227.85000000000082,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 23
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     227.85000000000082,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 227.85000000000082
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 227.85000000000082
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     229.45000000000084
+    ],
+    [
+     "np_end",
+     229.50000000000085
+    ],
+    [
+     "np_start",
+     229.55000000000086
+    ],
+    [
+     "np_duration_elapsed",
+     229.65000000000086
+    ],
+    [
+     "trial_start",
+     229.65000000000086
+    ],
+    [
+     "hold_start",
+     229.65000000000086
+    ],
+    [
+     "hold_duration_elapsed",
+     229.95000000000087
+    ],
+    [
+     "response_start",
+     229.95000000000087
+    ],
+    [
+     "np_end",
+     230.00000000000088
+    ],
+    [
+     "response_1_start",
+     230.0500000000009
+    ],
+    [
+     "response_end",
+     230.0500000000009
+    ],
+    [
+     "deliver_reward_1",
+     230.0500000000009
+    ],
+    [
+     "trial_end",
+     230.0500000000009
+    ],
+    [
+     "response_1_end",
+     230.1000000000009
+    ],
+    [
+     "iti_start",
+     230.1000000000009
+    ],
+    [
+     "iti_duration_elapsed",
+     230.6000000000009
+    ],
+    [
+     "iti_end",
+     230.6000000000009
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 3,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 0.1,
+    "event_name": "null_28_fg28-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 229.55000000000086,
+    "response": "spout_1",
+    "response_condition": 1,
+    "response_side": 1,
+    "response_start": 229.95000000000087,
+    "response_time": 0.4000000000000341,
+    "response_ts": 230.0500000000009,
+    "score": 2,
+    "snr": 60,
+    "this_bg_level": 0,
+    "this_fg_level": 60,
+    "this_snr": 60,
+    "trial_cat": "normal",
+    "trial_idx": 56,
+    "trial_number": 56,
+    "trial_start": 229.65000000000086,
+    "ts_stim": 229.65000000000086,
+    "ts_stim_1": 229.65000000000086,
+    "ts_stim_2": 229.65000000000086,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 0.1,
+    "wav_set_idx": 20
+   },
+   "short_poke": true,
+   "sync": [
+    [
+     229.65000000000086,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 229.65000000000086
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 229.65000000000086
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     230.65000000000092
+    ],
+    [
+     "np_duration_elapsed",
+     230.7500000000009
+    ],
+    [
+     "trial_start",
+     230.7500000000009
+    ],
+    [
+     "hold_start",
+     230.7500000000009
+    ],
+    [
+     "hold_duration_elapsed",
+     231.05000000000092
+    ],
+    [
+     "response_start",
+     231.05000000000092
+    ],
+    [
+     "np_end",
+     231.10000000000093
+    ],
+    [
+     "response_1_start",
+     231.15000000000094
+    ],
+    [
+     "response_end",
+     231.15000000000094
+    ],
+    [
+     "deliver_reward_1",
+     231.15000000000094
+    ],
+    [
+     "trial_end",
+     231.15000000000094
+    ],
+    [
+     "response_1_end",
+     231.20000000000095
+    ],
+    [
+     "iti_start",
+     231.20000000000095
+    ],
+    [
+     "iti_duration_elapsed",
+     231.70000000000095
+    ],
+    [
+     "iti_end",
+     231.70000000000095
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 3,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "bg04-0-2-0_21_fg21-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 230.65000000000092,
+    "response": "spout_1",
+    "response_condition": 1,
+    "response_side": 1,
+    "response_start": 231.05000000000092,
+    "response_time": 0.4000000000000341,
+    "response_ts": 231.15000000000094,
+    "score": 2,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "normal",
+    "trial_idx": 57,
+    "trial_number": 57,
+    "trial_start": 230.7500000000009,
+    "ts_stim": 230.7500000000009,
+    "ts_stim_1": 230.7500000000009,
+    "ts_stim_2": 230.7500000000009,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 9
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     230.7500000000009,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 230.7500000000009
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 230.7500000000009
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     231.75000000000097
+    ],
+    [
+     "np_duration_elapsed",
+     231.85000000000096
+    ],
+    [
+     "trial_start",
+     231.85000000000096
+    ],
+    [
+     "hold_start",
+     231.85000000000096
+    ],
+    [
+     "hold_duration_elapsed",
+     232.15000000000097
+    ],
+    [
+     "response_start",
+     232.15000000000097
+    ],
+    [
+     "np_end",
+     232.20000000000098
+    ],
+    [
+     "response_duration_elapsed",
+     237.20000000000098
+    ],
+    [
+     "response_end",
+     237.20000000000098
+    ],
+    [
+     "trial_end",
+     237.20000000000098
+    ],
+    [
+     "to_start",
+     237.20000000000098
+    ],
+    [
+     "to_start",
+     237.20000000000098
+    ],
+    [
+     "to_duration_elapsed",
+     238.20000000000098
+    ],
+    [
+     "to_end",
+     238.20000000000098
+    ],
+    [
+     "iti_start",
+     238.20000000000098
+    ],
+    [
+     "iti_duration_elapsed",
+     238.70000000000098
+    ],
+    [
+     "iti_end",
+     238.70000000000098
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": 1,
+    "bg_i": 1,
+    "bg_name": "21_fg21.wav",
+    "correct": false,
+    "current_full_rep": 3,
+    "dispense_1_duration": 0.1,
+    "dispense_2_duration": 1,
+    "dispense_duration": -1,
+    "event_name": "21_fg21-0-2-2_28_fg28-0-2-1-0dB",
+    "fg_channel": 0,
+    "fg_i": 0,
+    "fg_name": "28_fg28.wav",
+    "np_start": 231.75000000000097,
+    "response": "no_response",
+    "response_condition": -1,
+    "response_side": "nan",
+    "response_start": 232.15000000000097,
+    "response_time": "nan",
+    "response_ts": "nan",
+    "score": 0,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "choice",
+    "trial_idx": 58,
+    "trial_number": 58,
+    "trial_start": 231.85000000000096,
+    "ts_stim": 231.85000000000096,
+    "ts_stim_1": 231.85000000000096,
+    "ts_stim_2": 231.85000000000096,
+    "water_dispense_1_duration": 0.1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 4
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     231.85000000000096,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 231.85000000000096
+    },
+    {
+     "cancelled": true,
+     "ramp_time": null,
+     "start": 231.85000000000096
+    }
+   ]
+  },
+  {
+   "action": "correct",
+   "events": [
+    [
+     "np_start",
+     238.750000000001
+    ],
+    [
+     "np_duration_elapsed",
+     238.850000000001
+    ],
+    [
+     "trial_start",
+     238.850000000001
+    ],
+    [
+     "hold_start",
+     238.850000000001
+    ],
+    [
+     "hold_duration_elapsed",
+     239.150000000001
+    ],
+    [
+     "response_start",
+     239.150000000001
+    ],
+    [
+     "np_end",
+     239.200000000001
+    ],
+    [
+     "response_2_start",
+     239.25000000000102
+    ],
+    [
+     "response_end",
+     239.25000000000102
+    ],
+    [
+     "deliver_reward_2",
+     239.25000000000102
+    ],
+    [
+     "trial_end",
+     239.25000000000102
+    ],
+    [
+     "response_2_end",
+     239.30000000000103
+    ],
+    [
+     "iti_start",
+     239.30000000000103
+    ],
+    [
+     "iti_duration_elapsed",
+     239.80000000000103
+    ],
+    [
+     "iti_end",
+     239.80000000000103
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": true,
+    "current_full_rep": 3,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "bg04-0-2-0_21_fg21-0-2-2-n5dB",
+    "fg_channel": 1,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 238.750000000001,
+    "response": "spout_2",
+    "response_condition": 2,
+    "response_side": 2,
+    "response_start": 239.150000000001,
+    "response_time": 0.4000000000000341,
+    "response_ts": 239.25000000000102,
+    "score": 2,
+    "snr": -5,
+    "this_bg_level": 60,
+    "this_fg_level": 55,
+    "this_snr": -5,
+    "trial_cat": "normal",
+    "trial_idx": 59,
+    "trial_number": 59,
+    "trial_start": 238.850000000001,
+    "ts_stim": 238.850000000001,
+    "ts_stim_1": 238.850000000001,
+    "ts_stim_2": 238.850000000001,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 3
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     238.850000000001,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 238.850000000001
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 238.850000000001
+    }
+   ]
+  },
+  {
+   "action": "incorrect",
+   "events": [
+    [
+     "np_start",
+     239.85000000000105
+    ],
+    [
+     "np_duration_elapsed",
+     239.95000000000104
+    ],
+    [
+     "trial_start",
+     239.95000000000104
+    ],
+    [
+     "hold_start",
+     239.95000000000104
+    ],
+    [
+     "hold_duration_elapsed",
+     240.25000000000105
+    ],
+    [
+     "response_start",
+     240.25000000000105
+    ],
+    [
+     "np_end",
+     240.30000000000106
+    ],
+    [
+     "response_1_start",
+     240.35000000000107
+    ],
+    [
+     "response_end",
+     240.35000000000107
+    ],
+    [
+     "trial_end",
+     240.35000000000107
+    ],
+    [
+     "to_start",
+     240.35000000000107
+    ],
+    [
+     "to_start",
+     240.35000000000107
+    ],
+    [
+     "response_1_end",
+     240.40000000000109
+    ],
+    [
+     "to_start",
+     240.40000000000109
+    ],
+    [
+     "to_duration_elapsed",
+     243.40000000000109
+    ],
+    [
+     "to_end",
+     243.40000000000109
+    ],
+    [
+     "iti_start",
+     243.40000000000109
+    ],
+    [
+     "iti_duration_elapsed",
+     243.90000000000109
+    ],
+    [
+     "iti_end",
+     243.90000000000109
+    ],
+    [
+     "trial_ready",
+     null
+    ]
+   ],
+   "log": {
+    "bg_channel": -1,
+    "bg_i": 0,
+    "bg_name": "bg04.wav",
+    "correct": false,
+    "current_full_rep": 3,
+    "dispense_1_duration": -1,
+    "dispense_2_duration": -1,
+    "dispense_duration": 1,
+    "event_name": "bg04-0-2-0_21_fg21-0-2-2-0dB",
+    "fg_channel": 1,
+    "fg_i": 1,
+    "fg_name": "21_fg21.wav",
+    "np_start": 239.85000000000105,
+    "response": "spout_1",
+    "response_condition": 2,
+    "response_side": 1,
+    "response_start": 240.25000000000105,
+    "response_time": 0.4000000000000341,
+    "response_ts": 240.35000000000107,
+    "score": 1,
+    "snr": 0,
+    "this_bg_level": 60,
+    "this_fg_level": 60,
+    "this_snr": 0,
+    "trial_cat": "normal",
+    "trial_idx": 60,
+    "trial_number": 60,
+    "trial_start": 239.95000000000104,
+    "ts_stim": 239.95000000000104,
+    "ts_stim_1": 239.95000000000104,
+    "ts_stim_2": 239.95000000000104,
+    "water_dispense_1_duration": 1,
+    "water_dispense_2_duration": 1,
+    "wav_set_idx": 11
+   },
+   "short_poke": false,
+   "sync": [
+    [
+     239.95000000000104,
+     0.5
+    ]
+   ],
+   "waveforms": [
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 239.95000000000104
+    },
+    {
+     "cancelled": false,
+     "ramp_time": null,
+     "start": 239.95000000000104
+    }
+   ]
+  }
+ ]
+}

@@ -230,3 +230,9 @@ too and install it with `pip install -e` after psilbhb. It then replaces the
 PyPI release.
 
 The tests need no rig, sound card or database.
+
+`tests/test_behavior_golden.py` checks the behavior paradigms (AMF, AMD,
+NFB) against golden copies of their trial sequences, trial logs and stimuli
+in `tests/golden`. If a change to what the animal gets or what is saved is
+intended, rewrite them with `python -m pytest tests/test_behavior_golden.py
+--update-golden` and review the diff before committing it.

@@ -1,0 +1,58 @@
+{
+ "class": "AMFusion",
+ "stim_list": {
+  "dis_am": [
+   0.0,
+   0.0
+  ],
+  "dis_freq": [
+   1000.0,
+   1000.0
+  ],
+  "dis_level": [
+   0,
+   0
+  ],
+  "dis_offset": [
+   0.0,
+   0.0
+  ],
+  "duration": [
+   1.0,
+   1.0
+  ],
+  "go_trial": [
+   true,
+   true
+  ],
+  "index": [
+   0,
+   1
+  ],
+  "tar_am": [
+   20.0,
+   20.0
+  ],
+  "tar_bandwidth": [
+   0,
+   0
+  ],
+  "tar_channel": [
+   0,
+   0
+  ],
+  "tar_depth": [
+   100.0,
+   100.0
+  ],
+  "tar_freq": [
+   1000.0,
+   1000.0
+  ],
+  "tar_level": [
+   60,
+   60
+  ]
+ },
+ "trial_wav_idx": []
+}
